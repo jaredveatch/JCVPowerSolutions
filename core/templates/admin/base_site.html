@@ -1,0 +1,208 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}JCV Power Solutions Admin{% endblock %}
+
+{% block branding %}
+<div class="jcv-admin-brand">
+    <img src="{% static 'core/images/logo.png' %}" alt="JCV Power Solutions">
+    <div>
+        <h1>JCV Power Solutions</h1>
+        <p>Admin Dashboard</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+
+<style>
+    :root {
+        --primary: #ffc400;
+        --secondary: #111111;
+        --accent: #ffc400;
+        --primary-fg: #000000;
+        --body-bg: #050505;
+        --body-fg: #f5f5f5;
+        --body-quiet-color: #b8b8b8;
+        --body-loud-color: #ffffff;
+        --header-bg: #050505;
+        --header-color: #ffc400;
+        --breadcrumbs-bg: #111111;
+        --breadcrumbs-fg: #ffc400;
+        --link-fg: #ffc400;
+        --link-hover-color: #ffffff;
+        --link-selected-fg: #ffffff;
+    }
+
+    body {
+        background: #050505 !important;
+        color: #f5f5f5 !important;
+    }
+
+    #header {
+        background: #050505 !important;
+        border-bottom: 1px solid rgba(255,196,0,.35);
+        height: auto;
+        padding: 14px 30px;
+    }
+
+    .jcv-admin-brand {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
+
+    .jcv-admin-brand img {
+        height: 70px;
+        width: auto;
+    }
+
+    .jcv-admin-brand h1 {
+        margin: 0;
+        color: #ffc400;
+        font-size: 24px;
+        text-transform: uppercase;
+        font-style: italic;
+        letter-spacing: 1px;
+    }
+
+    .jcv-admin-brand p {
+        margin: 4px 0 0;
+        color: #b8b8b8;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    #user-tools {
+        color: #f5f5f5 !important;
+        font-weight: bold;
+    }
+
+    #user-tools a {
+        color: #ffc400 !important;
+    }
+
+    div.breadcrumbs {
+        background: #111111 !important;
+        color: #ffc400 !important;
+        border-bottom: 1px solid rgba(255,196,0,.2);
+    }
+
+    div.breadcrumbs a {
+        color: #ffc400 !important;
+    }
+
+    .module {
+        background: #111111 !important;
+        border: 1px solid rgba(255,196,0,.18);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .module h2,
+    .module caption,
+    .inline-group h2 {
+        background: linear-gradient(90deg, #ffc400, #d6a900) !important;
+        color: #000000 !important;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    table {
+        background: #111111 !important;
+    }
+
+    th {
+        background: #151515 !important;
+        color: #ffc400 !important;
+    }
+
+    td {
+        background: #0b0b0b !important;
+        color: #f5f5f5 !important;
+        border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    a:link,
+    a:visited {
+        color: #ffc400;
+    }
+
+    input,
+    textarea,
+    select {
+        background: #0b0b0b !important;
+        color: #f5f5f5 !important;
+        border: 1px solid rgba(255,196,0,.25) !important;
+        border-radius: 6px;
+        padding: 8px;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+        border-color: #ffc400 !important;
+        outline: none;
+        box-shadow: 0 0 10px rgba(255,196,0,.25);
+    }
+
+    .button,
+    input[type=submit],
+    input[type=button],
+    .submit-row input,
+    a.button {
+        background: #ffc400 !important;
+        color: #000000 !important;
+        border-radius: 6px !important;
+        border: none !important;
+        font-weight: 900 !important;
+        text-transform: uppercase;
+    }
+
+    .button:hover,
+    input[type=submit]:hover,
+    input[type=button]:hover,
+    .submit-row input:hover,
+    a.button:hover {
+        background: #ffd84d !important;
+    }
+
+    .button.default,
+    input[type=submit].default,
+    .submit-row input.default {
+        background: #ffc400 !important;
+        color: #000 !important;
+    }
+
+    .delete-link {
+        background: #7a1111 !important;
+        color: white !important;
+        border-radius: 6px;
+    }
+
+    #content h1 {
+        color: #ffc400 !important;
+        font-style: italic;
+        text-transform: uppercase;
+    }
+
+    .object-tools a {
+        background: #ffc400 !important;
+        color: #000 !important;
+        font-weight: 900;
+        border-radius: 6px;
+    }
+
+    .dashboard .module table th a {
+        color: #ffc400 !important;
+    }
+
+    .help,
+    p.help {
+        color: #b8b8b8 !important;
+    }
+</style>
+{% endblock %}
