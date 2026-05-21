@@ -1,0 +1,787 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCV Power Solutions</title>
+
+    <style>
+        :root {
+            --black: #050505;
+            --yellow: #ffc400;
+            --white: #f5f5f5;
+            --gray: #b8b8b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--black);
+            color: var(--white);
+            overflow-x: hidden;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            height: 110px;
+            background: rgba(5,5,5,0.95);
+            border-bottom: 1px solid rgba(255,196,0,.25);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 45px;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            height: 105px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 22px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 1px;
+            transition: .2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--yellow);
+        }
+
+        .quote-btn {
+            background: var(--yellow);
+            color: black !important;
+            padding: 14px 20px;
+            border-radius: 6px;
+            box-shadow: 0 0 20px rgba(255,196,0,.35);
+        }
+
+        .hero {
+            min-height: 92vh;
+            display: flex;
+            align-items: center;
+            padding: 70px;
+            background:
+                linear-gradient(90deg, rgba(5,5,5,.96) 28%, rgba(5,5,5,.45)),
+                radial-gradient(circle at top right, rgba(255,196,0,.15), transparent 28%),
+                #0a0a0a;
+        }
+
+        .hero-content {
+            max-width: 700px;
+        }
+
+        .eyebrow {
+            color: var(--yellow);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 88px;
+            line-height: .95;
+            text-transform: uppercase;
+            font-style: italic;
+            margin-bottom: 28px;
+        }
+
+        h1 span,
+        h2 span {
+            color: var(--yellow);
+        }
+
+        .hero p {
+            color: #dddddd;
+            font-size: 20px;
+            line-height: 1.8;
+            margin-bottom: 40px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 16px 28px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 900;
+            text-transform: uppercase;
+            transition: .2s;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .btn-yellow {
+            background: var(--yellow);
+            color: black;
+        }
+
+        .btn-outline {
+            border: 1px solid var(--yellow);
+            color: white;
+            background: transparent;
+        }
+
+        section {
+            padding: 100px 60px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 55px;
+        }
+
+        .section-title small {
+            color: var(--yellow);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .section-title h2 {
+            margin-top: 14px;
+            font-size: 44px;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        .services-grid,
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+        }
+
+        .service-card,
+        .stat-card,
+        .gallery-card,
+        .career-card {
+            background: linear-gradient(145deg, #151515, #090909);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 12px;
+            transition: .25s;
+        }
+
+        .service-card,
+        .stat-card,
+        .career-card {
+            padding: 42px 28px;
+            text-align: center;
+        }
+
+        .service-card:hover,
+        .stat-card:hover,
+        .gallery-card:hover,
+        .career-card:hover {
+            transform: translateY(-7px);
+            border-color: var(--yellow);
+            box-shadow: 0 0 30px rgba(255,196,0,.12);
+        }
+
+        .icon {
+            font-size: 54px;
+            margin-bottom: 20px;
+            color: var(--yellow);
+        }
+
+        .service-card h3,
+        .gallery-card h3,
+        .career-card h3 {
+            margin-bottom: 18px;
+            text-transform: uppercase;
+        }
+
+        .service-card p,
+        .gallery-card p,
+        .about p,
+        .career-card p {
+            color: var(--gray);
+            line-height: 1.8;
+        }
+
+        .about {
+            max-width: 900px;
+            margin: auto;
+            text-align: center;
+        }
+
+        .about h2 {
+            font-size: 52px;
+            line-height: 1.1;
+            margin-bottom: 28px;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        .about p {
+            font-size: 19px;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 35px;
+        }
+
+        .gallery-card {
+            overflow: hidden;
+        }
+
+        .gallery-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: contain;
+            background: #0a0a0a;
+        }
+
+        .gallery-content {
+            padding: 26px;
+        }
+
+        .careers-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .form-section {
+            background:
+                radial-gradient(circle at top left, rgba(255,196,0,.12), transparent 30%),
+                #070707;
+        }
+
+        .form-box {
+            max-width: 900px;
+            margin: auto;
+            background: linear-gradient(145deg, #111, #070707);
+            border: 1px solid rgba(255,196,0,.22);
+            border-radius: 14px;
+            padding: 45px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,.14);
+            background: #0b0b0b;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+            grid-column: span 2;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .success-message {
+            max-width: 900px;
+            margin: 0 auto 25px;
+            padding: 18px;
+            border: 1px solid rgba(255,196,0,.35);
+            border-radius: 10px;
+            background: #111;
+            color: #ffc400;
+            text-align: center;
+            font-weight: 900;
+            box-shadow: 0 0 20px rgba(255,196,0,.15);
+        }
+
+        .admin-card {
+            background: #0b0b0b;
+            border: 1px solid rgba(255,196,0,.2);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .admin-card p {
+            margin-bottom: 10px;
+            color: #d0d0d0;
+        }
+
+        .stats {
+            background: linear-gradient(90deg, #0a0a0a, #141414, #0a0a0a);
+        }
+
+        .stat-card h3 {
+            color: var(--yellow);
+            font-size: 54px;
+            margin-bottom: 10px;
+        }
+
+        .contact-box {
+            background: linear-gradient(145deg, #111, #070707);
+            border: 1px solid rgba(255,196,0,.22);
+            border-radius: 12px;
+            padding: 45px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .contact-info a,
+        .contact-info p {
+            color: #d0d0d0;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 14px;
+            font-size: 18px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 35px;
+            color: #777;
+            border-top: 1px solid rgba(255,255,255,.08);
+        }
+
+        @media (max-width: 1000px) {
+            nav {
+                flex-direction: column;
+                height: auto;
+                padding: 20px;
+                gap: 20px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            h1 {
+                font-size: 56px;
+            }
+
+            .services-grid,
+            .stats-grid,
+            .gallery-grid,
+            .careers-grid,
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            textarea,
+            .full-width {
+                grid-column: span 1;
+            }
+
+            .hero {
+                padding: 50px 30px;
+            }
+
+            section {
+                padding: 80px 30px;
+            }
+
+            .contact-box {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<nav>
+    <img class="logo" src="{% static 'core/images/logo.png' %}" alt="JCV Power Solutions Logo">
+
+    <div class="nav-links">
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#services">Services</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#careers">Careers</a>
+
+        {% if request.user.is_authenticated and request.user.is_staff %}
+            <a href="#admin-requests">Admin Requests</a>
+        {% endif %}
+
+        <a href="#contact">Contact</a>
+        <a class="quote-btn" href="#quote">⚡ Get a Quote</a>
+    </div>
+</nav>
+
+<section id="home" class="hero">
+    <div class="hero-content">
+        <div class="eyebrow">⚡ Licensed Electrical Contractor</div>
+
+        <h1>Powering<br>Your <span>Future</span></h1>
+
+        <p>
+            JCV Power Solutions delivers reliable, safe, and high-quality electrical
+            services for residential, commercial, and industrial projects.
+        </p>
+
+        <div class="hero-buttons">
+            <a class="btn btn-yellow" href="#quote">Get a Quote ⚡</a>
+            <a class="btn btn-outline" href="tel:12819792943">Call Now</a>
+        </div>
+    </div>
+</section>
+
+<section id="services">
+    <div class="section-title">
+        <small>What We Do</small>
+        <h2>Our <span>Services</span></h2>
+    </div>
+
+    <div class="services-grid">
+        <div class="service-card">
+            <div class="icon">⚡</div>
+            <h3>Residential</h3>
+            <p>Electrical installs, troubleshooting, lighting upgrades, panel work, and repairs.</p>
+        </div>
+
+        <div class="service-card">
+            <div class="icon">🏢</div>
+            <h3>Commercial</h3>
+            <p>Commercial electrical systems built for performance, safety, and reliability.</p>
+        </div>
+
+        <div class="service-card">
+            <div class="icon">🏭</div>
+            <h3>Industrial</h3>
+            <p>Heavy-duty electrical solutions for industrial applications and facilities.</p>
+        </div>
+
+        <div class="service-card">
+            <div class="icon">🛠</div>
+            <h3>Maintenance</h3>
+            <p>Preventative maintenance and troubleshooting to keep systems operating safely.</p>
+        </div>
+    </div>
+</section>
+
+<section id="about">
+    <div class="about">
+        <div class="eyebrow">About Us</div>
+        <h2>Built on <span>Power.</span><br>Driven by <span>Trust.</span></h2>
+
+        <p>
+            At JCV Power Solutions, we take pride in clean workmanship, reliability,
+            and delivering professional electrical solutions. From service calls to
+            larger projects, we power what matters most.
+        </p>
+
+        <br><br>
+
+        <a class="btn btn-yellow" href="#quote">Request Service ⚡</a>
+    </div>
+</section>
+
+<section id="gallery">
+    <div class="section-title">
+        <small>Our Work</small>
+        <h2>Project <span>Gallery</span></h2>
+    </div>
+
+    <div class="gallery-grid">
+        <div class="gallery-card">
+            <img src="{% static 'core/images/project1.jpg' %}" alt="Luxury chandelier installation">
+            <div class="gallery-content">
+                <h3>Luxury Chandelier Install</h3>
+                <p>High-end residential chandelier lighting installation with premium finish and clean wiring.</p>
+            </div>
+        </div>
+
+        <div class="gallery-card">
+            <img src="{% static 'core/images/project2.jpg' %}" alt="Custom residential lighting">
+            <div class="gallery-content">
+                <h3>Custom Residential Lighting</h3>
+                <p>High-end residential lighting design featuring chandelier fixtures and premium lighting details.</p>
+            </div>
+        </div>
+
+        <div class="gallery-card">
+            <img src="{% static 'core/images/project3.jpg' %}" alt="400 amp service upgrade">
+            <div class="gallery-content">
+                <h3>400 Amp Service Upgrade</h3>
+                <p>Complete 400 amp residential electrical service upgrade with new equipment and distribution.</p>
+            </div>
+        </div>
+
+        <div class="gallery-card">
+            <img src="{% static 'core/images/project4.jpg' %}" alt="Residential service upgrade">
+            <div class="gallery-content">
+                <h3>Residential Service Upgrade</h3>
+                <p>Residential service replacement and upgraded electrical distribution system installation.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="careers">
+    <div class="section-title">
+        <small>Now Hiring</small>
+        <h2>Careers at <span>JCV</span></h2>
+    </div>
+
+    <div class="careers-grid">
+        <div class="career-card">
+            <div class="icon">👷</div>
+            <h3>Apprentice Electricians</h3>
+            <p>Looking for motivated workers who want to learn the trade, show up on time, and grow with the company.</p>
+        </div>
+
+        <div class="career-card">
+            <div class="icon">⚡</div>
+            <h3>Journeyman Electricians</h3>
+            <p>Seeking skilled electricians with clean work habits, code knowledge, and leadership ability.</p>
+        </div>
+    </div>
+
+    <br><br>
+
+    <div style="text-align:center;">
+        <a class="btn btn-yellow" href="#career-form">Apply Now ⚡</a>
+    </div>
+</section>
+
+<section id="quote" class="form-section">
+    <div class="section-title">
+        <small>Request Service</small>
+        <h2>Get a <span>Quote</span></h2>
+    </div>
+
+    <form class="form-box ajax-form" method="POST" action="{% url 'home' %}">
+        {% csrf_token %}
+        <input type="hidden" name="quote_form" value="1">
+
+        <div class="form-grid">
+            <input type="text" name="name" placeholder="Your Name" required>
+            <input type="tel" name="phone" placeholder="Phone Number" required>
+            <input type="email" name="email" placeholder="Email Address">
+
+            <select name="service" required>
+                <option value="">Service Needed</option>
+                <option>Residential Electrical</option>
+                <option>Commercial Electrical</option>
+                <option>Panel / Service Upgrade</option>
+                <option>Lighting Installation</option>
+                <option>Troubleshooting / Repair</option>
+                <option>Other</option>
+            </select>
+
+            <textarea name="message" placeholder="Describe the electrical work you need..." required></textarea>
+
+            <button class="btn btn-yellow full-width" type="submit">
+                Submit Quote Request ⚡
+            </button>
+        </div>
+    </form>
+</section>
+
+<section id="career-form" class="form-section">
+    <div class="section-title">
+        <small>Join the Team</small>
+        <h2>Career <span>Application</span></h2>
+    </div>
+
+    <form class="form-box ajax-form" method="POST" action="{% url 'home' %}">
+        {% csrf_token %}
+        <input type="hidden" name="career_form" value="1">
+
+        <div class="form-grid">
+            <input type="text" name="applicant_name" placeholder="Full Name" required>
+            <input type="tel" name="applicant_phone" placeholder="Phone Number" required>
+            <input type="email" name="applicant_email" placeholder="Email Address">
+
+            <select name="position" required>
+                <option value="">Position Applying For</option>
+                <option>Apprentice Electrician</option>
+                <option>Journeyman Electrician</option>
+                <option>Other</option>
+            </select>
+
+            <input type="text" name="experience" placeholder="Years of Experience">
+            <input type="text" name="license" placeholder="License / Certifications">
+
+            <textarea name="career_message" placeholder="Tell us about your experience, tools, transportation, and availability..." required></textarea>
+
+            <button class="btn btn-yellow full-width" type="submit">
+                Submit Application ⚡
+            </button>
+        </div>
+    </form>
+</section>
+
+{% if request.user.is_authenticated and request.user.is_staff %}
+<section id="admin-requests" class="form-section">
+    <div class="section-title">
+        <small>Admin Only</small>
+        <h2>Submitted <span>Requests</span></h2>
+    </div>
+
+    <div class="form-box">
+        <h2 style="color:#ffc400; margin-bottom:25px;">Quote Requests</h2>
+
+        {% for quote in quote_requests %}
+            <div class="admin-card">
+                <p><strong>Name:</strong> {{ quote.name }}</p>
+                <p><strong>Phone:</strong> {{ quote.phone }}</p>
+                <p><strong>Email:</strong> {{ quote.email }}</p>
+                <p><strong>Service:</strong> {{ quote.service }}</p>
+                <p><strong>Message:</strong> {{ quote.message }}</p>
+                <p><strong>Submitted:</strong> {{ quote.created_at }}</p>
+            </div>
+        {% empty %}
+            <p>No quote requests yet.</p>
+        {% endfor %}
+
+        <br><br>
+
+        <h2 style="color:#ffc400; margin-bottom:25px;">Career Applications</h2>
+
+        {% for app in career_applications %}
+            <div class="admin-card">
+                <p><strong>Name:</strong> {{ app.name }}</p>
+                <p><strong>Phone:</strong> {{ app.phone }}</p>
+                <p><strong>Email:</strong> {{ app.email }}</p>
+                <p><strong>Position:</strong> {{ app.position }}</p>
+                <p><strong>Experience:</strong> {{ app.experience }}</p>
+                <p><strong>License:</strong> {{ app.license_info }}</p>
+                <p><strong>Message:</strong> {{ app.message }}</p>
+                <p><strong>Submitted:</strong> {{ app.created_at }}</p>
+            </div>
+        {% empty %}
+            <p>No career applications yet.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section id="why" class="stats">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>100%</h3>
+            <p>Reliable Workmanship</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>24/7</h3>
+            <p>Service Mindset</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Clean</h3>
+            <p>Professional Installs</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Local</h3>
+            <p>Friendswood, Texas</p>
+        </div>
+    </div>
+</section>
+
+<section id="contact">
+    <div class="contact-box">
+        <div>
+            <div class="eyebrow">Ready to get started?</div>
+            <h2>Let’s Power Your Project.</h2>
+        </div>
+
+        <div class="contact-info">
+            <a href="tel:12819792943">📞 281-979-2943</a>
+            <a href="mailto:info@jcvpowersolutions.com">✉️ info@jcvpowersolutions.com</a>
+            <p>📍 Friendswood, Texas</p>
+        </div>
+
+        <a class="btn btn-yellow" href="tel:12819792943">Call Now ⚡</a>
+    </div>
+</section>
+
+<footer>
+    © 2026 JCV Power Solutions. All rights reserved.
+</footer>
+
+<script>
+document.querySelectorAll(".ajax-form").forEach(function(form) {
+    form.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let messageBox = form.previousElementSibling;
+
+                if (!messageBox || !messageBox.classList.contains("success-message")) {
+                    messageBox = document.createElement("div");
+                    messageBox.className = "success-message";
+                    form.parentNode.insertBefore(messageBox, form);
+                }
+
+                messageBox.textContent = data.message;
+                form.reset();
+            }
+        })
+        .catch(error => {
+            alert("Something went wrong. Please try again.");
+            console.error(error);
+        });
+    });
+});
+</script>
+
+</body>
+</html>
