@@ -1,0 +1,190 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block content %}
+
+<style>
+    .jcv-dashboard {
+        display: grid;
+        gap: 28px;
+    }
+
+    .jcv-hero {
+        background: linear-gradient(135deg, #111, #050505);
+        border: 1px solid rgba(255,196,0,.25);
+        border-radius: 16px;
+        padding: 35px;
+        box-shadow: 0 0 30px rgba(255,196,0,.08);
+    }
+
+    .jcv-hero h1 {
+        color: #ffc400;
+        text-transform: uppercase;
+        font-style: italic;
+        margin-bottom: 10px;
+    }
+
+    .jcv-hero p {
+        color: #b8b8b8;
+        font-size: 16px;
+    }
+
+    .jcv-tabs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+
+    .jcv-tab {
+        background: linear-gradient(145deg, #151515, #090909);
+        border: 1px solid rgba(255,196,0,.2);
+        border-radius: 14px;
+        padding: 25px;
+        text-decoration: none !important;
+        color: white !important;
+        transition: .2s;
+    }
+
+    .jcv-tab:hover {
+        transform: translateY(-4px);
+        border-color: #ffc400;
+        box-shadow: 0 0 25px rgba(255,196,0,.15);
+    }
+
+    .jcv-tab span {
+        display: block;
+        font-size: 34px;
+        margin-bottom: 12px;
+    }
+
+    .jcv-tab h2 {
+        color: #ffc400;
+        margin: 0 0 8px;
+        text-transform: uppercase;
+        font-size: 18px;
+    }
+
+    .jcv-tab p {
+        color: #b8b8b8;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .jcv-section {
+        background: #0b0b0b;
+        border: 1px solid rgba(255,196,0,.18);
+        border-radius: 14px;
+        padding: 28px;
+    }
+
+    .jcv-section h2 {
+        color: #ffc400;
+        text-transform: uppercase;
+        font-style: italic;
+        margin-bottom: 20px;
+    }
+
+    .jcv-links {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+    }
+
+    .jcv-links a {
+        background: #151515;
+        border: 1px solid rgba(255,255,255,.1);
+        border-radius: 10px;
+        padding: 16px;
+        color: #ffc400 !important;
+        text-decoration: none !important;
+        font-weight: 900;
+    }
+
+    .jcv-links a:hover {
+        background: #ffc400;
+        color: #000 !important;
+    }
+
+    @media (max-width: 1000px) {
+        .jcv-tabs,
+        .jcv-links {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="jcv-dashboard">
+
+    <div class="jcv-hero">
+        <h1>JCV Power Solutions Command Center</h1>
+        <p>Manage leads, quotes, customers, jobs, photos, hiring, and field notes from one place.</p>
+    </div>
+
+    <div class="jcv-tabs">
+
+        <a class="jcv-tab" href="/admin/core/quoterequest/">
+            <span>💰</span>
+            <h2>Quote Requests</h2>
+            <p>New customer requests from the website.</p>
+        </a>
+
+        <a class="jcv-tab" href="/admin/core/customer/">
+            <span>👤</span>
+            <h2>Customers</h2>
+            <p>Track customer info, addresses, notes, and lead status.</p>
+        </a>
+
+        <a class="jcv-tab" href="/admin/core/job/">
+            <span>🛠️</span>
+            <h2>Jobs</h2>
+            <p>Track site visits, quote status, job status, labor, and materials.</p>
+        </a>
+
+        <a class="jcv-tab" href="/admin/core/jobphoto/">
+            <span>📸</span>
+            <h2>Job Photos</h2>
+            <p>Upload field photos, captions, and notes for each job.</p>
+        </a>
+
+        <a class="jcv-tab" href="/admin/core/careerapplication/">
+            <span>👷</span>
+            <h2>Applications</h2>
+            <p>Review apprentice and journeyman applicants.</p>
+        </a>
+
+        <a class="jcv-tab" href="/admin/auth/user/">
+            <span>🔐</span>
+            <h2>Users</h2>
+            <p>Manage admin users and future employee logins.</p>
+        </a>
+
+        <a class="jcv-tab" href="/">
+            <span>🌐</span>
+            <h2>View Website</h2>
+            <p>Open the public JCV Power Solutions website.</p>
+        </a>
+
+        <a class="jcv-tab" href="/admin/logout/">
+            <span>🚪</span>
+            <h2>Logout</h2>
+            <p>Securely exit the admin dashboard.</p>
+        </a>
+
+    </div>
+
+    <div class="jcv-section">
+        <h2>Quick Actions</h2>
+
+        <div class="jcv-links">
+            <a href="/admin/core/customer/add/">+ Add Customer</a>
+            <a href="/admin/core/job/add/">+ Add Job / Site Visit</a>
+            <a href="/admin/core/jobphoto/add/">+ Upload Job Photo</a>
+            <a href="/admin/core/quoterequest/">View New Quotes</a>
+            <a href="/admin/core/job/?status__exact=quote_needed">Jobs Needing Quotes</a>
+            <a href="/admin/core/job/?status__exact=approved">Approved Jobs</a>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
