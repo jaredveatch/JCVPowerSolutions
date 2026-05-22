@@ -3,21 +3,22 @@
 <html lang="en">
 <head>
     <title>JCV Command Center</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <style>
+
         :root {
             --bg: #f4f5f7;
             --card: #ffffff;
-            --ink: #111827;
-            --muted: #6b7280;
-            --black: #050505;
-            --dark: #111111;
+            --black: #0b0b0c;
             --gold: #ffc400;
-            --gold-soft: #fff3bf;
+            --text: #111827;
+            --muted: #6b7280;
             --border: #e5e7eb;
-            --shadow: 0 10px 30px rgba(0,0,0,.08);
-            --radius: 22px;
+            --green: #16a34a;
+            --blue: #2563eb;
         }
 
         * {
@@ -27,644 +28,668 @@
         body {
             margin: 0;
             background: var(--bg);
-            color: var(--ink);
-            font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Arial, sans-serif;
+
+            font-family:
+                Inter,
+                SF Pro Display,
+                -apple-system,
+                BlinkMacSystemFont,
+                sans-serif;
+
+            color: var(--text);
         }
 
-        a {
-            text-decoration: none;
-        }
+        .topbar {
 
-        .app {
-            min-height: 100vh;
-            display: grid;
-            grid-template-columns: 260px 1fr;
-        }
+            background: white;
 
-        .sidebar {
-            background: var(--black);
-            color: white;
-            padding: 22px;
+            border-bottom: 1px solid var(--border);
+
+            padding: 18px;
+
             position: sticky;
             top: 0;
-            height: 100vh;
-        }
+            z-index: 100;
 
-        .brand {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 28px;
-        }
-
-        .brand-badge {
-            width: 48px;
-            height: 48px;
-            border-radius: 16px;
-            background: var(--gold);
-            color: black;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 950;
-            letter-spacing: -1px;
         }
 
         .brand h1 {
             margin: 0;
-            font-size: 17px;
-            line-height: 1.1;
+            font-size: 28px;
+            letter-spacing: -.05em;
         }
 
         .brand p {
-            margin: 3px 0 0;
-            color: #a3a3a3;
-            font-size: 12px;
-        }
-
-        .nav-title {
-            color: #777;
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: .12em;
-            margin: 24px 0 10px;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #e5e7eb;
-            padding: 12px 13px;
-            border-radius: 14px;
-            margin-bottom: 6px;
-            font-weight: 700;
+            margin: 5px 0 0;
+            color: var(--muted);
             font-size: 14px;
         }
 
-        .nav-link:hover,
-        .nav-link.active {
-            background: rgba(255,196,0,.14);
-            color: var(--gold);
-        }
-
-        .main {
-            padding: 24px;
-        }
-
-        .topbar {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 18px;
+        .top-buttons {
             display: flex;
+            gap: 10px;
+        }
+
+        .top-btn {
+
+            background: var(--black);
+            color: white;
+
+            text-decoration: none;
+
+            padding: 12px 16px;
+
+            border-radius: 16px;
+
+            font-weight: 900;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: auto;
+            padding: 18px;
+            padding-bottom: 100px;
+        }
+
+        .hero {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #0b0b0c 0%,
+                    #171717 100%
+                );
+
+            color: white;
+
+            border-radius: 32px;
+
+            padding: 28px;
+
+            margin-bottom: 20px;
+
+            box-shadow:
+                0 20px 50px rgba(0,0,0,.18);
+        }
+
+        .hero-badge {
+
+            display: inline-flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 6px;
+
+            background: rgba(255,196,0,.14);
+
+            color: var(--gold);
+
+            padding: 8px 14px;
+
+            border-radius: 999px;
+
+            font-size: 12px;
+            font-weight: 950;
+
+            margin-bottom: 18px;
+        }
+
+        .hero h2 {
+            margin: 0;
+            font-size: 40px;
+            letter-spacing: -.06em;
+            line-height: 1;
+        }
+
+        .hero p {
+            margin: 12px 0 0;
+            color: #d1d5db;
+            max-width: 700px;
+            line-height: 1.6;
+        }
+
+        .stats {
+
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+
+            gap: 14px;
+
             margin-bottom: 20px;
         }
 
-        .topbar h2 {
+        .stat-card {
+
+            background: white;
+
+            border: 1px solid var(--border);
+
+            border-radius: 26px;
+
+            padding: 22px;
+
+            box-shadow:
+                0 8px 24px rgba(0,0,0,.05);
+        }
+
+        .stat-label {
+
+            color: var(--muted);
+
+            font-size: 12px;
+            font-weight: 900;
+
+            text-transform: uppercase;
+
+            margin-bottom: 10px;
+        }
+
+        .stat-number {
+
+            font-size: 36px;
+            font-weight: 950;
+
+            letter-spacing: -.04em;
+        }
+
+        .quick-actions {
+
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+
+            gap: 14px;
+
+            margin-bottom: 20px;
+        }
+
+        .quick-card {
+
+            text-decoration: none;
+
+            color: var(--text);
+
+            background: white;
+
+            border: 1px solid var(--border);
+
+            border-radius: 28px;
+
+            padding: 22px;
+
+            transition: .2s;
+
+            box-shadow:
+                0 8px 24px rgba(0,0,0,.05);
+        }
+
+        .quick-card:hover {
+
+            transform: translateY(-3px);
+
+            box-shadow:
+                0 14px 34px rgba(0,0,0,.08);
+        }
+
+        .quick-icon {
+            font-size: 34px;
+            margin-bottom: 14px;
+        }
+
+        .quick-card h3 {
+            margin: 0 0 8px;
+            font-size: 20px;
+            letter-spacing: -.03em;
+        }
+
+        .quick-card p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .section {
+
+            background: white;
+
+            border: 1px solid var(--border);
+
+            border-radius: 30px;
+
+            padding: 24px;
+
+            margin-bottom: 20px;
+
+            box-shadow:
+                0 8px 24px rgba(0,0,0,.05);
+        }
+
+        .section-header {
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            margin-bottom: 18px;
+        }
+
+        .section-header h2 {
             margin: 0;
             font-size: 24px;
             letter-spacing: -.04em;
         }
 
-        .topbar p {
-            margin: 4px 0 0;
-            color: var(--muted);
-            font-size: 14px;
-        }
+        .section-link {
 
-        .top-actions {
-            display: flex;
-            gap: 10px;
-        }
+            text-decoration: none;
 
-        .btn {
-            border: none;
-            border-radius: 14px;
-            padding: 12px 16px;
+            color: var(--black);
+
             font-weight: 900;
-            font-size: 14px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
         }
 
-        .btn-dark {
-            background: var(--black);
-            color: white;
-        }
+        .list-card {
 
-        .btn-gold {
-            background: var(--gold);
-            color: black;
-        }
-
-        .pipeline {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .stage {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 16px;
-            box-shadow: 0 6px 18px rgba(0,0,0,.04);
-        }
-
-        .stage-number {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: var(--gold-soft);
-            color: #7a5a00;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 950;
-            margin-bottom: 10px;
-        }
-
-        .stage strong {
-            display: block;
-            font-size: 14px;
-        }
-
-        .stage span {
-            display: block;
-            color: var(--muted);
-            font-size: 12px;
-            margin-top: 4px;
-        }
-
-        .stage.active {
-            background: var(--black);
-            color: white;
-            border-color: var(--black);
-        }
-
-        .stage.active .stage-number {
-            background: var(--gold);
-            color: black;
-        }
-
-        .stage.active span {
-            color: #cfcfcf;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: 1.4fr .8fr;
-            gap: 20px;
-        }
-
-        .panel {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 18px;
-            margin-bottom: 20px;
-        }
-
-        .panel-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 14px;
-        }
-
-        .panel h3 {
-            margin: 0;
-            font-size: 18px;
-            letter-spacing: -.03em;
-        }
-
-        .panel small {
-            color: var(--muted);
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .stat {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 16px;
-            box-shadow: 0 6px 18px rgba(0,0,0,.04);
-        }
-
-        .stat span {
-            color: var(--muted);
-            font-size: 12px;
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-
-        .stat h2 {
-            margin: 8px 0 0;
-            font-size: 30px;
-            letter-spacing: -.06em;
-        }
-
-        .lead-card {
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 15px;
-            margin-bottom: 12px;
             background: #fafafa;
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 12px;
+
+            border: 1px solid var(--border);
+
+            border-radius: 22px;
+
+            padding: 18px;
+
+            margin-bottom: 12px;
+
+            display: flex;
+            justify-content: space-between;
             align-items: center;
+
+            gap: 14px;
         }
 
-        .lead-card strong {
-            display: block;
-            font-size: 16px;
-            margin-bottom: 4px;
+        .list-card:last-child {
+            margin-bottom: 0;
         }
 
-        .lead-card p {
+        .list-left h3 {
+            margin: 0 0 5px;
+            font-size: 18px;
+        }
+
+        .list-left p {
             margin: 0;
             color: var(--muted);
-            font-size: 13px;
+            font-size: 14px;
         }
 
-        .pill {
-            background: var(--gold-soft);
-            color: #6b4f00;
-            border-radius: 999px;
-            padding: 7px 10px;
-            font-size: 12px;
-            font-weight: 900;
+        .open-btn {
+
+            background: var(--gold);
+            color: black;
+
+            text-decoration: none;
+
+            padding: 12px 16px;
+
+            border-radius: 16px;
+
+            font-weight: 950;
             white-space: nowrap;
         }
 
-        .action-grid {
+        .bottom-nav {
+
+            position: fixed;
+
+            bottom: 0;
+            left: 0;
+            right: 0;
+
+            background: white;
+
+            border-top: 1px solid var(--border);
+
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
+            grid-template-columns: repeat(4, 1fr);
+
+            padding: 8px;
+
+            z-index: 999;
         }
 
-        .action-card {
-            background: var(--black);
-            color: white;
-            border-radius: 18px;
-            padding: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .bottom-nav a {
+
+            text-align: center;
+
+            text-decoration: none;
+
+            color: var(--muted);
+
+            font-size: 11px;
             font-weight: 900;
         }
 
-        .action-card.gold {
-            background: var(--gold);
-            color: black;
-        }
+        .bottom-nav strong {
 
-        .job-row {
-            border-top: 1px solid var(--border);
-            padding: 13px 0;
-        }
-
-        .job-row:first-of-type {
-            border-top: none;
-        }
-
-        .job-row strong {
             display: block;
+
+            color: var(--black);
+
+            font-size: 20px;
+
+            margin-bottom: 3px;
         }
 
-        .job-row span {
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        .mobile-tabs {
-            display: none;
-        }
-
-        @media (max-width: 950px) {
-            .app {
-                display: block;
-            }
-
-            .sidebar {
-                display: none;
-            }
-
-            .main {
-                padding: 14px;
-                padding-bottom: 90px;
-            }
-
-            .topbar {
-                align-items: flex-start;
-                gap: 14px;
-                flex-direction: column;
-            }
-
-            .top-actions {
-                width: 100%;
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .btn {
-                width: 100%;
-            }
-
-            .pipeline {
-                display: flex;
-                overflow-x: auto;
-                padding-bottom: 6px;
-            }
-
-            .stage {
-                min-width: 155px;
-            }
+        @media (max-width: 1100px) {
 
             .stats {
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .grid {
-                grid-template-columns: 1fr;
-            }
-
-            .lead-card {
-                grid-template-columns: 1fr;
-            }
-
-            .mobile-tabs {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                background: white;
-                border-top: 1px solid var(--border);
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                padding: 8px;
-                z-index: 99;
-            }
-
-            .mobile-tabs a {
-                color: var(--muted);
-                text-align: center;
-                font-size: 11px;
-                font-weight: 800;
-                padding: 8px 4px;
-            }
-
-            .mobile-tabs a strong {
-                display: block;
-                color: var(--black);
-                font-size: 18px;
-                margin-bottom: 2px;
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
+
+        @media (max-width: 700px) {
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 14px;
+            }
+
+            .top-buttons {
+                width: 100%;
+            }
+
+            .top-btn {
+                flex: 1;
+                text-align: center;
+            }
+
+            .hero h2 {
+                font-size: 30px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .list-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .open-btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
     </style>
 </head>
 
 <body>
 
-<div class="app">
+<div class="topbar">
 
-    <aside class="sidebar">
-        <div class="brand">
-            <div class="brand-badge">JCV</div>
-            <div>
-                <h1>JCV Power<br>Solutions</h1>
-                <p>Command Center</p>
+    <div class="brand">
+
+        <h1>
+            JCV Command Center
+        </h1>
+
+        <p>
+            Contractor CRM • Leads • Jobs • Estimates • Customers
+        </p>
+
+    </div>
+
+    <div class="top-buttons">
+
+        <a class="top-btn"
+           href="/leads/">
+            Leads
+        </a>
+
+        <a class="top-btn"
+           href="/customers/">
+            Customers
+        </a>
+
+    </div>
+
+</div>
+
+<div class="container">
+
+    <section class="hero">
+
+        <div class="hero-badge">
+            ⚡ LIVE OPERATIONS
+        </div>
+
+        <h2>
+            Run JCV Like A Real Contractor Platform
+        </h2>
+
+        <p>
+            Manage incoming leads, customer accounts,
+            walkthroughs, estimates, invoices,
+            and jobs from one sleek mobile-first system.
+        </p>
+
+    </section>
+
+    <section class="stats">
+
+        <div class="stat-card">
+            <div class="stat-label">
+                New Leads
+            </div>
+
+            <div class="stat-number">
+                {{ quotes_count }}
             </div>
         </div>
 
-        <div class="nav-title">Workflow</div>
-        <a class="nav-link active" href="/dashboard/">⚡ Dashboard</a>
-        <a class="nav-link" href="/admin/core/quoterequest/">📥 Leads</a>
-        <a class="nav-link" href="/admin/core/customer/">👤 Customers</a>
-        <a class="nav-link" href="/admin/core/job/">🛠 Jobs</a>
-        <a class="nav-link" href="/admin/core/estimate/">📋 Estimates</a>
-        <a class="nav-link" href="/admin/core/invoice/">💵 Invoices</a>
-
-        <div class="nav-title">System</div>
-        <a class="nav-link" href="/">🌐 Website</a>
-        <a class="nav-link" href="/admin/">🔐 Admin</a>
-    </aside>
-
-    <main class="main">
-
-        <section class="topbar">
-            <div>
-                <h2>Business Command Center</h2>
-                <p>Turn website leads into customers, site visits, estimates, jobs, invoices, and payments.</p>
+        <div class="stat-card">
+            <div class="stat-label">
+                Customers
             </div>
 
-            <div class="top-actions">
-                <a class="btn btn-gold" href="/admin/core/quoterequest/">Open Leads</a>
-                <a class="btn btn-dark" href="/admin/core/estimate/add/">Build Estimate</a>
+            <div class="stat-number">
+                {{ customers_count }}
             </div>
-        </section>
+        </div>
 
-        <section class="pipeline">
-            <div class="stage active">
-                <div class="stage-number">1</div>
-                <strong>New Lead</strong>
-                <span>Website quote request</span>
+        <div class="stat-card">
+            <div class="stat-label">
+                Jobs
             </div>
 
-            <div class="stage">
-                <div class="stage-number">2</div>
-                <strong>Customer</strong>
-                <span>Save contact info</span>
+            <div class="stat-number">
+                {{ jobs_count }}
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">
+                Estimates
             </div>
 
-            <div class="stage">
-                <div class="stage-number">3</div>
-                <strong>Site Visit</strong>
-                <span>Coordinate walkthrough</span>
+            <div class="stat-number">
+                {{ estimates_count }}
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">
+                Invoices
             </div>
 
-            <div class="stage">
-                <div class="stage-number">4</div>
-                <strong>Estimate</strong>
-                <span>Build price on-site</span>
+            <div class="stat-number">
+                {{ invoices_count }}
+            </div>
+        </div>
+
+    </section>
+
+    <section class="quick-actions">
+
+        <a class="quick-card"
+           href="/leads/">
+
+            <div class="quick-icon">
+                📥
             </div>
 
-            <div class="stage">
-                <div class="stage-number">5</div>
-                <strong>Job</strong>
-                <span>Approved work</span>
+            <h3>
+                Lead Inbox
+            </h3>
+
+            <p>
+                Review website quote requests
+                and convert them into customers.
+            </p>
+
+        </a>
+
+        <a class="quick-card"
+           href="/customers/">
+
+            <div class="quick-icon">
+                👤
             </div>
 
-            <div class="stage">
-                <div class="stage-number">6</div>
-                <strong>Invoice</strong>
-                <span>Bill and collect</span>
-            </div>
-        </section>
+            <h3>
+                Customers
+            </h3>
 
-        <section class="stats">
-            <div class="stat">
-                <span>Leads</span>
-                <h2>{{ quotes_count }}</h2>
-            </div>
+            <p>
+                View all customer accounts,
+                contact information, and records.
+            </p>
 
-            <div class="stat">
-                <span>Customers</span>
-                <h2>{{ customers_count }}</h2>
-            </div>
+        </a>
 
-            <div class="stat">
-                <span>Jobs</span>
-                <h2>{{ jobs_count }}</h2>
+        <a class="quick-card"
+           href="#">
+
+            <div class="quick-icon">
+                🛠
             </div>
 
-            <div class="stat">
-                <span>Estimates</span>
-                <h2>{{ estimates_count }}</h2>
+            <h3>
+                Jobs
+            </h3>
+
+            <p>
+                Track walkthroughs,
+                active jobs, and field notes.
+            </p>
+
+        </a>
+
+        <a class="quick-card"
+           href="#">
+
+            <div class="quick-icon">
+                📋
             </div>
 
-            <div class="stat">
-                <span>Invoices</span>
-                <h2>{{ invoices_count }}</h2>
-            </div>
-        </section>
+            <h3>
+                Estimates
+            </h3>
 
-        <section class="grid">
+            <p>
+                Build professional estimates
+                with labor and materials.
+            </p>
 
-            <div>
-                <div class="panel">
-                    <div class="panel-head">
-                        <div>
-                            <h3>New Quote Requests</h3>
-                            <small>Fresh leads from your website</small>
-                        </div>
-                        <a class="pill" href="/admin/core/quoterequest/">View All</a>
-                    </div>
+        </a>
 
-                    {% for quote in new_quotes %}
-                        <div class="lead-card">
-                            <div>
-                                <strong>{{ quote.name }}</strong>
-                                <p>{{ quote.phone }} · {{ quote.service }}</p>
-                                <p>{{ quote.message|truncatechars:90 }}</p>
-                            </div>
-                            <a class="pill" href="/admin/core/quoterequest/{{ quote.id }}/change/">Open Lead</a>
-                        </div>
-                    {% empty %}
-                        <p>No quote requests yet.</p>
-                    {% endfor %}
+    </section>
+
+    <section class="section">
+
+        <div class="section-header">
+
+            <h2>
+                Recent Leads
+            </h2>
+
+            <a class="section-link"
+               href="/leads/">
+                View All →
+            </a>
+
+        </div>
+
+        {% for lead in new_quotes %}
+
+            <div class="list-card">
+
+                <div class="list-left">
+
+                    <h3>
+                        {{ lead.name }}
+                    </h3>
+
+                    <p>
+                        {{ lead.service }}
+                    </p>
+
                 </div>
 
-                <div class="panel">
-                    <div class="panel-head">
-                        <div>
-                            <h3>Recent Jobs</h3>
-                            <small>Work currently moving through the shop</small>
-                        </div>
-                        <a class="pill" href="/admin/core/job/">View Jobs</a>
-                    </div>
+                <a class="open-btn"
+                   href="/leads/{{ lead.id }}/">
+                    Open Lead
+                </a>
 
-                    {% for job in recent_jobs %}
-                        <div class="job-row">
-                            <strong>{{ job.title }}</strong>
-                            <span>{{ job.customer.name }} · {{ job.status }}</span>
-                        </div>
-                    {% empty %}
-                        <p>No jobs created yet.</p>
-                    {% endfor %}
-                </div>
             </div>
 
-            <div>
-                <div class="panel">
-                    <div class="panel-head">
-                        <div>
-                            <h3>Quick Actions</h3>
-                            <small>Fast access from phone or iPad</small>
-                        </div>
-                    </div>
+        {% empty %}
 
-                    <div class="action-grid">
-                        <a class="action-card gold" href="/admin/core/customer/add/">
-                            Add Customer <span>→</span>
-                        </a>
+            <p>
+                No leads yet.
+            </p>
 
-                        <a class="action-card" href="/admin/core/job/add/">
-                            Schedule Site Visit <span>→</span>
-                        </a>
+        {% endfor %}
 
-                        <a class="action-card" href="/admin/core/estimate/add/">
-                            Build Estimate <span>→</span>
-                        </a>
+    </section>
 
-                        <a class="action-card" href="/admin/core/invoice/add/">
-                            Create Invoice <span>→</span>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-head">
-                        <div>
-                            <h3>Field Flow</h3>
-                            <small>How you run the call</small>
-                        </div>
-                    </div>
-
-                    <div class="job-row">
-                        <strong>1. Open the lead</strong>
-                        <span>Review name, phone, service, and message.</span>
-                    </div>
-
-                    <div class="job-row">
-                        <strong>2. Add customer</strong>
-                        <span>Save contact and address before the visit.</span>
-                    </div>
-
-                    <div class="job-row">
-                        <strong>3. Schedule site visit</strong>
-                        <span>Create the job or walkthrough record.</span>
-                    </div>
-
-                    <div class="job-row">
-                        <strong>4. Build estimate</strong>
-                        <span>Add labor, materials, notes, and price.</span>
-                    </div>
-
-                    <div class="job-row">
-                        <strong>5. Invoice when approved</strong>
-                        <span>Turn approved work into billable revenue.</span>
-                    </div>
-                </div>
-            </div>
-
-        </section>
-
-    </main>
 </div>
 
-<nav class="mobile-tabs">
-    <a href="/dashboard/"><strong>⌂</strong>Home</a>
-    <a href="/admin/core/quoterequest/"><strong>📥</strong>Leads</a>
-    <a href="/admin/core/estimate/add/"><strong>📋</strong>Estimate</a>
-    <a href="/admin/core/job/"><strong>🛠</strong>Jobs</a>
+<nav class="bottom-nav">
+
+    <a href="/dashboard/">
+        <strong>⌂</strong>
+        Home
+    </a>
+
+    <a href="/leads/">
+        <strong>📥</strong>
+        Leads
+    </a>
+
+    <a href="/customers/">
+        <strong>👤</strong>
+        Customers
+    </a>
+
+    <a href="#">
+        <strong>🛠</strong>
+        Jobs
+    </a>
+
 </nav>
 
 </body>
