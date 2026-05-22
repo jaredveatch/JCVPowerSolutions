@@ -16,24 +16,12 @@ def home(request):
     if request.method == "POST":
 
         if "quote_form" in request.POST:
-            name = request.POST.get("name", "").strip()
-            phone = request.POST.get("phone", "").strip()
-            email = request.POST.get("email", "").strip()
-            service = request.POST.get("service", "").strip()
-            message = request.POST.get("message", "").strip()
-
-            if not name or not phone or not email or not service or not message:
-                return JsonResponse({
-                    "success": False,
-                    "message": "Please fill out all quote request fields."
-                }, status=400)
-
             QuoteRequest.objects.create(
-                name=name,
-                phone=phone,
-                email=email,
-                service=service,
-                message=message,
+                name=request.POST.get("name"),
+                phone=request.POST.get("phone"),
+                email=request.POST.get("email"),
+                service=request.POST.get("service"),
+                message=request.POST.get("message"),
             )
 
             return JsonResponse({
@@ -42,39 +30,20 @@ def home(request):
             })
 
         if "career_form" in request.POST:
-            name = request.POST.get("applicant_name", "").strip()
-            phone = request.POST.get("applicant_phone", "").strip()
-            email = request.POST.get("applicant_email", "").strip()
-            position = request.POST.get("position", "").strip()
-            experience = request.POST.get("experience", "").strip()
-            license_info = request.POST.get("license", "").strip()
-            message = request.POST.get("career_message", "").strip()
-
-            if not name or not phone or not email or not position:
-                return JsonResponse({
-                    "success": False,
-                    "message": "Please fill out all required career application fields."
-                }, status=400)
-
             CareerApplication.objects.create(
-                name=name,
-                phone=phone,
-                email=email,
-                position=position,
-                experience=experience,
-                license_info=license_info,
-                message=message,
+                name=request.POST.get("applicant_name"),
+                phone=request.POST.get("applicant_phone"),
+                email=request.POST.get("applicant_email"),
+                position=request.POST.get("position"),
+                experience=request.POST.get("experience"),
+                license_info=request.POST.get("license"),
+                message=request.POST.get("career_message"),
             )
 
             return JsonResponse({
                 "success": True,
                 "message": "Thank you for submitting your application. We will review it soon."
             })
-
-        return JsonResponse({
-            "success": False,
-            "message": "Invalid form submission."
-        }, status=400)
 
     return render(request, "home.html", {})
 
@@ -107,11 +76,9 @@ def leads(request):
 def lead_detail(request, lead_id):
     lead = get_object_or_404(QuoteRequest, id=lead_id)
 
-    context = {
+    return render(request, "lead_detail.html", {
         "lead": lead,
-    }
-
-    return render(request, "lead_detail.html", context)
+    })
 
 
 @staff_member_required
@@ -148,11 +115,14 @@ def customer_detail(request, customer_id):
     }
 
     return render(request, "customer_detail.html", context)
+
+
 @staff_member_required
 def delete_customer(request, customer_id):
-
     customer = get_object_or_404(Customer, id=customer_id)
 
-    customer.delete()
+    if request.method == "POST":
+        customer.delete()
+        return redirect("/customers/")
 
-    return redirect("/customers/")
+    return redirect(f"/customers/{customer.id}/")
