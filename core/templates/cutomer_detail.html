@@ -3,9 +3,12 @@
 <html lang="en">
 <head>
     <title>Customer Profile | JCV</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <style>
+
         :root {
             --bg: #f4f5f7;
             --card: #ffffff;
@@ -15,6 +18,7 @@
             --muted: #6b7280;
             --border: #e5e7eb;
             --green: #16a34a;
+            --red: #dc2626;
         }
 
         * {
@@ -24,17 +28,29 @@
         body {
             margin: 0;
             background: var(--bg);
-            font-family: Inter, SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif;
+
+            font-family:
+                Inter,
+                SF Pro Display,
+                -apple-system,
+                BlinkMacSystemFont,
+                sans-serif;
+
             color: var(--text);
         }
 
         .topbar {
+
             background: white;
+
             border-bottom: 1px solid var(--border);
+
             padding: 18px;
+
             position: sticky;
             top: 0;
             z-index: 20;
+
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -49,16 +65,39 @@
         .top-actions {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .top-btn {
+
             background: var(--black);
             color: white;
+
             text-decoration: none;
+
             padding: 11px 14px;
+
             border-radius: 14px;
+
             font-weight: 900;
             font-size: 13px;
+        }
+
+        .delete-btn {
+
+            background: var(--red);
+            color: white;
+
+            border: none;
+
+            padding: 11px 14px;
+
+            border-radius: 14px;
+
+            font-weight: 900;
+            font-size: 13px;
+
+            cursor: pointer;
         }
 
         .container {
@@ -69,22 +108,41 @@
         }
 
         .hero {
-            background: linear-gradient(135deg, #0b0b0c 0%, #171717 100%);
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #0b0b0c 0%,
+                    #171717 100%
+                );
+
             color: white;
+
             border-radius: 30px;
+
             padding: 26px;
+
             margin-bottom: 16px;
-            box-shadow: 0 18px 40px rgba(0,0,0,.20);
+
+            box-shadow:
+                0 18px 40px rgba(0,0,0,.20);
         }
 
         .badge {
+
             display: inline-flex;
+
             background: rgba(255,196,0,.16);
+
             color: var(--gold);
+
             padding: 8px 14px;
+
             border-radius: 999px;
+
             font-size: 12px;
             font-weight: 950;
+
             margin-bottom: 16px;
         }
 
@@ -100,20 +158,30 @@
         }
 
         .actions {
+
             display: grid;
             grid-template-columns: repeat(4, 1fr);
+
             gap: 12px;
+
             margin-bottom: 16px;
         }
 
         .action-btn {
+
             display: block;
+
             text-align: center;
+
             text-decoration: none;
+
             padding: 16px;
+
             border-radius: 22px;
+
             font-weight: 950;
             font-size: 14px;
+
             transition: .2s;
         }
 
@@ -137,12 +205,19 @@
         }
 
         .card {
+
             background: white;
+
             border: 1px solid var(--border);
+
             border-radius: 28px;
+
             padding: 20px;
+
             margin-bottom: 16px;
-            box-shadow: 0 8px 24px rgba(0,0,0,.05);
+
+            box-shadow:
+                0 8px 24px rgba(0,0,0,.05);
         }
 
         .card h2 {
@@ -152,31 +227,45 @@
         }
 
         .info-grid {
+
             display: grid;
             grid-template-columns: 1fr 1fr;
+
             gap: 14px;
         }
 
         .info-box {
+
             background: #fafafa;
+
             border: 1px solid var(--border);
+
             border-radius: 20px;
+
             padding: 16px;
         }
 
         .label {
+
             color: var(--muted);
+
             font-size: 11px;
             font-weight: 900;
+
             text-transform: uppercase;
+
             letter-spacing: .08em;
+
             margin-bottom: 8px;
         }
 
         .value {
+
             font-size: 17px;
             font-weight: 800;
+
             line-height: 1.4;
+
             word-break: break-word;
         }
 
@@ -186,25 +275,36 @@
         }
 
         .workflow-step {
+
             display: flex;
             gap: 14px;
             align-items: center;
+
             background: #fafafa;
+
             border: 1px solid var(--border);
+
             border-radius: 22px;
+
             padding: 16px;
         }
 
         .step-number {
+
             width: 38px;
             height: 38px;
+
             background: var(--gold);
             color: black;
+
             border-radius: 50%;
+
             display: flex;
             align-items: center;
             justify-content: center;
+
             font-weight: 950;
+
             flex-shrink: 0;
         }
 
@@ -220,34 +320,50 @@
         }
 
         .bottom-nav {
+
             position: fixed;
+
             bottom: 0;
             left: 0;
             right: 0;
+
             background: white;
+
             border-top: 1px solid var(--border);
+
             display: grid;
             grid-template-columns: repeat(4, 1fr);
+
             padding: 8px;
+
             z-index: 50;
         }
 
         .bottom-nav a {
+
             text-align: center;
+
             text-decoration: none;
+
             color: var(--muted);
+
             font-size: 11px;
             font-weight: 900;
         }
 
         .bottom-nav strong {
+
             display: block;
+
             color: var(--black);
+
             font-size: 19px;
+
             margin-bottom: 3px;
         }
 
         @media (max-width: 760px) {
+
             .topbar {
                 flex-direction: column;
                 align-items: flex-start;
@@ -258,7 +374,8 @@
                 width: 100%;
             }
 
-            .top-btn {
+            .top-btn,
+            .delete-btn {
                 flex: 1;
                 text-align: center;
             }
@@ -277,6 +394,7 @@
         }
 
         @media (max-width: 520px) {
+
             .actions {
                 grid-template-columns: 1fr;
             }
@@ -286,104 +404,223 @@
                 padding-bottom: 90px;
             }
         }
+
     </style>
 </head>
 
 <body>
 
 <div class="topbar">
-    <a class="back-link" href="/customers/">← Back to Customers</a>
+
+    <a class="back-link"
+       href="/customers/">
+        ← Back to Customers
+    </a>
 
     <div class="top-actions">
-        <a class="top-btn" href="/dashboard/">Dashboard</a>
-        <a class="top-btn" href="/leads/">Leads</a>
+
+        <a class="top-btn"
+           href="/dashboard/">
+            Dashboard
+        </a>
+
+        <a class="top-btn"
+           href="/leads/">
+            Leads
+        </a>
+
+        <form method="POST"
+              action="/customers/{{ customer.id }}/delete/"
+              onsubmit="return confirm('Delete this customer permanently?');">
+
+            {% csrf_token %}
+
+            <button class="delete-btn"
+                    type="submit">
+                Delete
+            </button>
+
+        </form>
+
     </div>
+
 </div>
 
 <div class="container">
 
     <section class="hero">
-        <div class="badge">👤 CUSTOMER PROFILE</div>
 
-        <h1>{{ customer.name }}</h1>
+        <div class="badge">
+            👤 CUSTOMER PROFILE
+        </div>
 
-        <p>Customer account, job history, estimates, invoices, and field workflow.</p>
+        <h1>
+            {{ customer.name }}
+        </h1>
+
+        <p>
+            Customer account, jobs, estimates,
+            invoices, and walkthrough workflow.
+        </p>
+
     </section>
 
     <section class="actions">
-        <a class="action-btn gold" href="tel:{{ customer.phone }}">📞 Call</a>
-        <a class="action-btn dark" href="mailto:{{ customer.email }}">✉ Email</a>
-        <a class="action-btn green" href="#">🛠 Create Job</a>
-        <a class="action-btn dark" href="#">📋 Build Estimate</a>
+
+        <a class="action-btn gold"
+           href="tel:{{ customer.phone }}">
+            📞 Call
+        </a>
+
+        <a class="action-btn dark"
+           href="mailto:{{ customer.email }}">
+            ✉ Email
+        </a>
+
+        <a class="action-btn green"
+           href="#">
+            🛠 Create Job
+        </a>
+
+        <a class="action-btn dark"
+           href="#">
+            📋 Build Estimate
+        </a>
+
     </section>
 
     <section class="card">
-        <h2>Customer Information</h2>
+
+        <h2>
+            Customer Information
+        </h2>
 
         <div class="info-grid">
+
             <div class="info-box">
-                <div class="label">Customer Name</div>
-                <div class="value">{{ customer.name }}</div>
+                <div class="label">
+                    Customer Name
+                </div>
+
+                <div class="value">
+                    {{ customer.name }}
+                </div>
             </div>
 
             <div class="info-box">
-                <div class="label">Phone Number</div>
-                <div class="value">{{ customer.phone }}</div>
+                <div class="label">
+                    Phone Number
+                </div>
+
+                <div class="value">
+                    {{ customer.phone }}
+                </div>
             </div>
 
             <div class="info-box">
-                <div class="label">Email Address</div>
-                <div class="value">{{ customer.email }}</div>
+                <div class="label">
+                    Email Address
+                </div>
+
+                <div class="value">
+                    {{ customer.email }}
+                </div>
             </div>
 
             <div class="info-box">
-                <div class="label">Customer ID</div>
-                <div class="value">#{{ customer.id }}</div>
+                <div class="label">
+                    Customer ID
+                </div>
+
+                <div class="value">
+                    #{{ customer.id }}
+                </div>
             </div>
+
         </div>
+
     </section>
 
     <section class="card">
-        <h2>Customer Workflow</h2>
+
+        <h2>
+            Customer Workflow
+        </h2>
 
         <div class="workflow">
+
             <div class="workflow-step">
-                <div class="step-number">1</div>
+
+                <div class="step-number">
+                    1
+                </div>
+
                 <div>
                     <strong>Create Job / Site Visit</strong>
-                    <span>Schedule the walkthrough and document what needs to be checked.</span>
+
+                    <span>
+                        Schedule walkthrough and document scope.
+                    </span>
                 </div>
+
             </div>
 
             <div class="workflow-step">
-                <div class="step-number">2</div>
+
+                <div class="step-number">
+                    2
+                </div>
+
                 <div>
                     <strong>Build Estimate</strong>
-                    <span>Add scope, labor, materials, notes, and price options.</span>
+
+                    <span>
+                        Add labor, materials, and pricing.
+                    </span>
                 </div>
+
             </div>
 
             <div class="workflow-step">
-                <div class="step-number">3</div>
+
+                <div class="step-number">
+                    3
+                </div>
+
                 <div>
                     <strong>Approve Job</strong>
-                    <span>Turn the estimate into active work once the customer approves.</span>
+
+                    <span>
+                        Convert estimate into active work.
+                    </span>
                 </div>
+
             </div>
 
             <div class="workflow-step">
-                <div class="step-number">4</div>
+
+                <div class="step-number">
+                    4
+                </div>
+
                 <div>
                     <strong>Invoice & Collect</strong>
-                    <span>Send invoice, collect payment, and close the job.</span>
+
+                    <span>
+                        Send invoice and close out the project.
+                    </span>
                 </div>
+
             </div>
+
         </div>
+
     </section>
 
 </div>
 
 <nav class="bottom-nav">
+
     <a href="/dashboard/">
         <strong>⌂</strong>
         Home
@@ -403,6 +640,7 @@
         <strong>🛠</strong>
         Jobs
     </a>
+
 </nav>
 
 </body>

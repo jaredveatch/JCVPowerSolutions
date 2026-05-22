@@ -12,4 +12,10 @@ urlpatterns = [
 
     path("customers/", views.customers, name="customers"),
     path("customers/<int:customer_id>/", views.customer_detail, name="customer_detail"),
+
+    path(
+        "customers/<int:customer_id>/delete/",
+        views.delete_customer,
+        name="delete_customer"
+    ),
 ]
