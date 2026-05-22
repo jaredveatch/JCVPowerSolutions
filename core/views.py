@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 
 from .models import (
     QuoteRequest,
@@ -15,7 +15,6 @@ from .models import (
 def home(request):
     if request.method == "POST":
 
-        # QUOTE REQUEST FORM
         if "quote_form" in request.POST:
             QuoteRequest.objects.create(
                 name=request.POST.get("name"),
@@ -30,7 +29,6 @@ def home(request):
                 "message": "Thank you for submitting your request. We will contact you soon."
             })
 
-        # CAREER APPLICATION FORM
         if "career_form" in request.POST:
             CareerApplication.objects.create(
                 name=request.POST.get("applicant_name"),
@@ -47,16 +45,10 @@ def home(request):
                 "message": "Thank you for submitting your application. We will review it soon."
             })
 
-    context = {}
-
-    if request.user.is_authenticated and request.user.is_staff:
-        context["quote_requests"] = QuoteRequest.objects.all().order_by("-created_at")
-        context["career_applications"] = CareerApplication.objects.all().order_by("-created_at")
-
-    return render(request, "home.html", context)
+    return render(request, "home.html", {})
 
 
-@login_required
+@staff_member_required
 def dashboard(request):
     context = {
         "new_quotes": QuoteRequest.objects.order_by("-created_at")[:5],
@@ -75,7 +67,7 @@ def dashboard(request):
     return render(request, "dashboard.html", context)
 
 
-@login_required
+@staff_member_required
 def leads(request):
     context = {
         "leads": QuoteRequest.objects.order_by("-created_at"),
@@ -84,7 +76,7 @@ def leads(request):
     return render(request, "leads.html", context)
 
 
-@login_required
+@staff_member_required
 def lead_detail(request, lead_id):
     lead = get_object_or_404(QuoteRequest, id=lead_id)
 
@@ -95,7 +87,7 @@ def lead_detail(request, lead_id):
     return render(request, "lead_detail.html", context)
 
 
-@login_required
+@staff_member_required
 def jobs(request):
     context = {
         "jobs": Job.objects.order_by("-created_at"),
@@ -104,7 +96,7 @@ def jobs(request):
     return render(request, "jobs.html", context)
 
 
-@login_required
+@staff_member_required
 def job_detail(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
@@ -115,7 +107,7 @@ def job_detail(request, job_id):
     return render(request, "job_detail.html", context)
 
 
-@login_required
+@staff_member_required
 def estimates(request):
     context = {
         "estimates": Estimate.objects.order_by("-created_at"),
