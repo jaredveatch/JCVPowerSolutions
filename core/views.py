@@ -163,6 +163,29 @@ def convert_lead(request, lead_id):
 
 
 # =========================================================
+# DELETE LEAD
+# =========================================================
+
+@staff_member_required
+def delete_lead(request, lead_id):
+
+    lead = get_object_or_404(
+        QuoteRequest,
+        id=lead_id
+    )
+
+    if request.method == "POST":
+
+        lead.delete()
+
+        return redirect("/leads/")
+
+    return redirect(
+        f"/leads/{lead.id}/"
+    )
+
+
+# =========================================================
 # CUSTOMERS
 # =========================================================
 
