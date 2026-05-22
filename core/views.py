@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
 
@@ -71,3 +71,14 @@ def leads(request):
     }
 
     return render(request, "leads.html", context)
+
+
+@staff_member_required
+def lead_detail(request, lead_id):
+    lead = get_object_or_404(QuoteRequest, id=lead_id)
+
+    context = {
+        "lead": lead,
+    }
+
+    return render(request, "lead_detail.html", context)
