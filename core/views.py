@@ -1,9 +1,4 @@
-from django.shortcuts import (
-    render,
-    get_object_or_404,
-    redirect,
-)
-
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
 
@@ -18,11 +13,9 @@ from .models import (
 
 
 def home(request):
-
     if request.method == "POST":
 
         if "quote_form" in request.POST:
-
             QuoteRequest.objects.create(
                 name=request.POST.get("name"),
                 phone=request.POST.get("phone"),
@@ -37,7 +30,6 @@ def home(request):
             })
 
         if "career_form" in request.POST:
-
             CareerApplication.objects.create(
                 name=request.POST.get("applicant_name"),
                 phone=request.POST.get("applicant_phone"),
@@ -58,84 +50,57 @@ def home(request):
 
 @staff_member_required
 def dashboard(request):
-
     context = {
+        "new_quotes": QuoteRequest.objects.order_by("-created_at")[:5],
+        "recent_jobs": Job.objects.order_by("-created_at")[:5],
 
-        "new_quotes":
-            QuoteRequest.objects.order_by("-created_at")[:5],
-
-        "recent_jobs":
-            Job.objects.order_by("-created_at")[:5],
-
-        "quotes_count":
-            QuoteRequest.objects.count(),
-
-        "customers_count":
-            Customer.objects.count(),
-
-        "jobs_count":
-            Job.objects.count(),
-
-        "estimates_count":
-            Estimate.objects.count(),
-
-        "invoices_count":
-            Invoice.objects.count(),
+        "quotes_count": QuoteRequest.objects.count(),
+        "customers_count": Customer.objects.count(),
+        "jobs_count": Job.objects.count(),
+        "estimates_count": Estimate.objects.count(),
+        "invoices_count": Invoice.objects.count(),
     }
 
-    return render(
-        request,
-        "dashboard.html",
-        context
-    )
+    return render(request, "dashboard.html", context)
 
 
 @staff_member_required
 def leads(request):
-
     context = {
-        "leads":
-            QuoteRequest.objects.order_by("-created_at"),
+        "leads": QuoteRequest.objects.order_by("-created_at"),
     }
 
-    return render(
-        request,
-        "leads.html",
-        context
-    )
+    return render(request, "leads.html", context)
 
 
 @staff_member_required
 def lead_detail(request, lead_id):
-
-    lead = get_object_or_404(
-        QuoteRequest,
-        id=lead_id
-    )
+    lead = get_object_or_404(QuoteRequest, id=lead_id)
 
     context = {
         "lead": lead,
     }
 
-    return render(
-        request,
-        "lead_detail.html",
-        context
-    )
+    return render(request, "lead_detail.html", context)
 
 
 @staff_member_required
 def convert_lead(request, lead_id):
+    lead = get_object_or_404(QuoteRequest, id=lead_id)
 
-    lead = get_object_or_404(
-        QuoteRequest,
-        id=lead_id
-    )
-
-    customer = Customer.objects.create(
+    Customer.objects.create(
         name=lead.name,
         phone=lead.phone,
         email=lead.email,
     )
 
-    return redirect("/dashboard/")
+    return redirect("/customers/")
+
+
+@staff_member_required
+def customers(request):
+    context = {
+        "customers": Customer.objects.all().order_by("-id"),
+    }
+
+    return render(request, "customers.html", context)
