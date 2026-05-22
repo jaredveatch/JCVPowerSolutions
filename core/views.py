@@ -1,8 +1,17 @@
 from decimal import Decimal
 
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import (
+    render,
+    get_object_or_404,
+    redirect
+)
+
 from django.http import JsonResponse
-from django.contrib.admin.views.decorators import staff_member_required
+
+from django.contrib.admin.views.decorators import (
+    staff_member_required
+)
+
 from django.utils.dateparse import parse_datetime
 
 from .models import (
@@ -15,6 +24,10 @@ from .models import (
     Invoice,
 )
 
+
+# =========================================================
+# HOME PAGE
+# =========================================================
 
 def home(request):
 
@@ -33,7 +46,7 @@ def home(request):
 
             return JsonResponse({
                 "success": True,
-                "message": "Thank you for submitting your request. We will contact you soon."
+                "message": "Thank you for submitting your request."
             })
 
         # CAREER FORM
@@ -51,36 +64,65 @@ def home(request):
 
             return JsonResponse({
                 "success": True,
-                "message": "Thank you for submitting your application. We will review it soon."
+                "message": "Application submitted successfully."
             })
 
     return render(request, "home.html")
 
 
+# =========================================================
+# DASHBOARD
+# =========================================================
+
 @staff_member_required
 def dashboard(request):
 
     context = {
-        "new_quotes": QuoteRequest.objects.order_by("-created_at")[:5],
-        "recent_jobs": Job.objects.order_by("-created_at")[:5],
-        "quotes_count": QuoteRequest.objects.count(),
-        "customers_count": Customer.objects.count(),
-        "jobs_count": Job.objects.count(),
-        "estimates_count": Estimate.objects.count(),
-        "invoices_count": Invoice.objects.count(),
+
+        "new_quotes":
+            QuoteRequest.objects.order_by("-created_at")[:5],
+
+        "recent_jobs":
+            Job.objects.order_by("-created_at")[:5],
+
+        "quotes_count":
+            QuoteRequest.objects.count(),
+
+        "customers_count":
+            Customer.objects.count(),
+
+        "jobs_count":
+            Job.objects.count(),
+
+        "estimates_count":
+            Estimate.objects.count(),
+
+        "invoices_count":
+            Invoice.objects.count(),
     }
 
-    return render(request, "dashboard.html", context)
+    return render(
+        request,
+        "dashboard.html",
+        context
+    )
 
+
+# =========================================================
+# LEADS
+# =========================================================
 
 @staff_member_required
 def leads(request):
 
-    context = {
-        "leads": QuoteRequest.objects.order_by("-created_at")
-    }
-
-    return render(request, "leads.html", context)
+    return render(
+        request,
+        "leads.html",
+        {
+            "leads":
+                QuoteRequest.objects.order_by("-created_at")
+        }
+    )
 
 
 @staff_member_required
@@ -91,9 +133,13 @@ def lead_detail(request, lead_id):
         id=lead_id
     )
 
-    return render(request, "lead_detail.html", {
-        "lead": lead,
-    })
+    return render(
+        request,
+        "lead_detail.html",
+        {
+            "lead": lead
+        }
+    )
 
 
 @staff_member_required
@@ -111,17 +157,27 @@ def convert_lead(request, lead_id):
         notes=lead.message,
     )
 
-    return redirect(f"/customers/{customer.id}/")
+    return redirect(
+        f"/customers/{customer.id}/"
+    )
 
+
+# =========================================================
+# CUSTOMERS
+# =========================================================
 
 @staff_member_required
 def customers(request):
 
     customers = Customer.objects.all().order_by("-id")
 
-    return render(request, "customers.html", {
-        "customers": customers,
-    })
+    return render(
+        request,
+        "customers.html",
+        {
+            "customers": customers
+        }
+    )
 
 
 @staff_member_required
@@ -129,9 +185,20 @@ def create_customer(request):
 
     if request.method == "POST":
 
-        name = request.POST.get("name", "").strip()
-        phone = request.POST.get("phone", "").strip()
-        email = request.POST.get("email", "").strip()
+        name = request.POST.get(
+            "name",
+            ""
+        ).strip()
+
+        phone = request.POST.get(
+            "phone",
+            ""
+        ).strip()
+
+        email = request.POST.get(
+            "email",
+            ""
+        ).strip()
 
         if name and phone:
 
@@ -140,7 +207,10 @@ def create_customer(request):
             ).first()
 
             if existing_customer:
-                return redirect(f"/customers/{existing_customer.id}/")
+
+                return redirect(
+                    f"/customers/{existing_customer.id}/"
+                )
 
             customer = Customer.objects.create(
                 name=name,
@@ -148,10 +218,16 @@ def create_customer(request):
                 email=email,
             )
 
-            return redirect(f"/customers/{customer.id}/")
+            return redirect(
+                f"/customers/{customer.id}/"
+            )
 
     return redirect("/customers/")
 
+
+# =========================================================
+# CUSTOMER DETAIL
+# =========================================================
 
 @staff_member_required
 def customer_detail(request, customer_id):
@@ -161,14 +237,13 @@ def customer_detail(request, customer_id):
         id=customer_id
     )
 
-    jobs = Job.objects.filter(
-        customer=customer
-    ).order_by("-created_at")
-
-    return render(request, "customer_detail.html", {
-        "customer": customer,
-        "jobs": jobs,
-    })
+    return render(
+        request,
+        "customer_detail.html",
+        {
+            "customer": customer
+        }
+    )
 
 
 @staff_member_required
@@ -185,8 +260,14 @@ def delete_customer(request, customer_id):
 
         return redirect("/customers/")
 
-    return redirect(f"/customers/{customer.id}/")
+    return redirect(
+        f"/customers/{customer.id}/"
+    )
 
+
+# =========================================================
+# JOBS
+# =========================================================
 
 @staff_member_required
 def create_job(request, customer_id):
@@ -210,11 +291,15 @@ def create_job(request, customer_id):
         template = None
 
         if template_id:
+
             template = ServiceTemplate.objects.filter(
                 id=template_id
             ).first()
 
-        title = request.POST.get("title", "").strip()
+        title = request.POST.get(
+            "title",
+            ""
+        ).strip()
 
         status = request.POST.get(
             "status",
@@ -249,6 +334,7 @@ def create_job(request, customer_id):
         scheduled_date = None
 
         if scheduled_date_raw:
+
             scheduled_date = parse_datetime(
                 scheduled_date_raw
             )
@@ -261,19 +347,32 @@ def create_job(request, customer_id):
         ).strip()
 
         if price_raw:
-            estimated_total_price = Decimal(price_raw)
+
+            estimated_total_price = Decimal(
+                price_raw
+            )
 
         elif template:
-            estimated_total_price = template.default_price
+
+            estimated_total_price = (
+                template.default_price
+            )
 
         if not title and template:
+
             title = template.name
 
         if not description and template:
-            description = template.customer_description
+
+            description = (
+                template.customer_description
+            )
 
         if not material_notes and template:
-            material_notes = template.internal_checklist
+
+            material_notes = (
+                template.internal_checklist
+            )
 
         job = Job.objects.create(
             customer=customer,
@@ -288,22 +387,34 @@ def create_job(request, customer_id):
             scheduled_date=scheduled_date,
         )
 
-        return redirect(f"/jobs/{job.id}/")
+        return redirect(
+            f"/jobs/{job.id}/"
+        )
 
-    return render(request, "create_job.html", {
-        "customer": customer,
-        "templates": templates,
-    })
+    return render(
+        request,
+        "create_job.html",
+        {
+            "customer": customer,
+            "templates": templates,
+        }
+    )
 
 
 @staff_member_required
 def jobs(request):
 
-    jobs = Job.objects.all().order_by("-created_at")
+    jobs = Job.objects.all().order_by(
+        "-created_at"
+    )
 
-    return render(request, "jobs.html", {
-        "jobs": jobs,
-    })
+    return render(
+        request,
+        "jobs.html",
+        {
+            "jobs": jobs
+        }
+    )
 
 
 @staff_member_required
@@ -318,11 +429,19 @@ def job_detail(request, job_id):
         job=job
     ).order_by("-created_at")
 
-    return render(request, "job_detail.html", {
-        "job": job,
-        "estimates": estimates,
-    })
+    return render(
+        request,
+        "job_detail.html",
+        {
+            "job": job,
+            "estimates": estimates,
+        }
+    )
 
+
+# =========================================================
+# ESTIMATES
+# =========================================================
 
 @staff_member_required
 def create_estimate_from_job(request, job_id):
@@ -355,6 +474,7 @@ def create_estimate_from_job(request, job_id):
     )
 
     job.status = "estimate_needed"
+
     job.save()
 
     return redirect(
