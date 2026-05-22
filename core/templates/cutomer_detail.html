@@ -1,11 +1,17 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <title>Customer Profile | JCV</title>
+
+    <meta charset="UTF-8">
 
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Customer Profile | JCV
+    </title>
 
     <style>
 
@@ -26,12 +32,13 @@
         }
 
         body {
+
             margin: 0;
+
             background: var(--bg);
 
             font-family:
                 Inter,
-                SF Pro Display,
                 -apple-system,
                 BlinkMacSystemFont,
                 sans-serif;
@@ -47,64 +54,66 @@
 
             padding: 18px;
 
-            position: sticky;
-            top: 0;
-            z-index: 20;
-
             display: flex;
             justify-content: space-between;
             align-items: center;
+
+            position: sticky;
+            top: 0;
+
+            z-index: 50;
         }
 
         .back-link {
-            color: var(--black);
+
             text-decoration: none;
+
+            color: var(--black);
+
             font-weight: 900;
         }
 
         .top-actions {
+
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
         }
 
-        .top-btn {
-
-            background: var(--black);
-            color: white;
-
-            text-decoration: none;
-
-            padding: 11px 14px;
-
-            border-radius: 14px;
-
-            font-weight: 900;
-            font-size: 13px;
-        }
-
-        .delete-btn {
-
-            background: var(--red);
-            color: white;
+        .btn {
 
             border: none;
 
-            padding: 11px 14px;
+            text-decoration: none;
+
+            padding: 12px 16px;
 
             border-radius: 14px;
 
-            font-weight: 900;
             font-size: 13px;
+            font-weight: 900;
 
             cursor: pointer;
         }
 
+        .btn-dark {
+            background: var(--black);
+            color: white;
+        }
+
+        .btn-red {
+            background: var(--red);
+            color: white;
+        }
+
         .container {
+
             max-width: 1000px;
+
             margin: auto;
-            padding: 16px;
-            padding-bottom: 100px;
+
+            padding: 18px;
+
+            padding-bottom: 120px;
         }
 
         .hero {
@@ -113,24 +122,24 @@
                 linear-gradient(
                     135deg,
                     #0b0b0c 0%,
-                    #171717 100%
+                    #1c1c1c 100%
                 );
 
             color: white;
 
             border-radius: 30px;
 
-            padding: 26px;
+            padding: 30px;
 
-            margin-bottom: 16px;
+            margin-bottom: 18px;
 
             box-shadow:
-                0 18px 40px rgba(0,0,0,.20);
+                0 18px 40px rgba(0,0,0,.18);
         }
 
         .badge {
 
-            display: inline-flex;
+            display: inline-block;
 
             background: rgba(255,196,0,.16);
 
@@ -141,46 +150,51 @@
             border-radius: 999px;
 
             font-size: 12px;
-            font-weight: 950;
+            font-weight: 900;
 
             margin-bottom: 16px;
         }
 
         .hero h1 {
+
             margin: 0;
-            font-size: 38px;
-            letter-spacing: -.05em;
+
+            font-size: 40px;
+
+            letter-spacing: -.04em;
         }
 
         .hero p {
-            margin: 10px 0 0;
+
             color: #d1d5db;
+
+            margin-top: 10px;
+
+            line-height: 1.5;
         }
 
-        .actions {
+        .action-grid {
 
             display: grid;
+
             grid-template-columns: repeat(4, 1fr);
 
             gap: 12px;
 
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }
 
         .action-btn {
 
-            display: block;
+            text-decoration: none;
 
             text-align: center;
 
-            text-decoration: none;
+            padding: 18px;
 
-            padding: 16px;
+            border-radius: 24px;
 
-            border-radius: 22px;
-
-            font-weight: 950;
-            font-size: 14px;
+            font-weight: 900;
 
             transition: .2s;
         }
@@ -194,13 +208,13 @@
             color: black;
         }
 
-        .dark {
-            background: var(--black);
+        .green {
+            background: var(--green);
             color: white;
         }
 
-        .green {
-            background: var(--green);
+        .dark {
+            background: var(--black);
             color: white;
         }
 
@@ -212,23 +226,27 @@
 
             border-radius: 28px;
 
-            padding: 20px;
+            padding: 22px;
 
-            margin-bottom: 16px;
+            margin-bottom: 18px;
 
             box-shadow:
                 0 8px 24px rgba(0,0,0,.05);
         }
 
         .card h2 {
-            margin: 0 0 18px;
-            font-size: 22px;
-            letter-spacing: -.04em;
+
+            margin-top: 0;
+
+            margin-bottom: 18px;
+
+            font-size: 24px;
         }
 
         .info-grid {
 
             display: grid;
+
             grid-template-columns: 1fr 1fr;
 
             gap: 14px;
@@ -250,11 +268,10 @@
             color: var(--muted);
 
             font-size: 11px;
+
             font-weight: 900;
 
             text-transform: uppercase;
-
-            letter-spacing: .08em;
 
             margin-bottom: 8px;
         }
@@ -262,61 +279,10 @@
         .value {
 
             font-size: 17px;
+
             font-weight: 800;
 
-            line-height: 1.4;
-
             word-break: break-word;
-        }
-
-        .workflow {
-            display: grid;
-            gap: 12px;
-        }
-
-        .workflow-step {
-
-            display: flex;
-            gap: 14px;
-            align-items: center;
-
-            background: #fafafa;
-
-            border: 1px solid var(--border);
-
-            border-radius: 22px;
-
-            padding: 16px;
-        }
-
-        .step-number {
-
-            width: 38px;
-            height: 38px;
-
-            background: var(--gold);
-            color: black;
-
-            border-radius: 50%;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            font-weight: 950;
-
-            flex-shrink: 0;
-        }
-
-        .workflow-step strong {
-            display: block;
-            font-size: 15px;
-            margin-bottom: 4px;
-        }
-
-        .workflow-step span {
-            color: var(--muted);
-            font-size: 13px;
         }
 
         .bottom-nav {
@@ -332,22 +298,24 @@
             border-top: 1px solid var(--border);
 
             display: grid;
+
             grid-template-columns: repeat(4, 1fr);
 
             padding: 8px;
 
-            z-index: 50;
+            z-index: 100;
         }
 
         .bottom-nav a {
 
-            text-align: center;
-
             text-decoration: none;
+
+            text-align: center;
 
             color: var(--muted);
 
             font-size: 11px;
+
             font-weight: 900;
         }
 
@@ -357,9 +325,9 @@
 
             color: var(--black);
 
-            font-size: 19px;
+            font-size: 20px;
 
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
 
         @media (max-width: 760px) {
@@ -370,21 +338,7 @@
                 gap: 12px;
             }
 
-            .top-actions {
-                width: 100%;
-            }
-
-            .top-btn,
-            .delete-btn {
-                flex: 1;
-                text-align: center;
-            }
-
-            .hero h1 {
-                font-size: 30px;
-            }
-
-            .actions {
+            .action-grid {
                 grid-template-columns: 1fr 1fr;
             }
 
@@ -395,17 +349,13 @@
 
         @media (max-width: 520px) {
 
-            .actions {
+            .action-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .container {
-                padding: 12px;
-                padding-bottom: 90px;
             }
         }
 
     </style>
+
 </head>
 
 <body>
@@ -419,23 +369,22 @@
 
     <div class="top-actions">
 
-        <a class="top-btn"
+        <a class="btn btn-dark"
            href="/dashboard/">
             Dashboard
         </a>
 
-        <a class="top-btn"
+        <a class="btn btn-dark"
            href="/leads/">
             Leads
         </a>
 
         <form method="POST"
-              action="/customers/{{ customer.id }}/delete/"
-              onsubmit="return confirm('Delete this customer permanently?');">
+              action="/customers/{{ customer.id }}/delete/">
 
             {% csrf_token %}
 
-            <button class="delete-btn"
+            <button class="btn btn-red"
                     type="submit">
                 Delete
             </button>
@@ -459,13 +408,13 @@
         </h1>
 
         <p>
-            Customer account, jobs, estimates,
-            invoices, and walkthrough workflow.
+            Customer management portal for jobs,
+            estimates, invoices, and workflow tracking.
         </p>
 
     </section>
 
-    <section class="actions">
+    <section class="action-grid">
 
         <a class="action-btn gold"
            href="tel:{{ customer.phone }}">
@@ -477,13 +426,14 @@
             ✉ Email
         </a>
 
-        <a class="action-btn green" href="/customers/{{ customer.id }}/create-job/">
-    🛠 Create Job
-</a>
+        <a class="action-btn green"
+           href="/customers/{{ customer.id }}/create-job/">
+            🛠 Create Job
+        </a>
 
         <a class="action-btn dark"
-           href="#">
-            📋 Build Estimate
+           href="/jobs/">
+            📋 Jobs
         </a>
 
     </section>
@@ -497,6 +447,7 @@
         <div class="info-grid">
 
             <div class="info-box">
+
                 <div class="label">
                     Customer Name
                 </div>
@@ -504,9 +455,11 @@
                 <div class="value">
                     {{ customer.name }}
                 </div>
+
             </div>
 
             <div class="info-box">
+
                 <div class="label">
                     Phone Number
                 </div>
@@ -514,9 +467,11 @@
                 <div class="value">
                     {{ customer.phone }}
                 </div>
+
             </div>
 
             <div class="info-box">
+
                 <div class="label">
                     Email Address
                 </div>
@@ -524,90 +479,17 @@
                 <div class="value">
                     {{ customer.email }}
                 </div>
+
             </div>
 
             <div class="info-box">
+
                 <div class="label">
                     Customer ID
                 </div>
 
                 <div class="value">
                     #{{ customer.id }}
-                </div>
-            </div>
-
-        </div>
-
-    </section>
-
-    <section class="card">
-
-        <h2>
-            Customer Workflow
-        </h2>
-
-        <div class="workflow">
-
-            <div class="workflow-step">
-
-                <div class="step-number">
-                    1
-                </div>
-
-                <div>
-                    <strong>Create Job / Site Visit</strong>
-
-                    <span>
-                        Schedule walkthrough and document scope.
-                    </span>
-                </div>
-
-            </div>
-
-            <div class="workflow-step">
-
-                <div class="step-number">
-                    2
-                </div>
-
-                <div>
-                    <strong>Build Estimate</strong>
-
-                    <span>
-                        Add labor, materials, and pricing.
-                    </span>
-                </div>
-
-            </div>
-
-            <div class="workflow-step">
-
-                <div class="step-number">
-                    3
-                </div>
-
-                <div>
-                    <strong>Approve Job</strong>
-
-                    <span>
-                        Convert estimate into active work.
-                    </span>
-                </div>
-
-            </div>
-
-            <div class="workflow-step">
-
-                <div class="step-number">
-                    4
-                </div>
-
-                <div>
-                    <strong>Invoice & Collect</strong>
-
-                    <span>
-                        Send invoice and close out the project.
-                    </span>
                 </div>
 
             </div>
@@ -635,7 +517,7 @@
         Customers
     </a>
 
-    <a href="#">
+    <a href="/jobs/">
         <strong>🛠</strong>
         Jobs
     </a>
