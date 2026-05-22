@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Jobs | JCV</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            background: #f4f5f7;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #111827;
+        }
+
+        .topbar {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topbar h1 {
+            margin: 0;
+        }
+
+        .topbar a {
+            background: #0b0b0c;
+            color: white;
+            text-decoration: none;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-weight: 900;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 18px;
+        }
+
+        .job-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .job-card h2 {
+            margin: 0 0 8px;
+        }
+
+        .muted {
+            color: #6b7280;
+        }
+
+        .open {
+            background: #ffc400;
+            color: black;
+            text-decoration: none;
+            padding: 14px 18px;
+            border-radius: 18px;
+            font-weight: 950;
+        }
+
+        @media (max-width: 700px) {
+            .job-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .open {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="topbar">
+    <div>
+        <h1>Jobs</h1>
+        <p class="muted">Site visits, walkthroughs, and active work.</p>
+    </div>
+
+    <a href="/dashboard/">Dashboard</a>
+</div>
+
+<div class="container">
+
+    {% for job in jobs %}
+        <div class="job-card">
+            <div>
+                <h2>{{ job.title }}</h2>
+                <div class="muted">
+                    {{ job.customer.name }} · {{ job.status }} · ${{ job.estimated_total_price }}
+                </div>
+            </div>
+
+            <a class="open" href="/jobs/{{ job.id }}/">Open Job</a>
+        </div>
+    {% empty %}
+        <p>No jobs yet.</p>
+    {% endfor %}
+
+</div>
+
+</body>
+</html>
