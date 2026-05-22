@@ -1,4 +1,5 @@
 from decimal import Decimal
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
@@ -16,9 +17,12 @@ from .models import (
 
 
 def home(request):
+
     if request.method == "POST":
 
+        # QUOTE FORM
         if "quote_form" in request.POST:
+
             QuoteRequest.objects.create(
                 name=request.POST.get("name"),
                 phone=request.POST.get("phone"),
@@ -32,7 +36,9 @@ def home(request):
                 "message": "Thank you for submitting your request. We will contact you soon."
             })
 
+        # CAREER FORM
         if "career_form" in request.POST:
+
             CareerApplication.objects.create(
                 name=request.POST.get("applicant_name"),
                 phone=request.POST.get("applicant_phone"),
@@ -48,11 +54,12 @@ def home(request):
                 "message": "Thank you for submitting your application. We will review it soon."
             })
 
-    return render(request, "home.html", {})
+    return render(request, "home.html")
 
 
 @staff_member_required
 def dashboard(request):
+
     context = {
         "new_quotes": QuoteRequest.objects.order_by("-created_at")[:5],
         "recent_jobs": Job.objects.order_by("-created_at")[:5],
@@ -68,14 +75,21 @@ def dashboard(request):
 
 @staff_member_required
 def leads(request):
-    return render(request, "leads.html", {
-        "leads": QuoteRequest.objects.order_by("-created_at"),
-    })
+
+    context = {
+        "leads": QuoteRequest.objects.order_by("-created_at")
+    }
+
+    return render(request, "leads.html", context)
 
 
 @staff_member_required
 def lead_detail(request, lead_id):
-    lead = get_object_or_404(QuoteRequest, id=lead_id)
+
+    lead = get_object_or_404(
+        QuoteRequest,
+        id=lead_id
+    )
 
     return render(request, "lead_detail.html", {
         "lead": lead,
@@ -84,7 +98,11 @@ def lead_detail(request, lead_id):
 
 @staff_member_required
 def convert_lead(request, lead_id):
-    lead = get_object_or_404(QuoteRequest, id=lead_id)
+
+    lead = get_object_or_404(
+        QuoteRequest,
+        id=lead_id
+    )
 
     customer = Customer.objects.create(
         name=lead.name,
@@ -98,19 +116,32 @@ def convert_lead(request, lead_id):
 
 @staff_member_required
 def customers(request):
+
+    customers = Customer.objects.all().order_by("-id")
+
     return render(request, "customers.html", {
-        "customers": Customer.objects.all().order_by("-id"),
+        "customers": customers,
     })
 
 
 @staff_member_required
 def create_customer(request):
+
     if request.method == "POST":
+
         name = request.POST.get("name", "").strip()
         phone = request.POST.get("phone", "").strip()
         email = request.POST.get("email", "").strip()
 
         if name and phone:
+
+            existing_customer = Customer.objects.filter(
+                phone=phone
+            ).first()
+
+            if existing_customer:
+                return redirect(f"/customers/{existing_customer.id}/")
+
             customer = Customer.objects.create(
                 name=name,
                 phone=phone,
@@ -124,20 +155,34 @@ def create_customer(request):
 
 @staff_member_required
 def customer_detail(request, customer_id):
-    customer = get_object_or_404(Customer, id=customer_id)
+
+    customer = get_object_or_404(
+        Customer,
+        id=customer_id
+    )
+
+    jobs = Job.objects.filter(
+        customer=customer
+    ).order_by("-created_at")
 
     return render(request, "customer_detail.html", {
         "customer": customer,
-        "jobs": customer.jobs.all().order_by("-created_at"),
+        "jobs": jobs,
     })
 
 
 @staff_member_required
 def delete_customer(request, customer_id):
-    customer = get_object_or_404(Customer, id=customer_id)
+
+    customer = get_object_or_404(
+        Customer,
+        id=customer_id
+    )
 
     if request.method == "POST":
+
         customer.delete()
+
         return redirect("/customers/")
 
     return redirect(f"/customers/{customer.id}/")
@@ -145,33 +190,79 @@ def delete_customer(request, customer_id):
 
 @staff_member_required
 def create_job(request, customer_id):
-    customer = get_object_or_404(Customer, id=customer_id)
-    templates = ServiceTemplate.objects.filter(active=True).order_by("category", "name")
+
+    customer = get_object_or_404(
+        Customer,
+        id=customer_id
+    )
+
+    templates = ServiceTemplate.objects.filter(
+        active=True
+    ).order_by(
+        "category",
+        "name"
+    )
 
     if request.method == "POST":
+
         template_id = request.POST.get("template")
+
         template = None
 
         if template_id:
-            template = ServiceTemplate.objects.filter(id=template_id).first()
+            template = ServiceTemplate.objects.filter(
+                id=template_id
+            ).first()
 
         title = request.POST.get("title", "").strip()
-        status = request.POST.get("status", "site_visit")
-        job_address = request.POST.get("job_address", "").strip()
-        description = request.POST.get("description", "").strip()
-        site_notes = request.POST.get("site_notes", "").strip()
-        material_notes = request.POST.get("material_notes", "").strip()
-        scheduled_date_raw = request.POST.get("scheduled_date", "").strip()
+
+        status = request.POST.get(
+            "status",
+            "site_visit"
+        )
+
+        job_address = request.POST.get(
+            "job_address",
+            ""
+        ).strip()
+
+        description = request.POST.get(
+            "description",
+            ""
+        ).strip()
+
+        site_notes = request.POST.get(
+            "site_notes",
+            ""
+        ).strip()
+
+        material_notes = request.POST.get(
+            "material_notes",
+            ""
+        ).strip()
+
+        scheduled_date_raw = request.POST.get(
+            "scheduled_date",
+            ""
+        ).strip()
 
         scheduled_date = None
+
         if scheduled_date_raw:
-            scheduled_date = parse_datetime(scheduled_date_raw)
+            scheduled_date = parse_datetime(
+                scheduled_date_raw
+            )
 
         estimated_total_price = None
-        price_raw = request.POST.get("estimated_total_price", "").strip()
+
+        price_raw = request.POST.get(
+            "estimated_total_price",
+            ""
+        ).strip()
 
         if price_raw:
             estimated_total_price = Decimal(price_raw)
+
         elif template:
             estimated_total_price = template.default_price
 
@@ -189,7 +280,7 @@ def create_job(request, customer_id):
             template=template,
             title=title or "New Job",
             status=status,
-            job_address=job_address or customer.address,
+            job_address=job_address,
             description=description,
             site_notes=site_notes,
             material_notes=material_notes,
@@ -207,27 +298,51 @@ def create_job(request, customer_id):
 
 @staff_member_required
 def jobs(request):
+
+    jobs = Job.objects.all().order_by("-created_at")
+
     return render(request, "jobs.html", {
-        "jobs": Job.objects.all().order_by("-created_at"),
+        "jobs": jobs,
     })
 
 
 @staff_member_required
 def job_detail(request, job_id):
-    job = get_object_or_404(Job, id=job_id)
+
+    job = get_object_or_404(
+        Job,
+        id=job_id
+    )
+
+    estimates = Estimate.objects.filter(
+        job=job
+    ).order_by("-created_at")
 
     return render(request, "job_detail.html", {
         "job": job,
-        "estimates": job.estimates.all().order_by("-created_at"),
+        "estimates": estimates,
     })
 
 
 @staff_member_required
 def create_estimate_from_job(request, job_id):
-    job = get_object_or_404(Job, id=job_id)
 
-    scope = job.description or "Electrical work as discussed during site visit."
-    subtotal = job.estimated_total_price or Decimal("0.00")
+    job = get_object_or_404(
+        Job,
+        id=job_id
+    )
+
+    scope = (
+        job.description
+        or
+        "Electrical work as discussed during walkthrough."
+    )
+
+    subtotal = (
+        job.estimated_total_price
+        or
+        Decimal("0.00")
+    )
 
     estimate = Estimate.objects.create(
         job=job,
@@ -242,4 +357,6 @@ def create_estimate_from_job(request, job_id):
     job.status = "estimate_needed"
     job.save()
 
-    return redirect(f"/admin/core/estimate/{estimate.id}/change/")
+    return redirect(
+        f"/admin/core/estimate/{estimate.id}/change/"
+    )
