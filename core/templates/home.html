@@ -444,7 +444,7 @@
         <a href="#careers">Careers</a>
 
         {% if request.user.is_authenticated and request.user.is_staff %}
-            <a href="#admin-requests">Admin Requests</a>
+            <a href="/dashboard/">Command Center</a>
         {% endif %}
 
         <a href="#contact">Contact</a>
@@ -601,16 +601,16 @@
         <div class="form-grid">
             <input type="text" name="name" placeholder="Your Name" required>
             <input type="tel" name="phone" placeholder="Phone Number" required>
-            <input type="email" name="email" placeholder="Email Address">
+            <input type="email" name="email" placeholder="Email Address" required>
 
             <select name="service" required>
                 <option value="">Service Needed</option>
-                <option>Residential Electrical</option>
-                <option>Commercial Electrical</option>
-                <option>Panel / Service Upgrade</option>
-                <option>Lighting Installation</option>
-                <option>Troubleshooting / Repair</option>
-                <option>Other</option>
+                <option value="Residential Electrical">Residential Electrical</option>
+                <option value="Commercial Electrical">Commercial Electrical</option>
+                <option value="Panel / Service Upgrade">Panel / Service Upgrade</option>
+                <option value="Lighting Installation">Lighting Installation</option>
+                <option value="Troubleshooting / Repair">Troubleshooting / Repair</option>
+                <option value="Other">Other</option>
             </select>
 
             <textarea name="message" placeholder="Describe the electrical work you need..." required></textarea>
@@ -635,13 +635,13 @@
         <div class="form-grid">
             <input type="text" name="applicant_name" placeholder="Full Name" required>
             <input type="tel" name="applicant_phone" placeholder="Phone Number" required>
-            <input type="email" name="applicant_email" placeholder="Email Address">
+            <input type="email" name="applicant_email" placeholder="Email Address" required>
 
             <select name="position" required>
                 <option value="">Position Applying For</option>
-                <option>Apprentice Electrician</option>
-                <option>Journeyman Electrician</option>
-                <option>Other</option>
+                <option value="Apprentice Electrician">Apprentice Electrician</option>
+                <option value="Journeyman Electrician">Journeyman Electrician</option>
+                <option value="Other">Other</option>
             </select>
 
             <input type="text" name="experience" placeholder="Years of Experience">
@@ -655,51 +655,6 @@
         </div>
     </form>
 </section>
-
-{% if request.user.is_authenticated and request.user.is_staff %}
-<section id="admin-requests" class="form-section">
-    <div class="section-title">
-        <small>Admin Only</small>
-        <h2>Submitted <span>Requests</span></h2>
-    </div>
-
-    <div class="form-box">
-        <h2 style="color:#ffc400; margin-bottom:25px;">Quote Requests</h2>
-
-        {% for quote in quote_requests %}
-            <div class="admin-card">
-                <p><strong>Name:</strong> {{ quote.name }}</p>
-                <p><strong>Phone:</strong> {{ quote.phone }}</p>
-                <p><strong>Email:</strong> {{ quote.email }}</p>
-                <p><strong>Service:</strong> {{ quote.service }}</p>
-                <p><strong>Message:</strong> {{ quote.message }}</p>
-                <p><strong>Submitted:</strong> {{ quote.created_at }}</p>
-            </div>
-        {% empty %}
-            <p>No quote requests yet.</p>
-        {% endfor %}
-
-        <br><br>
-
-        <h2 style="color:#ffc400; margin-bottom:25px;">Career Applications</h2>
-
-        {% for app in career_applications %}
-            <div class="admin-card">
-                <p><strong>Name:</strong> {{ app.name }}</p>
-                <p><strong>Phone:</strong> {{ app.phone }}</p>
-                <p><strong>Email:</strong> {{ app.email }}</p>
-                <p><strong>Position:</strong> {{ app.position }}</p>
-                <p><strong>Experience:</strong> {{ app.experience }}</p>
-                <p><strong>License:</strong> {{ app.license_info }}</p>
-                <p><strong>Message:</strong> {{ app.message }}</p>
-                <p><strong>Submitted:</strong> {{ app.created_at }}</p>
-            </div>
-        {% empty %}
-            <p>No career applications yet.</p>
-        {% endfor %}
-    </div>
-</section>
-{% endif %}
 
 <section id="why" class="stats">
     <div class="stats-grid">
@@ -748,37 +703,52 @@
 
 <script>
 document.querySelectorAll(".ajax-form").forEach(function(form) {
-    form.addEventListener("submit", function(event) {
+    form.addEventListener("submit", async function(event) {
         event.preventDefault();
 
         const formData = new FormData(form);
 
-        fetch(form.action, {
-            method: "POST",
-            body: formData,
-            headers: {
-                "X-Requested-With": "XMLHttpRequest"
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                let messageBox = form.previousElementSibling;
+        let messageBox = form.previousElementSibling;
 
-                if (!messageBox || !messageBox.classList.contains("success-message")) {
-                    messageBox = document.createElement("div");
-                    messageBox.className = "success-message";
-                    form.parentNode.insertBefore(messageBox, form);
+        if (!messageBox || !messageBox.classList.contains("success-message")) {
+            messageBox = document.createElement("div");
+            messageBox.className = "success-message";
+            form.parentNode.insertBefore(messageBox, form);
+        }
+
+        messageBox.style.borderColor = "rgba(255,196,0,.35)";
+        messageBox.style.color = "#ffc400";
+        messageBox.textContent = "Submitting...";
+
+        try {
+            const response = await fetch(form.action, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
                 }
+            });
 
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                messageBox.style.borderColor = "rgba(0,255,120,.35)";
+                messageBox.style.color = "#00ff88";
                 messageBox.textContent = data.message;
                 form.reset();
+            } else {
+                messageBox.style.borderColor = "rgba(255,80,80,.45)";
+                messageBox.style.color = "#ff6666";
+                messageBox.textContent = data.message || "Submission failed. Please check the form.";
             }
-        })
-        .catch(error => {
-            alert("Something went wrong. Please try again.");
+
+        } catch (error) {
             console.error(error);
-        });
+
+            messageBox.style.borderColor = "rgba(255,80,80,.45)";
+            messageBox.style.color = "#ff6666";
+            messageBox.textContent = "Server error. Please try again or call 281-979-2943.";
+        }
     });
 });
 </script>
