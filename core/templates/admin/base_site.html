@@ -1,14 +1,14 @@
 {% extends "admin/base_site.html" %}
 {% load static %}
 
-{% block title %}JCV Power Solutions Admin{% endblock %}
+{% block title %}JCV Admin{% endblock %}
 
 {% block branding %}
-<div class="jcv-admin-brand">
-    <img src="{% static 'core/images/logo.png' %}" alt="JCV Power Solutions">
+<div class="jcv-brand">
+    <div class="jcv-logo">JCV</div>
     <div>
-        <h1>JCV Power Solutions</h1>
-        <p>Admin Dashboard</p>
+        <h1>JCV Admin</h1>
+        <p>Business Dashboard</p>
     </div>
 </div>
 {% endblock %}
@@ -18,191 +18,241 @@
 
 <style>
     :root {
-        --primary: #ffc400;
-        --secondary: #111111;
-        --accent: #ffc400;
-        --primary-fg: #000000;
-        --body-bg: #050505;
-        --body-fg: #f5f5f5;
-        --body-quiet-color: #b8b8b8;
-        --body-loud-color: #ffffff;
-        --header-bg: #050505;
-        --header-color: #ffc400;
-        --breadcrumbs-bg: #111111;
-        --breadcrumbs-fg: #ffc400;
-        --link-fg: #ffc400;
-        --link-hover-color: #ffffff;
-        --link-selected-fg: #ffffff;
+        --primary: #f5c542;
+        --accent: #f5c542;
+        --primary-fg: #111;
+        --body-bg: #f6f7f9;
+        --body-fg: #111827;
+        --header-bg: #ffffff;
+        --header-color: #111827;
+        --breadcrumbs-bg: #f6f7f9;
+        --breadcrumbs-fg: #6b7280;
+        --link-fg: #111827;
+        --link-hover-color: #000;
     }
 
     body {
-        background: #050505 !important;
-        color: #f5f5f5 !important;
+        background: #f6f7f9 !important;
+        color: #111827 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     #header {
-        background: #050505 !important;
-        border-bottom: 1px solid rgba(255,196,0,.35);
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 14px 18px;
         height: auto;
-        padding: 14px 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,.04);
     }
 
-    .jcv-admin-brand {
+    .jcv-brand {
         display: flex;
         align-items: center;
-        gap: 18px;
+        gap: 12px;
     }
 
-    .jcv-admin-brand img {
-        height: 70px;
-        width: auto;
+    .jcv-logo {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: #111827;
+        color: #f5c542;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        letter-spacing: .5px;
     }
 
-    .jcv-admin-brand h1 {
+    .jcv-brand h1 {
         margin: 0;
-        color: #ffc400;
-        font-size: 24px;
-        text-transform: uppercase;
-        font-style: italic;
-        letter-spacing: 1px;
+        font-size: 18px;
+        font-weight: 800;
+        color: #111827;
     }
 
-    .jcv-admin-brand p {
-        margin: 4px 0 0;
-        color: #b8b8b8;
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+    .jcv-brand p {
+        margin: 2px 0 0;
+        font-size: 12px;
+        color: #6b7280;
     }
 
     #user-tools {
-        color: #f5f5f5 !important;
-        font-weight: bold;
+        font-size: 12px;
+        color: #6b7280 !important;
     }
 
     #user-tools a {
-        color: #ffc400 !important;
+        color: #111827 !important;
+        font-weight: 600;
     }
 
     div.breadcrumbs {
-        background: #111111 !important;
-        color: #ffc400 !important;
-        border-bottom: 1px solid rgba(255,196,0,.2);
+        background: transparent !important;
+        color: #6b7280 !important;
+        padding: 12px 20px;
+        border: none;
+        font-size: 13px;
     }
 
-    div.breadcrumbs a {
-        color: #ffc400 !important;
+    #content {
+        padding: 18px;
+    }
+
+    #content h1 {
+        font-size: 22px;
+        font-weight: 850;
+        color: #111827 !important;
+        margin-bottom: 18px;
     }
 
     .module {
-        background: #111111 !important;
-        border: 1px solid rgba(255,196,0,.18);
-        border-radius: 10px;
+        background: #ffffff !important;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
         overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0,0,0,.05);
+        margin-bottom: 18px;
     }
 
     .module h2,
     .module caption,
     .inline-group h2 {
-        background: linear-gradient(90deg, #ffc400, #d6a900) !important;
-        color: #000000 !important;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        background: #ffffff !important;
+        color: #111827 !important;
+        font-size: 14px;
+        font-weight: 800;
+        padding: 14px 16px;
+        border-bottom: 1px solid #e5e7eb;
     }
 
     table {
-        background: #111111 !important;
+        background: #ffffff !important;
     }
 
     th {
-        background: #151515 !important;
-        color: #ffc400 !important;
+        background: #ffffff !important;
+        color: #6b7280 !important;
+        font-size: 12px;
+        text-transform: uppercase;
     }
 
     td {
-        background: #0b0b0b !important;
-        color: #f5f5f5 !important;
-        border-bottom: 1px solid rgba(255,255,255,.08);
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-bottom: 1px solid #f1f1f1;
+        padding: 12px;
     }
 
     a:link,
     a:visited {
-        color: #ffc400;
+        color: #111827;
+        font-weight: 600;
     }
 
     input,
     textarea,
     select {
-        background: #0b0b0b !important;
-        color: #f5f5f5 !important;
-        border: 1px solid rgba(255,196,0,.25) !important;
-        border-radius: 6px;
-        padding: 8px;
+        background: #ffffff !important;
+        color: #111827 !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 12px;
+        padding: 10px;
+        font-size: 16px;
     }
 
     input:focus,
     textarea:focus,
     select:focus {
-        border-color: #ffc400 !important;
+        border-color: #f5c542 !important;
         outline: none;
-        box-shadow: 0 0 10px rgba(255,196,0,.25);
+        box-shadow: 0 0 0 4px rgba(245,197,66,.25);
     }
 
     .button,
     input[type=submit],
     input[type=button],
     .submit-row input,
-    a.button {
-        background: #ffc400 !important;
-        color: #000000 !important;
-        border-radius: 6px !important;
+    a.button,
+    .object-tools a {
+        background: #111827 !important;
+        color: #ffffff !important;
+        border-radius: 12px !important;
         border: none !important;
-        font-weight: 900 !important;
-        text-transform: uppercase;
-    }
-
-    .button:hover,
-    input[type=submit]:hover,
-    input[type=button]:hover,
-    .submit-row input:hover,
-    a.button:hover {
-        background: #ffd84d !important;
+        font-weight: 800 !important;
+        padding: 10px 14px !important;
+        text-transform: none !important;
     }
 
     .button.default,
     input[type=submit].default,
     .submit-row input.default {
-        background: #ffc400 !important;
-        color: #000 !important;
+        background: #f5c542 !important;
+        color: #111827 !important;
     }
 
     .delete-link {
-        background: #7a1111 !important;
+        background: #ef4444 !important;
         color: white !important;
-        border-radius: 6px;
-    }
-
-    #content h1 {
-        color: #ffc400 !important;
-        font-style: italic;
-        text-transform: uppercase;
-    }
-
-    .object-tools a {
-        background: #ffc400 !important;
-        color: #000 !important;
-        font-weight: 900;
-        border-radius: 6px;
-    }
-
-    .dashboard .module table th a {
-        color: #ffc400 !important;
+        border-radius: 12px;
     }
 
     .help,
     p.help {
-        color: #b8b8b8 !important;
+        color: #6b7280 !important;
+    }
+
+    @media (max-width: 700px) {
+        #header {
+            display: block;
+            padding: 14px;
+        }
+
+        .jcv-brand {
+            margin-bottom: 10px;
+        }
+
+        #user-tools {
+            margin-top: 8px;
+            line-height: 1.8;
+        }
+
+        #content {
+            padding: 14px;
+        }
+
+        #content h1 {
+            font-size: 20px;
+        }
+
+        .module {
+            border-radius: 16px;
+            margin-bottom: 14px;
+        }
+
+        table,
+        tbody,
+        tr,
+        td,
+        th {
+            font-size: 14px;
+        }
+
+        .object-tools {
+            float: none;
+            margin-bottom: 12px;
+        }
+
+        .object-tools li {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .object-tools a {
+            display: block;
+            text-align: center;
+        }
     }
 </style>
 {% endblock %}
