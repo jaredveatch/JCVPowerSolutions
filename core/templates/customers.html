@@ -1,0 +1,309 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Customers | JCV</title>
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <style>
+
+        :root {
+            --bg: #f4f5f7;
+            --card: #ffffff;
+            --black: #0b0b0c;
+            --gold: #ffc400;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+
+            font-family:
+                Inter,
+                SF Pro Display,
+                -apple-system,
+                BlinkMacSystemFont,
+                sans-serif;
+
+            color: var(--text);
+        }
+
+        .topbar {
+
+            background: white;
+            border-bottom: 1px solid var(--border);
+
+            padding: 18px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .topbar h1 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: -.04em;
+        }
+
+        .topbar p {
+            margin: 6px 0 0;
+            color: var(--muted);
+        }
+
+        .top-btn {
+
+            background: var(--black);
+            color: white;
+
+            text-decoration: none;
+
+            padding: 12px 16px;
+
+            border-radius: 16px;
+
+            font-weight: 900;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 18px;
+            padding-bottom: 100px;
+        }
+
+        .customer-card {
+
+            background: white;
+
+            border: 1px solid var(--border);
+
+            border-radius: 24px;
+
+            padding: 20px;
+
+            margin-bottom: 14px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            gap: 20px;
+
+            transition: .2s;
+        }
+
+        .customer-card:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 10px 30px rgba(0,0,0,.06);
+        }
+
+        .customer-left h2 {
+            margin: 0 0 8px;
+            font-size: 22px;
+        }
+
+        .customer-info {
+            color: var(--muted);
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .open-btn {
+
+            background: var(--gold);
+            color: black;
+
+            text-decoration: none;
+
+            padding: 14px 18px;
+
+            border-radius: 18px;
+
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .empty {
+
+            background: white;
+
+            border-radius: 24px;
+
+            border: 1px solid var(--border);
+
+            padding: 50px;
+
+            text-align: center;
+        }
+
+        .bottom-nav {
+
+            position: fixed;
+
+            bottom: 0;
+            left: 0;
+            right: 0;
+
+            background: white;
+
+            border-top: 1px solid var(--border);
+
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+
+            padding: 8px;
+        }
+
+        .bottom-nav a {
+
+            text-align: center;
+
+            text-decoration: none;
+
+            color: var(--muted);
+
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .bottom-nav strong {
+
+            display: block;
+
+            color: var(--black);
+
+            font-size: 18px;
+
+            margin-bottom: 3px;
+        }
+
+        @media (max-width: 700px) {
+
+            .customer-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .open-btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="topbar">
+
+    <div>
+        <h1>Customers</h1>
+
+        <p>
+            JCV customer database and accounts.
+        </p>
+    </div>
+
+    <a class="top-btn"
+       href="/dashboard/">
+        Dashboard
+    </a>
+
+</div>
+
+<div class="container">
+
+    {% for customer in customers %}
+
+        <div class="customer-card">
+
+            <div class="customer-left">
+
+                <h2>
+                    {{ customer.name }}
+                </h2>
+
+                <div class="customer-info">
+
+                    📞 {{ customer.phone }}<br>
+
+                    ✉ {{ customer.email }}
+
+                </div>
+
+            </div>
+
+            <a class="open-btn"
+               href="#">
+                Open Customer
+            </a>
+
+        </div>
+
+    {% empty %}
+
+        <div class="empty">
+
+            <h2>
+                No Customers Yet
+            </h2>
+
+            <p>
+                Converted leads will appear here.
+            </p>
+
+        </div>
+
+    {% endfor %}
+
+</div>
+
+<nav class="bottom-nav">
+
+    <a href="/dashboard/">
+        <strong>⌂</strong>
+        Home
+    </a>
+
+    <a href="/leads/">
+        <strong>📥</strong>
+        Leads
+    </a>
+
+    <a href="/customers/">
+        <strong>👤</strong>
+        Customers
+    </a>
+
+    <a href="#">
+        <strong>🛠</strong>
+        Jobs
+    </a>
+
+</nav>
+
+</body>
+</html>

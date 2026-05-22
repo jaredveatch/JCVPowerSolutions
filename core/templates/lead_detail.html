@@ -17,178 +17,250 @@
             --green: #16a34a;
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             margin: 0;
             background: var(--bg);
-            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family:
+                Inter,
+                SF Pro Display,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
             color: var(--text);
         }
 
         .topbar {
             background: white;
             border-bottom: 1px solid var(--border);
-            padding: 16px;
+            padding: 18px;
             position: sticky;
             top: 0;
-            z-index: 10;
+            z-index: 20;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .topbar a {
+        .back-link {
             color: var(--black);
-            font-weight: 800;
             text-decoration: none;
+            font-weight: 900;
+            font-size: 15px;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .top-btn {
+            background: var(--black);
+            color: white;
+            text-decoration: none;
+            padding: 11px 14px;
+            border-radius: 14px;
+            font-weight: 900;
+            font-size: 13px;
         }
 
         .container {
-            max-width: 850px;
+            max-width: 900px;
             margin: auto;
             padding: 16px;
-            padding-bottom: 90px;
+            padding-bottom: 100px;
         }
 
         .hero {
-            background: var(--black);
+            background: linear-gradient(
+                135deg,
+                #0b0b0c 0%,
+                #171717 100%
+            );
+
             color: white;
-            border-radius: 26px;
-            padding: 22px;
+            border-radius: 28px;
+            padding: 24px;
             margin-bottom: 16px;
-            box-shadow: 0 12px 30px rgba(0,0,0,.18);
+
+            box-shadow:
+                0 18px 40px rgba(0,0,0,.20);
         }
 
         .badge {
-            display: inline-block;
-            background: var(--gold);
-            color: black;
-            padding: 8px 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+
+            background: rgba(255,196,0,.16);
+            color: var(--gold);
+
+            padding: 8px 14px;
             border-radius: 999px;
+
             font-size: 12px;
             font-weight: 950;
-            margin-bottom: 14px;
+
+            margin-bottom: 16px;
         }
 
         .hero h1 {
             margin: 0;
-            font-size: 30px;
-            letter-spacing: -.04em;
+            font-size: 34px;
+            letter-spacing: -.05em;
+            line-height: 1;
         }
 
         .hero p {
-            margin: 8px 0 0;
+            margin: 10px 0 0;
             color: #d1d5db;
+            font-size: 15px;
         }
 
         .actions {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(4, 1fr);
             gap: 12px;
             margin-bottom: 16px;
         }
 
-        .btn {
+        .action-btn {
             display: block;
             text-align: center;
-            padding: 15px;
-            border-radius: 18px;
-            font-weight: 950;
             text-decoration: none;
+
+            padding: 16px;
+            border-radius: 22px;
+
+            font-weight: 950;
+            font-size: 14px;
+
+            transition: .2s;
         }
 
-        .btn-gold {
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .gold {
             background: var(--gold);
             color: black;
         }
 
-        .btn-dark {
+        .dark {
             background: var(--black);
             color: white;
         }
 
-        .btn-green {
+        .green {
             background: var(--green);
             color: white;
         }
 
         .card {
-            background: white;
+            background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 18px;
+
+            border-radius: 28px;
+            padding: 20px;
+
             margin-bottom: 16px;
-            box-shadow: 0 8px 24px rgba(0,0,0,.05);
+
+            box-shadow:
+                0 8px 24px rgba(0,0,0,.05);
         }
 
         .card h2 {
-            margin: 0 0 14px;
-            font-size: 18px;
+            margin: 0 0 18px;
+            font-size: 20px;
+            letter-spacing: -.03em;
         }
 
-        .row {
-            padding: 13px 0;
-            border-top: 1px solid var(--border);
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
         }
 
-        .row:first-of-type {
-            border-top: none;
+        .info-box {
+            background: #fafafa;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 16px;
         }
 
         .label {
             color: var(--muted);
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 900;
             text-transform: uppercase;
-            margin-bottom: 4px;
+            letter-spacing: .08em;
+            margin-bottom: 8px;
         }
 
         .value {
-            font-size: 16px;
-            font-weight: 700;
+            font-size: 17px;
+            font-weight: 800;
+            line-height: 1.4;
             word-break: break-word;
         }
 
-        .message {
-            background: #f9fafb;
+        .message-box {
+            background: #fafafa;
             border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 16px;
-            line-height: 1.6;
+            border-radius: 22px;
+            padding: 18px;
+            line-height: 1.7;
             color: #374151;
+            font-size: 15px;
         }
 
-        .flow {
+        .workflow {
             display: grid;
-            gap: 10px;
-        }
-
-        .flow-step {
-            display: flex;
             gap: 12px;
-            align-items: center;
-            background: #f9fafb;
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 14px;
         }
 
-        .num {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
+        .workflow-step {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+
+            background: #fafafa;
+            border: 1px solid var(--border);
+
+            border-radius: 22px;
+            padding: 16px;
+        }
+
+        .step-number {
+            width: 38px;
+            height: 38px;
+
             background: var(--gold);
             color: black;
+
+            border-radius: 50%;
+
             display: flex;
             align-items: center;
             justify-content: center;
+
             font-weight: 950;
             flex-shrink: 0;
         }
 
-        .flow-step strong {
+        .workflow-step strong {
             display: block;
+            font-size: 15px;
+            margin-bottom: 4px;
         }
 
-        .flow-step span {
+        .workflow-step span {
             color: var(--muted);
             font-size: 13px;
         }
@@ -198,35 +270,85 @@
             bottom: 0;
             left: 0;
             right: 0;
+
             background: white;
             border-top: 1px solid var(--border);
+
             display: grid;
             grid-template-columns: repeat(4, 1fr);
+
             padding: 8px;
+            z-index: 50;
         }
 
         .bottom-nav a {
             text-align: center;
             text-decoration: none;
             color: var(--muted);
+
             font-size: 11px;
-            font-weight: 800;
+            font-weight: 900;
         }
 
         .bottom-nav strong {
             display: block;
             color: var(--black);
-            font-size: 18px;
-            margin-bottom: 2px;
+            font-size: 19px;
+            margin-bottom: 3px;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 760px) {
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .top-actions {
+                width: 100%;
+            }
+
+            .top-btn {
+                flex: 1;
+                text-align: center;
+            }
+
+            .hero h1 {
+                font-size: 28px;
+            }
+
+            .actions {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 520px) {
+
+            .actions {
+                grid-template-columns: 1fr;
+            }
+
+            .hero {
+                padding: 22px;
+            }
+
             .hero h1 {
                 font-size: 26px;
             }
 
-            .actions {
-                grid-template-columns: 1fr;
+            .container {
+                padding: 12px;
+                padding-bottom: 90px;
+            }
+
+            .card {
+                border-radius: 24px;
+                padding: 18px;
             }
         }
     </style>
@@ -235,101 +357,181 @@
 <body>
 
 <div class="topbar">
-    <a href="/leads/">← Back to Leads</a>
+
+    <a class="back-link" href="/leads/">
+        ← Back to Leads
+    </a>
+
+    <div class="top-actions">
+        <a class="top-btn" href="/dashboard/">
+            Dashboard
+        </a>
+
+        <a class="top-btn" href="/leads/">
+            Leads
+        </a>
+    </div>
+
 </div>
 
 <div class="container">
 
     <section class="hero">
-        <span class="badge">NEW LEAD</span>
+
+        <div class="badge">
+            ⚡ NEW LEAD
+        </div>
+
         <h1>{{ lead.name }}</h1>
-        <p>{{ lead.service }}</p>
+
+        <p>
+            {{ lead.service }}
+        </p>
+
     </section>
 
     <section class="actions">
-        <a class="btn btn-gold" href="tel:{{ lead.phone }}">Call Customer</a>
-        <a class="btn btn-dark" href="mailto:{{ lead.email }}">Email Customer</a>
-        <a class="btn btn-green" href="/admin/core/customer/add/">Convert to Customer</a>
-        <a class="btn btn-dark" href="/admin/core/job/add/">Create Site Visit</a>
+
+        <a class="action-btn gold"
+           href="tel:{{ lead.phone }}">
+            📞 Call Customer
+        </a>
+
+        <a class="action-btn dark"
+           href="mailto:{{ lead.email }}">
+            ✉ Email Customer
+        </a>
+
+        <a class="action-btn green"
+           href="/leads/{{ lead.id }}/convert/">
+            👤 Convert to Customer
+        </a>
+
+        <a class="action-btn dark"
+           href="#">
+            🛠 Create Site Visit
+        </a>
+
     </section>
 
     <section class="card">
-        <h2>Customer Info</h2>
 
-        <div class="row">
-            <div class="label">Name</div>
-            <div class="value">{{ lead.name }}</div>
+        <h2>Customer Information</h2>
+
+        <div class="info-grid">
+
+            <div class="info-box">
+                <div class="label">Customer Name</div>
+                <div class="value">
+                    {{ lead.name }}
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="label">Phone Number</div>
+                <div class="value">
+                    {{ lead.phone }}
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="label">Email Address</div>
+                <div class="value">
+                    {{ lead.email }}
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="label">Requested Service</div>
+                <div class="value">
+                    {{ lead.service }}
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="label">Submitted</div>
+                <div class="value">
+                    {{ lead.created_at }}
+                </div>
+            </div>
+
         </div>
 
-        <div class="row">
-            <div class="label">Phone</div>
-            <div class="value">{{ lead.phone }}</div>
-        </div>
-
-        <div class="row">
-            <div class="label">Email</div>
-            <div class="value">{{ lead.email }}</div>
-        </div>
-
-        <div class="row">
-            <div class="label">Service Requested</div>
-            <div class="value">{{ lead.service }}</div>
-        </div>
-
-        <div class="row">
-            <div class="label">Submitted</div>
-            <div class="value">{{ lead.created_at }}</div>
-        </div>
     </section>
 
     <section class="card">
+
         <h2>Customer Message</h2>
-        <div class="message">
+
+        <div class="message-box">
             {{ lead.message }}
         </div>
+
     </section>
 
     <section class="card">
+
         <h2>JCV Workflow</h2>
 
-        <div class="flow">
-            <div class="flow-step">
-                <div class="num">1</div>
+        <div class="workflow">
+
+            <div class="workflow-step">
+                <div class="step-number">1</div>
+
                 <div>
-                    <strong>Call customer</strong>
-                    <span>Confirm service needed, address, and urgency.</span>
+                    <strong>Call Customer</strong>
+
+                    <span>
+                        Confirm address, service needed,
+                        urgency, and schedule.
+                    </span>
                 </div>
             </div>
 
-            <div class="flow-step">
-                <div class="num">2</div>
+            <div class="workflow-step">
+                <div class="step-number">2</div>
+
                 <div>
-                    <strong>Convert to customer</strong>
-                    <span>Create customer profile inside admin.</span>
+                    <strong>Convert to Customer</strong>
+
+                    <span>
+                        Create the official customer profile.
+                    </span>
                 </div>
             </div>
 
-            <div class="flow-step">
-                <div class="num">3</div>
+            <div class="workflow-step">
+                <div class="step-number">3</div>
+
                 <div>
-                    <strong>Create site visit</strong>
-                    <span>Schedule walkthrough and document job notes.</span>
+                    <strong>Create Site Visit</strong>
+
+                    <span>
+                        Schedule walkthrough and inspection.
+                    </span>
                 </div>
             </div>
 
-            <div class="flow-step">
-                <div class="num">4</div>
+            <div class="workflow-step">
+                <div class="step-number">4</div>
+
                 <div>
-                    <strong>Build estimate</strong>
-                    <span>Add scope, labor, materials, and price.</span>
+                    <strong>Build Estimate</strong>
+
+                    <span>
+                        Add labor, materials, notes, and pricing.
+                    </span>
                 </div>
             </div>
+
         </div>
+
     </section>
 
 </div>
 
 <nav class="bottom-nav">
+
     <a href="/dashboard/">
         <strong>⌂</strong>
         Home
@@ -340,15 +542,16 @@
         Leads
     </a>
 
-    <a href="/admin/core/customer/add/">
+    <a href="#">
         <strong>👤</strong>
         Customer
     </a>
 
-    <a href="/admin/core/job/add/">
+    <a href="#">
         <strong>🛠</strong>
         Job
     </a>
+
 </nav>
 
 </body>
