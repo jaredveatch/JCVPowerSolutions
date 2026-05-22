@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
 
@@ -53,9 +53,6 @@ def dashboard(request):
     context = {
         "new_quotes": QuoteRequest.objects.order_by("-created_at")[:5],
         "recent_jobs": Job.objects.order_by("-created_at")[:5],
-        "recent_estimates": Estimate.objects.order_by("-created_at")[:5],
-        "recent_invoices": Invoice.objects.order_by("-created_at")[:5],
-        "recent_customers": Customer.objects.order_by("-created_at")[:5],
 
         "quotes_count": QuoteRequest.objects.count(),
         "customers_count": Customer.objects.count(),
@@ -74,43 +71,3 @@ def leads(request):
     }
 
     return render(request, "leads.html", context)
-
-
-@staff_member_required
-def lead_detail(request, lead_id):
-    lead = get_object_or_404(QuoteRequest, id=lead_id)
-
-    context = {
-        "lead": lead,
-    }
-
-    return render(request, "lead_detail.html", context)
-
-
-@staff_member_required
-def jobs(request):
-    context = {
-        "jobs": Job.objects.order_by("-created_at"),
-    }
-
-    return render(request, "jobs.html", context)
-
-
-@staff_member_required
-def job_detail(request, job_id):
-    job = get_object_or_404(Job, id=job_id)
-
-    context = {
-        "job": job,
-    }
-
-    return render(request, "job_detail.html", context)
-
-
-@staff_member_required
-def estimates(request):
-    context = {
-        "estimates": Estimate.objects.order_by("-created_at"),
-    }
-
-    return render(request, "estimates.html", context)
