@@ -1,0 +1,313 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>JCV Leads</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        :root {
+            --bg: #f4f5f7;
+            --card: #ffffff;
+            --black: #0b0b0c;
+            --gold: #ffc400;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            font-family:
+                Inter,
+                SF Pro Display,
+                -apple-system,
+                BlinkMacSystemFont,
+                sans-serif;
+            color: var(--text);
+        }
+
+        .topbar {
+            background: white;
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border);
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .topbar h1 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: -.04em;
+        }
+
+        .topbar p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .btn {
+            background: var(--black);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 800;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .lead-card {
+            background: white;
+            border-radius: 22px;
+            border: 1px solid var(--border);
+            padding: 18px;
+            margin-bottom: 16px;
+
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 18px;
+
+            transition: .2s;
+        }
+
+        .lead-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,.06);
+        }
+
+        .lead-main h2 {
+            margin: 0 0 6px;
+            font-size: 20px;
+        }
+
+        .service {
+            display: inline-block;
+            background: rgba(255,196,0,.15);
+            color: #8a6500;
+            padding: 7px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 900;
+            margin-bottom: 12px;
+        }
+
+        .lead-info {
+            color: var(--muted);
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .message {
+            margin-top: 14px;
+            background: #fafafa;
+            border-radius: 16px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            color: #444;
+            line-height: 1.6;
+        }
+
+        .lead-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            padding: 12px 16px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 900;
+            text-align: center;
+            min-width: 140px;
+        }
+
+        .gold {
+            background: var(--gold);
+            color: black;
+        }
+
+        .dark {
+            background: var(--black);
+            color: white;
+        }
+
+        .empty {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .empty h2 {
+            margin-top: 0;
+        }
+
+        .mobile-nav {
+            display: none;
+        }
+
+        @media (max-width: 850px) {
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 14px;
+            }
+
+            .container {
+                padding: 14px;
+                padding-bottom: 90px;
+            }
+
+            .lead-card {
+                grid-template-columns: 1fr;
+            }
+
+            .lead-actions {
+                flex-direction: row;
+            }
+
+            .action-btn {
+                flex: 1;
+            }
+
+            .mobile-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                border-top: 1px solid var(--border);
+
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+
+                padding: 8px;
+            }
+
+            .mobile-nav a {
+                text-align: center;
+                text-decoration: none;
+                color: var(--muted);
+                font-size: 11px;
+                font-weight: 800;
+            }
+
+            .mobile-nav strong {
+                display: block;
+                font-size: 18px;
+                color: var(--black);
+                margin-bottom: 3px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="topbar">
+    <div>
+        <h1>New Leads</h1>
+        <p>Website quote requests waiting for follow-up.</p>
+    </div>
+
+    <a class="btn" href="/dashboard/">Dashboard</a>
+</div>
+
+<div class="container">
+
+    {% for lead in leads %}
+
+        <div class="lead-card">
+
+            <div class="lead-main">
+
+                <span class="service">
+                    {{ lead.service }}
+                </span>
+
+                <h2>{{ lead.name }}</h2>
+
+                <div class="lead-info">
+                    📞 {{ lead.phone }}<br>
+                    ✉ {{ lead.email }}<br>
+                    🕒 {{ lead.created_at }}
+                </div>
+
+                <div class="message">
+                    {{ lead.message }}
+                </div>
+
+            </div>
+
+            <div class="lead-actions">
+
+                <a class="action-btn gold"
+                   href="/leads/{{ lead.id }}/">
+                    Open Lead
+                </a>
+
+                <a class="action-btn dark"
+                   href="/admin/core/customer/add/">
+                    Convert
+                </a>
+
+            </div>
+
+        </div>
+
+    {% empty %}
+
+        <div class="empty">
+            <h2>No Leads Yet</h2>
+            <p>New quote requests from your website will appear here.</p>
+        </div>
+
+    {% endfor %}
+
+</div>
+
+<nav class="mobile-nav">
+    <a href="/dashboard/">
+        <strong>⌂</strong>
+        Home
+    </a>
+
+    <a href="/leads/">
+        <strong>📥</strong>
+        Leads
+    </a>
+
+    <a href="/jobs/">
+        <strong>🛠</strong>
+        Jobs
+    </a>
+
+    <a href="/estimates/">
+        <strong>📋</strong>
+        Estimates
+    </a>
+</nav>
+
+</body>
+</html>

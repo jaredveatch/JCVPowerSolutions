@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
@@ -49,7 +49,6 @@ def home(request):
 
     context = {}
 
-    # SHOW ADMIN DATA IF STAFF LOGGED IN
     if request.user.is_authenticated and request.user.is_staff:
         context["quote_requests"] = QuoteRequest.objects.all().order_by("-created_at")
         context["career_applications"] = CareerApplication.objects.all().order_by("-created_at")
@@ -59,33 +58,67 @@ def home(request):
 
 @login_required
 def dashboard(request):
-
-    # RECENT DATA
-    new_quotes = QuoteRequest.objects.order_by("-created_at")[:5]
-    recent_jobs = Job.objects.order_by("-created_at")[:5]
-    recent_estimates = Estimate.objects.order_by("-created_at")[:5]
-    recent_invoices = Invoice.objects.order_by("-created_at")[:5]
-    recent_customers = Customer.objects.order_by("-created_at")[:5]
-
-    # DASHBOARD COUNTS
-    quotes_count = QuoteRequest.objects.count()
-    customers_count = Customer.objects.count()
-    jobs_count = Job.objects.count()
-    estimates_count = Estimate.objects.count()
-    invoices_count = Invoice.objects.count()
-
     context = {
-        "new_quotes": new_quotes,
-        "recent_jobs": recent_jobs,
-        "recent_estimates": recent_estimates,
-        "recent_invoices": recent_invoices,
-        "recent_customers": recent_customers,
+        "new_quotes": QuoteRequest.objects.order_by("-created_at")[:5],
+        "recent_jobs": Job.objects.order_by("-created_at")[:5],
+        "recent_estimates": Estimate.objects.order_by("-created_at")[:5],
+        "recent_invoices": Invoice.objects.order_by("-created_at")[:5],
+        "recent_customers": Customer.objects.order_by("-created_at")[:5],
 
-        "quotes_count": quotes_count,
-        "customers_count": customers_count,
-        "jobs_count": jobs_count,
-        "estimates_count": estimates_count,
-        "invoices_count": invoices_count,
+        "quotes_count": QuoteRequest.objects.count(),
+        "customers_count": Customer.objects.count(),
+        "jobs_count": Job.objects.count(),
+        "estimates_count": Estimate.objects.count(),
+        "invoices_count": Invoice.objects.count(),
     }
 
     return render(request, "dashboard.html", context)
+
+
+@login_required
+def leads(request):
+    context = {
+        "leads": QuoteRequest.objects.order_by("-created_at"),
+    }
+
+    return render(request, "leads.html", context)
+
+
+@login_required
+def lead_detail(request, lead_id):
+    lead = get_object_or_404(QuoteRequest, id=lead_id)
+
+    context = {
+        "lead": lead,
+    }
+
+    return render(request, "lead_detail.html", context)
+
+
+@login_required
+def jobs(request):
+    context = {
+        "jobs": Job.objects.order_by("-created_at"),
+    }
+
+    return render(request, "jobs.html", context)
+
+
+@login_required
+def job_detail(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+
+    context = {
+        "job": job,
+    }
+
+    return render(request, "job_detail.html", context)
+
+
+@login_required
+def estimates(request):
+    context = {
+        "estimates": Estimate.objects.order_by("-created_at"),
+    }
+
+    return render(request, "estimates.html", context)
