@@ -53,7 +53,6 @@ def dashboard(request):
     context = {
         "new_quotes": QuoteRequest.objects.order_by("-created_at")[:5],
         "recent_jobs": Job.objects.order_by("-created_at")[:5],
-
         "quotes_count": QuoteRequest.objects.count(),
         "customers_count": Customer.objects.count(),
         "jobs_count": Job.objects.count(),
@@ -88,13 +87,13 @@ def lead_detail(request, lead_id):
 def convert_lead(request, lead_id):
     lead = get_object_or_404(QuoteRequest, id=lead_id)
 
-    Customer.objects.create(
+    customer = Customer.objects.create(
         name=lead.name,
         phone=lead.phone,
         email=lead.email,
     )
 
-    return redirect("/customers/")
+    return redirect(f"/customers/{customer.id}/")
 
 
 @staff_member_required
@@ -104,3 +103,17 @@ def customers(request):
     }
 
     return render(request, "customers.html", context)
+
+
+@staff_member_required
+def customer_detail(request, customer_id):
+    customer = get_object_or_404(Customer, id=customer_id)
+
+    context = {
+        "customer": customer,
+        "jobs_count": Job.objects.count(),
+        "estimates_count": Estimate.objects.count(),
+        "invoices_count": Invoice.objects.count(),
+    }
+
+    return render(request, "customer_detail.html", context)

@@ -11,4 +11,5 @@ urlpatterns = [
     path("leads/<int:lead_id>/convert/", views.convert_lead, name="convert_lead"),
 
     path("customers/", views.customers, name="customers"),
+    path("customers/<int:customer_id>/", views.customer_detail, name="customer_detail"),
 ]
