@@ -1,0 +1,324 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JCV Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        :root {
+            --black: #050505;
+            --yellow: #ffc400;
+            --gray: #b8b8b8;
+        }
+
+        body {
+            margin: 0;
+            background: var(--black);
+            color: white;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .topbar {
+            background: #070707;
+            border-bottom: 1px solid rgba(255,196,0,.25);
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand img {
+            height: 65px;
+        }
+
+        .brand h1 {
+            color: var(--yellow);
+            font-size: 22px;
+            margin: 0;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        .brand p {
+            margin: 4px 0 0;
+            color: var(--gray);
+            font-size: 13px;
+        }
+
+        .logout a {
+            color: var(--yellow);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .dashboard {
+            padding: 28px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .hero {
+            background: linear-gradient(145deg, #151515, #080808);
+            border: 1px solid rgba(255,196,0,.25);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 28px;
+        }
+
+        .hero h2 {
+            color: var(--yellow);
+            margin: 0 0 8px;
+            font-size: 34px;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        .hero p {
+            color: var(--gray);
+            font-size: 17px;
+        }
+
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .quick-card {
+            background: #101010;
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 14px;
+            padding: 24px;
+            text-decoration: none;
+            color: white;
+            transition: .2s;
+        }
+
+        .quick-card:hover {
+            border-color: var(--yellow);
+            transform: translateY(-4px);
+            box-shadow: 0 0 25px rgba(255,196,0,.12);
+        }
+
+        .quick-card span {
+            font-size: 36px;
+        }
+
+        .quick-card h3 {
+            color: var(--yellow);
+            margin: 14px 0 8px;
+            text-transform: uppercase;
+        }
+
+        .quick-card p {
+            color: var(--gray);
+            margin: 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .stat {
+            background: #101010;
+            border: 1px solid rgba(255,196,0,.18);
+            border-radius: 14px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .stat h3 {
+            color: var(--yellow);
+            font-size: 42px;
+            margin: 0;
+        }
+
+        .stat p {
+            color: var(--gray);
+            margin: 8px 0 0;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .lists {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .panel {
+            background: #101010;
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 14px;
+            padding: 24px;
+        }
+
+        .panel h3 {
+            color: var(--yellow);
+            margin-top: 0;
+            text-transform: uppercase;
+        }
+
+        .item {
+            border-top: 1px solid rgba(255,255,255,.08);
+            padding: 14px 0;
+            color: #ddd;
+        }
+
+        .item strong {
+            color: white;
+        }
+
+        .admin-link {
+            display: inline-block;
+            margin-top: 18px;
+            background: var(--yellow);
+            color: black;
+            padding: 14px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 900px) {
+            .quick-grid,
+            .stats-grid,
+            .lists {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .hero h2 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="topbar">
+    <div class="brand">
+        <img src="{% static 'core/images/logo.png' %}" alt="JCV Logo">
+        <div>
+            <h1>JCV Power Solutions</h1>
+            <p>Daily Business Dashboard</p>
+        </div>
+    </div>
+
+    <div class="logout">
+        <a href="/">View Website</a> |
+        <a href="/admin/">Django Admin</a>
+    </div>
+</div>
+
+<div class="dashboard">
+
+    <div class="hero">
+        <h2>Command Center</h2>
+        <p>Manage customers, jobs, estimates, invoices, and quote requests from one clean mobile-friendly dashboard.</p>
+    </div>
+
+    <div class="quick-grid">
+        <a class="quick-card" href="/admin/core/customer/add/">
+            <span>👤</span>
+            <h3>Add Customer</h3>
+            <p>Create a new customer profile.</p>
+        </a>
+
+        <a class="quick-card" href="/admin/core/job/add/">
+            <span>🛠️</span>
+            <h3>Create Job</h3>
+            <p>Add job notes, photos, and site info.</p>
+        </a>
+
+        <a class="quick-card" href="/admin/core/estimate/add/">
+            <span>📋</span>
+            <h3>Create Estimate</h3>
+            <p>Build customer-facing estimate.</p>
+        </a>
+
+        <a class="quick-card" href="/admin/core/invoice/add/">
+            <span>💵</span>
+            <h3>Create Invoice</h3>
+            <p>Bill approved work.</p>
+        </a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat">
+            <h3>{{ customers_count }}</h3>
+            <p>Customers</p>
+        </div>
+
+        <div class="stat">
+            <h3>{{ jobs_count }}</h3>
+            <p>Jobs</p>
+        </div>
+
+        <div class="stat">
+            <h3>{{ estimates_count }}</h3>
+            <p>Estimates</p>
+        </div>
+
+        <div class="stat">
+            <h3>{{ invoices_count }}</h3>
+            <p>Invoices</p>
+        </div>
+    </div>
+
+    <div class="lists">
+        <div class="panel">
+            <h3>New Quote Requests</h3>
+
+            {% for quote in new_quotes %}
+                <div class="item">
+                    <strong>{{ quote.name }}</strong><br>
+                    {{ quote.phone }}<br>
+                    {{ quote.service }}
+                </div>
+            {% empty %}
+                <p>No quote requests yet.</p>
+            {% endfor %}
+
+            <a class="admin-link" href="/admin/core/quoterequest/">View Quotes</a>
+        </div>
+
+        <div class="panel">
+            <h3>Recent Jobs</h3>
+
+            {% for job in recent_jobs %}
+                <div class="item">
+                    <strong>{{ job.title }}</strong><br>
+                    {{ job.customer.name }}<br>
+                    Status: {{ job.status }}
+                </div>
+            {% empty %}
+                <p>No jobs yet.</p>
+            {% endfor %}
+
+            <a class="admin-link" href="/admin/core/job/">View Jobs</a>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

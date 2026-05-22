@@ -1,6 +1,15 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from .models import QuoteRequest, CareerApplication
+from django.contrib.auth.decorators import login_required
+
+from .models import (
+    QuoteRequest,
+    CareerApplication,
+    Customer,
+    Job,
+    Estimate,
+    Invoice,
+)
 
 
 def home(request):
@@ -41,3 +50,17 @@ def home(request):
         context["career_applications"] = CareerApplication.objects.all().order_by("-created_at")
 
     return render(request, "home.html", context)
+
+
+@login_required
+def dashboard(request):
+    context = {
+        "customers_count": Customer.objects.count(),
+        "jobs_count": Job.objects.count(),
+        "estimates_count": Estimate.objects.count(),
+        "invoices_count": Invoice.objects.count(),
+        "new_quotes": QuoteRequest.objects.order_by("-created_at")[:5],
+        "recent_jobs": Job.objects.order_by("-created_at")[:5],
+    }
+
+    return render(request, "dashboard.html", context)
