@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card"
+     style="
+        background:linear-gradient(135deg, #0b0b0c 0%, #1c1c1c 100%);
+        color:white;
+     ">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:20px;
+        flex-wrap:wrap;
+    ">
+
+        <div>
+
+            <div class="badge"
+                 style="
+                    background:rgba(255,196,0,.14);
+                    color:var(--gold);
+                    margin-bottom:18px;
+                 ">
+                EDIT INVOICE
+            </div>
+
+            <h1 class="section-title"
+                style="color:white; margin-bottom:12px;">
+                {{ invoice.invoice_number }}
+            </h1>
+
+            <p style="color:#d1d5db; margin:0; line-height:1.7;">
+                Update invoice scope, totals, payment status,
+                balance due, and customer billing details.
+            </p>
+
+        </div>
+
+        <a class="btn"
+           href="/invoices/{{ invoice.id }}/">
+            ← Back to Invoice
+        </a>
+
+    </div>
+
+</div>
+
+
+<form method="POST">
+
+    {% csrf_token %}
+
+    <div class="grid grid-2">
+
+        <div class="card">
+
+            <h2 style="margin-top:0;">
+                Invoice Information
+            </h2>
+
+            <label>Invoice Title</label>
+            <input type="text"
+                   name="title"
+                   value="{{ invoice.title }}">
+
+            <label>Status</label>
+            <select name="status">
+                <option value="draft" {% if invoice.status == "draft" %}selected{% endif %}>Draft</option>
+                <option value="sent" {% if invoice.status == "sent" %}selected{% endif %}>Sent</option>
+                <option value="partial" {% if invoice.status == "partial" %}selected{% endif %}>Partially Paid</option>
+                <option value="paid" {% if invoice.status == "paid" %}selected{% endif %}>Paid</option>
+                <option value="overdue" {% if invoice.status == "overdue" %}selected{% endif %}>Overdue</option>
+                <option value="void" {% if invoice.status == "void" %}selected{% endif %}>Void</option>
+            </select>
+
+            <label>Description</label>
+            <textarea name="description"
+                      rows="12">{{ invoice.description }}</textarea>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2 style="margin-top:0;">
+                Totals
+            </h2>
+
+            <label>Subtotal</label>
+            <input type="number"
+                   step="0.01"
+                   name="subtotal"
+                   value="{{ invoice.subtotal }}">
+
+            <label>Tax</label>
+            <input type="number"
+                   step="0.01"
+                   name="tax"
+                   value="{{ invoice.tax }}">
+
+            <div class="list-card">
+                <h3 style="margin-top:0;">Current Summary</h3>
+                <p><strong>Total:</strong> ${{ invoice.total }}</p>
+                <p><strong>Paid:</strong> ${{ invoice.amount_paid }}</p>
+                <p><strong>Due:</strong> ${{ invoice.amount_due }}</p>
+                <p><strong>Due Date:</strong> {{ invoice.due_date }}</p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            gap:12px;
+            flex-wrap:wrap;
+        ">
+
+            <a class="btn"
+               href="/invoices/{{ invoice.id }}/">
+                Cancel
+            </a>
+
+            <button class="btn btn-gold"
+                    type="submit">
+                Save Invoice
+            </button>
+
+        </div>
+
+    </div>
+
+</form>
+
+{% endblock %}

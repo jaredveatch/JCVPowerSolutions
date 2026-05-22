@@ -1,172 +1,387 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Job Detail | JCV</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "base.html" %}
 
-    <style>
-        body {
-            margin: 0;
-            background: #f4f5f7;
-            font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-            color: #111827;
-        }
+{% block content %}
 
-        .topbar {
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 18px;
-        }
+<div class="card"
+     style="
+        background:linear-gradient(135deg, #0b0b0c 0%, #1c1c1c 100%);
+        color:white;
+     ">
 
-        .topbar a {
-            color: #0b0b0c;
-            font-weight: 900;
-            text-decoration: none;
-        }
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:20px;
+        flex-wrap:wrap;
+    ">
 
-        .container {
-            max-width: 1000px;
-            margin: auto;
-            padding: 18px;
-        }
+        <div>
 
-        .hero {
-            background: #0b0b0c;
-            color: white;
-            border-radius: 30px;
-            padding: 26px;
-            margin-bottom: 16px;
-        }
+            <div class="badge"
+                 style="
+                    background:rgba(255,196,0,.14);
+                    color:var(--gold);
+                    margin-bottom:18px;
+                 ">
+                JOB WORK ORDER
+            </div>
 
-        .hero h1 {
-            margin: 0;
-            font-size: 36px;
-        }
+            <h1 class="section-title"
+                style="color:white; margin-bottom:10px;">
+                {{ job.title }}
+            </h1>
 
-        .actions {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 16px;
-        }
+            <p style="color:#d1d5db; margin:0;">
+                {{ job.customer.name }} · {{ job.status }}
+            </p>
 
-        .btn {
-            text-align: center;
-            text-decoration: none;
-            padding: 16px;
-            border-radius: 20px;
-            font-weight: 950;
-        }
+        </div>
 
-        .gold {
-            background: #ffc400;
-            color: black;
-        }
+        <div style="
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+        ">
 
-        .dark {
-            background: #0b0b0c;
-            color: white;
-        }
+            <a class="btn btn-gold"
+               href="/jobs/{{ job.id }}/create-estimate/">
+                📋 Create Estimate
+            </a>
 
-        .card {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 26px;
-            padding: 20px;
-            margin-bottom: 16px;
-        }
+            <a class="btn"
+               href="/jobs/{{ job.id }}/create-invoice/">
+                💵 Create Invoice
+            </a>
 
-        .card h2 {
-            margin-top: 0;
-        }
+            <a class="btn"
+               href="/jobs/{{ job.id }}/edit/">
+                Edit Job
+            </a>
 
-        .box {
-            background: #fafafa;
-            border: 1px solid #e5e7eb;
-            border-radius: 18px;
-            padding: 16px;
-            margin-bottom: 12px;
-        }
+        </div>
 
-        .label {
-            font-size: 12px;
-            color: #6b7280;
-            font-weight: 900;
-            text-transform: uppercase;
-            margin-bottom: 6px;
-        }
+    </div>
 
-        @media (max-width: 700px) {
-            .actions {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="topbar">
-    <a href="/customers/{{ job.customer.id }}/">← Back to {{ job.customer.name }}</a>
 </div>
 
-<div class="container">
 
-    <section class="hero">
-        <h1>{{ job.title }}</h1>
-        <p>{{ job.customer.name }} · {{ job.status }}</p>
-    </section>
+<div class="grid grid-4">
 
-    <section class="actions">
-        <a class="btn gold" href="/jobs/{{ job.id }}/create-estimate/">📋 Auto Create Estimate</a>
-        <a class="btn dark" href="/customers/{{ job.customer.id }}/">👤 Customer</a>
-        <a class="btn dark" href="/jobs/">🛠 All Jobs</a>
-    </section>
-
-    <section class="card">
-        <h2>Job Details</h2>
-
-        <div class="box">
-            <div class="label">Address</div>
-            {{ job.job_address }}
+    <div class="card">
+        <div style="color:var(--muted); font-size:12px; font-weight:900; text-transform:uppercase; margin-bottom:10px;">
+            Status
         </div>
 
-        <div class="box">
-            <div class="label">Description</div>
-            {{ job.description }}
+        <span class="badge">
+            {{ job.status }}
+        </span>
+    </div>
+
+    <div class="card">
+        <div style="color:var(--muted); font-size:12px; font-weight:900; text-transform:uppercase; margin-bottom:10px;">
+            Priority
         </div>
 
-        <div class="box">
-            <div class="label">Site Notes</div>
-            {{ job.site_notes }}
+        <strong>
+            {{ job.priority }}
+        </strong>
+    </div>
+
+    <div class="card">
+        <div style="color:var(--muted); font-size:12px; font-weight:900; text-transform:uppercase; margin-bottom:10px;">
+            Assigned To
         </div>
 
-        <div class="box">
-            <div class="label">Material Notes</div>
-            {{ job.material_notes }}
+        <strong>
+            {{ job.assigned_to|default:"Unassigned" }}
+        </strong>
+    </div>
+
+    <div class="card">
+        <div style="color:var(--muted); font-size:12px; font-weight:900; text-transform:uppercase; margin-bottom:10px;">
+            Estimated
         </div>
 
-        <div class="box">
-            <div class="label">Estimated Price</div>
-            ${{ job.estimated_total_price }}
-        </div>
-    </section>
+        <strong style="font-size:28px;">
+            ${{ job.estimated_total_price|default:"0.00" }}
+        </strong>
+    </div>
 
-    <section class="card">
-        <h2>Estimates</h2>
+</div>
+
+
+<div class="grid grid-2">
+
+    <div class="card">
+
+        <h2 style="margin-top:0;">
+            Job Details
+        </h2>
+
+        <table>
+            <tr>
+                <th>Customer</th>
+                <td>
+                    <a href="/customers/{{ job.customer.id }}/">
+                        {{ job.customer.name }}
+                    </a>
+                </td>
+            </tr>
+
+            <tr>
+                <th>Address</th>
+                <td>{{ job.job_address }}</td>
+            </tr>
+
+            <tr>
+                <th>Scheduled</th>
+                <td>{{ job.scheduled_date }}</td>
+            </tr>
+
+            <tr>
+                <th>Created</th>
+                <td>{{ job.created_at }}</td>
+            </tr>
+        </table>
+
+    </div>
+
+    <div class="card">
+
+        <h2 style="margin-top:0;">
+            Update Status
+        </h2>
+
+        <form method="post"
+              action="/jobs/{{ job.id }}/update-status/">
+
+            {% csrf_token %}
+
+            <select name="status">
+                <option value="new">New</option>
+                <option value="site_visit">Site Visit</option>
+                <option value="estimate_needed">Estimate Needed</option>
+                <option value="estimate_sent">Estimate Sent</option>
+                <option value="approved">Approved</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="invoiced">Invoiced</option>
+                <option value="paid">Paid</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+
+            <button class="btn btn-gold"
+                    type="submit">
+                Update Status
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<div class="card">
+
+    <h2 style="margin-top:0;">
+        Scope / Description
+    </h2>
+
+    {% if job.description %}
+        <p style="line-height:1.8;">
+            {{ job.description|linebreaks }}
+        </p>
+    {% else %}
+        <p>No description entered.</p>
+    {% endif %}
+
+</div>
+
+
+<div class="grid grid-2">
+
+    <div class="card">
+
+        <h2 style="margin-top:0;">
+            Site Notes
+        </h2>
+
+        {% if job.site_notes %}
+            <p style="line-height:1.8;">
+                {{ job.site_notes|linebreaks }}
+            </p>
+        {% else %}
+            <p>No site notes.</p>
+        {% endif %}
+
+    </div>
+
+    <div class="card">
+
+        <h2 style="margin-top:0;">
+            Material Notes
+        </h2>
+
+        {% if job.material_notes %}
+            <p style="line-height:1.8;">
+                {{ job.material_notes|linebreaks }}
+            </p>
+        {% else %}
+            <p>No material notes.</p>
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<div class="card">
+
+    <h2 style="margin-top:0;">
+        Add Job Note
+    </h2>
+
+    <form method="post"
+          action="/jobs/{{ job.id }}/add-note/">
+
+        {% csrf_token %}
+
+        <textarea name="note"
+                  rows="5"
+                  placeholder="Add internal field note, customer update, material reminder, or next step..."></textarea>
+
+        <button class="btn btn-gold"
+                type="submit">
+            Add Note
+        </button>
+
+    </form>
+
+</div>
+
+
+<div class="grid grid-2">
+
+    <div class="card">
+
+        <h2 style="margin-top:0;">
+            Estimates
+        </h2>
 
         {% for estimate in estimates %}
-            <div class="box">
-                <strong>{{ estimate.title }}</strong><br>
-                Status: {{ estimate.status }}<br>
-                Total: ${{ estimate.total }}
+
+            <div class="list-card">
+
+                <h3>
+                    {{ estimate.title }}
+                </h3>
+
+                <p>
+                    <strong>Status:</strong>
+                    {{ estimate.status }}
+                </p>
+
+                <p>
+                    <strong>Total:</strong>
+                    ${{ estimate.total }}
+                </p>
+
+                <a class="btn"
+                   href="/estimates/{{ estimate.id }}/">
+                    Open Estimate
+                </a>
+
             </div>
+
         {% empty %}
-            <p>No estimates yet. Use Auto Create Estimate.</p>
+
+            <div class="list-card">
+                No estimates yet.
+            </div>
+
         {% endfor %}
-    </section>
+
+    </div>
+
+    <div class="card">
+
+        <h2 style="margin-top:0;">
+            Invoices
+        </h2>
+
+        {% for invoice in invoices %}
+
+            <div class="list-card">
+
+                <h3>
+                    {{ invoice.invoice_number }}
+                </h3>
+
+                <p>
+                    <strong>Status:</strong>
+                    {{ invoice.status }}
+                </p>
+
+                <p>
+                    <strong>Due:</strong>
+                    ${{ invoice.amount_due }}
+                </p>
+
+                <a class="btn"
+                   href="/invoices/{{ invoice.id }}/">
+                    Open Invoice
+                </a>
+
+            </div>
+
+        {% empty %}
+
+            <div class="list-card">
+                No invoices yet.
+            </div>
+
+        {% endfor %}
+
+    </div>
 
 </div>
 
-</body>
-</html>
+
+<div class="card">
+
+    <h2 style="margin-top:0;">
+        Job Activity Notes
+    </h2>
+
+    {% for note in notes %}
+
+        <div class="list-card">
+
+            <h3>
+                {{ note.author|default:"JCV" }}
+            </h3>
+
+            <p>
+                {{ note.note|linebreaks }}
+            </p>
+
+            <span class="badge">
+                {{ note.created_at }}
+            </span>
+
+        </div>
+
+    {% empty %}
+
+        <div class="list-card">
+            No job notes yet.
+        </div>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

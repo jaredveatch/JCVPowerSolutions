@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card"
+     style="
+        background:linear-gradient(
+            135deg,
+            #0b0b0c 0%,
+            #1c1c1c 100%
+        );
+        color:white;
+     ">
+
+    <h1 class="section-title"
+        style="
+            color:white;
+            margin-bottom:12px;
+        ">
+
+        Global Search
+
+    </h1>
+
+    <p style="
+        color:#d1d5db;
+        margin:0;
+        line-height:1.7;
+    ">
+
+        Search customers, jobs, invoices,
+        phone numbers, addresses,
+        and project records across
+        the JCV Command Center.
+
+    </p>
+
+</div>
+
+
+<div class="card">
+
+    <form method="GET"
+          action="/search/">
+
+        <div style="
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+        ">
+
+            <input type="text"
+                   name="q"
+                   value="{{ query }}"
+                   placeholder="Search customers, jobs, invoices..."
+                   style="
+                        flex:1;
+                        min-width:250px;
+                   ">
+
+            <button class="btn btn-gold"
+                    type="submit">
+
+                Search
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<div class="grid grid-3">
+
+    <div class="card">
+
+        <div style="
+            color:var(--muted);
+            font-size:12px;
+            font-weight:900;
+            text-transform:uppercase;
+            margin-bottom:10px;
+        ">
+
+            Customers Found
+
+        </div>
+
+        <div style="
+            font-size:42px;
+            font-weight:950;
+            letter-spacing:-.05em;
+        ">
+
+            {{ customers|length }}
+
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <div style="
+            color:var(--muted);
+            font-size:12px;
+            font-weight:900;
+            text-transform:uppercase;
+            margin-bottom:10px;
+        ">
+
+            Jobs Found
+
+        </div>
+
+        <div style="
+            font-size:42px;
+            font-weight:950;
+            letter-spacing:-.05em;
+        ">
+
+            {{ jobs|length }}
+
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <div style="
+            color:var(--muted);
+            font-size:12px;
+            font-weight:900;
+            text-transform:uppercase;
+            margin-bottom:10px;
+        ">
+
+            Invoices Found
+
+        </div>
+
+        <div style="
+            font-size:42px;
+            font-weight:950;
+            letter-spacing:-.05em;
+        ">
+
+            {{ invoices|length }}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="grid grid-3">
+
+    <div class="card">
+
+        <h2 style="margin-top:0;">
+            Customers
+        </h2>
+
+        {% for customer in customers %}
+
+            <div class="list-card">
+
+                <h3>
+                    {{ customer.name }}
+                </h3>
+
+                <p>
+                    📞 {{ customer.phone }}
+                </p>
+
+                {% if customer.email %}
+                <p>
+                    ✉ {{ customer.email }}
+                </p>
+                {% endif %}
+
+                <a class="btn"
+                   href="/customers/{{ customer.id }}/">
+
+                    Open Customer
+
+                </a>
+
+            </div>
+
+        {% empty %}
+
+            <div class="list-card">
+                No customers found.
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+
+    <div class="card">
+
+        <h2 style="margin-top:0;">
+            Jobs
+        </h2>
+
+        {% for job in jobs %}
+
+            <div class="list-card">
+
+                <h3>
+                    {{ job.title }}
+                </h3>
+
+                <p>
+                    {{ job.customer.name }}
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+                    {{ job.status }}
+                </p>
+
+                <a class="btn"
+                   href="/jobs/{{ job.id }}/">
+
+                    Open Job
+
+                </a>
+
+            </div>
+
+        {% empty %}
+
+            <div class="list-card">
+                No jobs found.
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+
+    <div class="card">
+
+        <h2 style="margin-top:0;">
+            Invoices
+        </h2>
+
+        {% for invoice in invoices %}
+
+            <div class="list-card">
+
+                <h3>
+                    {{ invoice.invoice_number }}
+                </h3>
+
+                <p>
+                    <strong>Status:</strong>
+                    {{ invoice.status }}
+                </p>
+
+                <p>
+                    <strong>Due:</strong>
+                    ${{ invoice.amount_due }}
+                </p>
+
+                <a class="btn"
+                   href="/invoices/{{ invoice.id }}/">
+
+                    Open Invoice
+
+                </a>
+
+            </div>
+
+        {% empty %}
+
+            <div class="list-card">
+                No invoices found.
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,361 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <title>
+        JCV Command Center
+    </title>
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <style>
+
+        :root {
+            --bg: #f4f5f7;
+            --card: #ffffff;
+            --black: #0b0b0c;
+            --gold: #ffc400;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --green: #16a34a;
+            --blue: #2563eb;
+            --red: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+
+            font-family:
+                Inter,
+                SF Pro Display,
+                -apple-system,
+                BlinkMacSystemFont,
+                sans-serif;
+
+            color: var(--text);
+        }
+
+        .topbar {
+
+            background: white;
+
+            border-bottom: 1px solid var(--border);
+
+            padding: 18px;
+
+            position: sticky;
+            top: 0;
+            z-index: 100;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: -.05em;
+        }
+
+        .brand p {
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: auto;
+            padding: 18px;
+            padding-bottom: 100px;
+        }
+
+        .card {
+
+            background: white;
+
+            border: 1px solid var(--border);
+
+            border-radius: 28px;
+
+            padding: 24px;
+
+            margin-bottom: 20px;
+
+            box-shadow:
+                0 8px 24px rgba(0,0,0,.05);
+        }
+
+        .section-title {
+            margin: 0 0 20px;
+            font-size: 28px;
+            letter-spacing: -.04em;
+        }
+
+        .grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .list-card {
+
+            background: #fafafa;
+
+            border: 1px solid var(--border);
+
+            border-radius: 22px;
+
+            padding: 18px;
+
+            margin-bottom: 12px;
+        }
+
+        .list-card h3 {
+            margin: 0 0 8px;
+            font-size: 20px;
+        }
+
+        .list-card p {
+            margin: 0 0 6px;
+            color: var(--muted);
+        }
+
+        .btn {
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            background: var(--black);
+            color: white;
+
+            text-decoration: none;
+
+            border: none;
+
+            padding: 14px 18px;
+
+            border-radius: 18px;
+
+            font-weight: 900;
+
+            cursor: pointer;
+        }
+
+        .btn-gold {
+            background: var(--gold);
+            color: black;
+        }
+
+        .btn-red {
+            background: var(--red);
+        }
+
+        input,
+        textarea,
+        select {
+
+            width: 100%;
+
+            padding: 14px;
+
+            border-radius: 16px;
+
+            border: 1px solid var(--border);
+
+            margin-bottom: 14px;
+
+            font-size: 15px;
+        }
+
+        table {
+
+            width: 100%;
+
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+
+            padding: 14px;
+
+            border-bottom: 1px solid var(--border);
+
+            text-align: left;
+        }
+
+        th {
+            color: var(--muted);
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .badge {
+
+            display: inline-block;
+
+            padding: 6px 10px;
+
+            border-radius: 999px;
+
+            font-size: 12px;
+            font-weight: 900;
+
+            background: #eef2ff;
+
+            color: #4338ca;
+        }
+
+        .bottom-nav {
+
+            position: fixed;
+
+            bottom: 0;
+            left: 0;
+            right: 0;
+
+            background: white;
+
+            border-top: 1px solid var(--border);
+
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+
+            padding: 8px;
+
+            z-index: 999;
+        }
+
+        .bottom-nav a {
+
+            text-align: center;
+
+            text-decoration: none;
+
+            color: var(--muted);
+
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .bottom-nav strong {
+
+            display: block;
+
+            color: var(--black);
+
+            font-size: 20px;
+
+            margin-bottom: 3px;
+        }
+
+        @media (max-width: 900px) {
+
+            .grid-2,
+            .grid-3,
+            .grid-4 {
+                grid-template-columns: 1fr;
+            }
+
+            .bottom-nav {
+                grid-template-columns: repeat(3, 1fr);
+                row-gap: 10px;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="topbar">
+
+    <div class="brand">
+
+        <h1>
+            JCV Command Center
+        </h1>
+
+        <p>
+            Contractor CRM • Operations Platform
+        </p>
+
+    </div>
+
+    <div>
+
+        <a class="btn"
+           href="/dashboard/">
+            Dashboard
+        </a>
+
+    </div>
+
+</div>
+
+<div class="container">
+
+    {% block content %}
+    {% endblock %}
+
+</div>
+
+<nav class="bottom-nav">
+
+    <a href="/dashboard/">
+        <strong>⌂</strong>
+        Home
+    </a>
+
+    <a href="/leads/">
+        <strong>📥</strong>
+        Leads
+    </a>
+
+    <a href="/customers/">
+        <strong>👤</strong>
+        Customers
+    </a>
+
+    <a href="/jobs/">
+        <strong>🛠</strong>
+        Jobs
+    </a>
+
+    <a href="/estimates/">
+        <strong>📋</strong>
+        Estimates
+    </a>
+
+    <a href="/invoices/">
+        <strong>💵</strong>
+        Invoices
+    </a>
+
+</nav>
+
+</body>
+</html>

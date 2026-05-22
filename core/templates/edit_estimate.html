@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card"
+     style="
+        background:linear-gradient(
+            135deg,
+            #0b0b0c 0%,
+            #1c1c1c 100%
+        );
+        color:white;
+     ">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:20px;
+        flex-wrap:wrap;
+    ">
+
+        <div>
+
+            <div class="badge"
+                 style="
+                    background:rgba(255,196,0,.14);
+                    color:var(--gold);
+                    margin-bottom:18px;
+                 ">
+
+                EDIT ESTIMATE
+
+            </div>
+
+            <h1 class="section-title"
+                style="
+                    color:white;
+                    margin-bottom:12px;
+                ">
+
+                {{ estimate.title }}
+
+            </h1>
+
+            <p style="
+                color:#d1d5db;
+                margin:0;
+                line-height:1.7;
+                max-width:700px;
+            ">
+
+                Build a professional estimate with
+                scope of work, exclusions,
+                customer terms, pricing,
+                and approval workflow.
+
+            </p>
+
+        </div>
+
+        <div>
+
+            <a class="btn"
+               href="/estimates/{{ estimate.id }}/">
+
+                ← Back to Estimate
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<form method="POST">
+
+    {% csrf_token %}
+
+    <div class="grid grid-2">
+
+        <div class="card">
+
+            <h2 style="margin-top:0;">
+                Estimate Information
+            </h2>
+
+            <label>
+                Estimate Title
+            </label>
+
+            <input type="text"
+                   name="title"
+                   value="{{ estimate.title }}"
+                   placeholder="Estimate title">
+
+            <label>
+                Scope of Work
+            </label>
+
+            <textarea name="scope_of_work"
+                      rows="12"
+                      placeholder="Describe all work being performed for the customer...">{{ estimate.scope_of_work }}</textarea>
+
+            <label>
+                Exclusions
+            </label>
+
+            <textarea name="exclusions"
+                      rows="6"
+                      placeholder="Items not included in this estimate...">{{ estimate.exclusions }}</textarea>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2 style="margin-top:0;">
+                Pricing & Terms
+            </h2>
+
+            <label>
+                Subtotal
+            </label>
+
+            <input type="number"
+                   step="0.01"
+                   name="subtotal"
+                   value="{{ estimate.subtotal }}">
+
+            <label>
+                Tax
+            </label>
+
+            <input type="number"
+                   step="0.01"
+                   name="tax"
+                   value="{{ estimate.tax }}">
+
+            <label>
+                Terms & Conditions
+            </label>
+
+            <textarea name="terms"
+                      rows="14"
+                      placeholder="Payment schedule, permit responsibility, warranty terms, exclusions, scheduling terms...">{{ estimate.terms }}</textarea>
+
+            <div class="list-card"
+                 style="margin-top:18px;">
+
+                <h3 style="margin-top:0;">
+                    Estimate Summary
+                </h3>
+
+                <p>
+                    <strong>Customer:</strong>
+                    {{ estimate.job.customer.name }}
+                </p>
+
+                <p>
+                    <strong>Job:</strong>
+                    {{ estimate.job.title }}
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+                    {{ estimate.status }}
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            gap:12px;
+            flex-wrap:wrap;
+        ">
+
+            <a class="btn"
+               href="/estimates/{{ estimate.id }}/">
+
+                Cancel
+
+            </a>
+
+            <button class="btn btn-gold"
+                    type="submit">
+
+                Save Estimate
+
+            </button>
+
+        </div>
+
+    </div>
+
+</form>
+
+{% endblock %}

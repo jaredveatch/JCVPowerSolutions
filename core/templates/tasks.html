@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:20px;
+    ">
+
+        <h1 class="section-title"
+            style="margin:0;">
+            Tasks
+        </h1>
+
+        <a class="btn btn-gold"
+           href="/tasks/create/">
+            + Create Task
+        </a>
+
+    </div>
+
+    <div class="grid">
+
+        {% for task in tasks %}
+
+            <div class="list-card">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:flex-start;
+                    gap:20px;
+                ">
+
+                    <div>
+
+                        <h3>
+                            {{ task.title }}
+                        </h3>
+
+                        <p>
+                            <strong>Status:</strong>
+                            {{ task.status }}
+                        </p>
+
+                        <p>
+                            <strong>Priority:</strong>
+                            {{ task.priority }}
+                        </p>
+
+                        {% if task.customer %}
+                        <p>
+                            <strong>Customer:</strong>
+                            {{ task.customer.name }}
+                        </p>
+                        {% endif %}
+
+                        {% if task.job %}
+                        <p>
+                            <strong>Job:</strong>
+                            {{ task.job.title }}
+                        </p>
+                        {% endif %}
+
+                        <p>
+                            <strong>Assigned:</strong>
+                            {{ task.assigned_to }}
+                        </p>
+
+                        {% if task.notes %}
+                        <p>
+                            {{ task.notes }}
+                        </p>
+                        {% endif %}
+
+                    </div>
+
+                    {% if task.status != "completed" %}
+
+                    <form method="post"
+                          action="/tasks/{{ task.id }}/complete/">
+
+                        {% csrf_token %}
+
+                        <button class="btn"
+                                type="submit">
+
+                            Complete
+
+                        </button>
+
+                    </form>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        {% empty %}
+
+            <div class="list-card">
+
+                No tasks found.
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}
