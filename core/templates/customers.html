@@ -14,6 +14,8 @@
             --text: #111827;
             --muted: #6b7280;
             --border: #e5e7eb;
+            --red: #dc2626;
+            --green: #16a34a;
         }
 
         * {
@@ -67,18 +69,69 @@
             padding-bottom: 100px;
         }
 
+        .create-card {
+            background: var(--black);
+            color: white;
+            border-radius: 28px;
+            padding: 22px;
+            margin-bottom: 18px;
+            box-shadow: 0 18px 40px rgba(0,0,0,.16);
+        }
+
+        .create-card h2 {
+            margin: 0 0 6px;
+            font-size: 26px;
+            letter-spacing: -.04em;
+        }
+
+        .create-card p {
+            margin: 0 0 18px;
+            color: #d1d5db;
+        }
+
+        .create-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 12px;
+        }
+
+        .create-form input {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,.18);
+            background: #151515;
+            color: white;
+            border-radius: 16px;
+            padding: 14px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .create-form input:focus {
+            border-color: var(--gold);
+        }
+
+        .create-form button {
+            background: var(--gold);
+            color: black;
+            border: none;
+            border-radius: 16px;
+            padding: 14px 18px;
+            font-weight: 950;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
         .customer-card {
             background: white;
             border: 1px solid var(--border);
             border-radius: 24px;
             padding: 20px;
             margin-bottom: 14px;
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr auto;
             align-items: center;
             gap: 20px;
             transition: .2s;
-            text-decoration: none;
             color: var(--text);
         }
 
@@ -98,12 +151,34 @@
             font-size: 14px;
         }
 
+        .customer-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
         .open-btn {
             background: var(--gold);
             color: black;
+            text-decoration: none;
             padding: 14px 18px;
             border-radius: 18px;
             font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .delete-form {
+            margin: 0;
+        }
+
+        .delete-btn {
+            background: var(--red);
+            color: white;
+            border: none;
+            padding: 14px 18px;
+            border-radius: 18px;
+            font-weight: 950;
+            cursor: pointer;
             white-space: nowrap;
         }
 
@@ -142,13 +217,23 @@
             margin-bottom: 3px;
         }
 
-        @media (max-width: 700px) {
-            .customer-card {
-                flex-direction: column;
-                align-items: flex-start;
+        @media (max-width: 900px) {
+            .create-form {
+                grid-template-columns: 1fr;
             }
 
-            .open-btn {
+            .customer-card {
+                grid-template-columns: 1fr;
+            }
+
+            .customer-actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                width: 100%;
+            }
+
+            .open-btn,
+            .delete-btn {
                 width: 100%;
                 text-align: center;
             }
@@ -159,6 +244,22 @@
                 gap: 12px;
             }
         }
+
+        @media (max-width: 520px) {
+            .customer-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 12px;
+                padding-bottom: 90px;
+            }
+
+            .create-card {
+                border-radius: 24px;
+                padding: 18px;
+            }
+        }
     </style>
 </head>
 
@@ -167,7 +268,7 @@
 <div class="topbar">
     <div>
         <h1>Customers</h1>
-        <p>JCV customer database and accounts.</p>
+        <p>Create, view, and manage JCV customer accounts.</p>
     </div>
 
     <a class="top-btn" href="/dashboard/">Dashboard</a>
@@ -175,9 +276,26 @@
 
 <div class="container">
 
+    <section class="create-card">
+        <h2>New Customer</h2>
+        <p>Add a customer manually without using a website lead.</p>
+
+        <form class="create-form" method="POST" action="/customers/create/">
+            {% csrf_token %}
+
+            <input type="text" name="name" placeholder="Customer Name" required>
+            <input type="tel" name="phone" placeholder="Phone Number" required>
+            <input type="email" name="email" placeholder="Email Address">
+
+            <button type="submit">
+                + Create
+            </button>
+        </form>
+    </section>
+
     {% for customer in customers %}
 
-        <a class="customer-card" href="/customers/{{ customer.id }}/">
+        <div class="customer-card">
 
             <div class="customer-left">
                 <h2>{{ customer.name }}</h2>
@@ -188,17 +306,30 @@
                 </div>
             </div>
 
-            <div class="open-btn">
-                Open Customer
+            <div class="customer-actions">
+                <a class="open-btn" href="/customers/{{ customer.id }}/">
+                    Open Customer
+                </a>
+
+                <form class="delete-form"
+                      method="POST"
+                      action="/customers/{{ customer.id }}/delete/"
+                      onsubmit="return confirm('Delete {{ customer.name }} permanently?');">
+                    {% csrf_token %}
+
+                    <button class="delete-btn" type="submit">
+                        Delete
+                    </button>
+                </form>
             </div>
 
-        </a>
+        </div>
 
     {% empty %}
 
         <div class="empty">
             <h2>No Customers Yet</h2>
-            <p>Converted leads will appear here.</p>
+            <p>Converted leads and manually created customers will appear here.</p>
         </div>
 
     {% endfor %}

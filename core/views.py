@@ -104,6 +104,25 @@ def customers(request):
 
 
 @staff_member_required
+def create_customer(request):
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        phone = request.POST.get("phone", "").strip()
+        email = request.POST.get("email", "").strip()
+
+        if name and phone:
+            customer = Customer.objects.create(
+                name=name,
+                phone=phone,
+                email=email,
+            )
+
+            return redirect(f"/customers/{customer.id}/")
+
+    return redirect("/customers/")
+
+
+@staff_member_required
 def customer_detail(request, customer_id):
     customer = get_object_or_404(Customer, id=customer_id)
 
