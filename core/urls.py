@@ -2,7 +2,6 @@ from django.urls import path
 from . import views
 
 
-
 urlpatterns = [
 
     # =====================================================
@@ -149,6 +148,28 @@ urlpatterns = [
         "jobs/<int:job_id>/create-invoice/",
         views.create_invoice_from_job,
         name="create_invoice_from_job"
+    ),
+
+    # =====================================================
+    # JOB MATERIALS
+    # =====================================================
+
+    path(
+        "jobs/<int:job_id>/add-material/",
+        views.add_catalog_material_to_job,
+        name="add_catalog_material_to_job"
+    ),
+
+    path(
+        "jobs/materials/<int:material_id>/increase/",
+        views.increase_job_material,
+        name="increase_job_material"
+    ),
+
+    path(
+        "jobs/materials/<int:material_id>/decrease/",
+        views.decrease_job_material,
+        name="decrease_job_material"
     ),
 
     # =====================================================
