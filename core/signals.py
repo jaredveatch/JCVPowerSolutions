@@ -1,14 +1,23 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .models import Job, JobMaterial, ServiceTemplateMaterial
+from .models import (
+    Job,
+    JobMaterial,
+    ServiceTemplateMaterial,
+)
 
 
 @receiver(post_save, sender=Job)
-def copy_template_materials_to_job(sender, instance, created, **kwargs):
+def copy_template_materials_to_job(
+    sender,
+    instance,
+    created,
+    **kwargs
+):
     """
-    When a new Job is created from a ServiceTemplate,
-    automatically copy that template's materials into JobMaterial.
+    Automatically copy materials from the selected
+    ServiceTemplate into the Job.
     """
 
     if not created:
@@ -22,9 +31,11 @@ def copy_template_materials_to_job(sender, instance, created, **kwargs):
     )
 
     for template_material in template_materials:
+
         JobMaterial.objects.create(
             job=instance,
             material=template_material.material,
             quantity=template_material.quantity,
             unit_cost=template_material.material.unit_cost,
+            labor_hours=template_material.material.labor_hours,
         )

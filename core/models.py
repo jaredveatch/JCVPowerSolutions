@@ -14,6 +14,7 @@ class QuoteRequest(models.Model):
         ("quoted", "Quoted"),
         ("won", "Won"),
         ("lost", "Lost"),
+        ("converted", "Converted"),
     ]
 
     name = models.CharField(max_length=255)
@@ -68,12 +69,19 @@ class Customer(models.Model):
     company_name = models.CharField(max_length=255, blank=True, null=True)
     phone = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
+
     customer_type = models.CharField(
         max_length=50,
         choices=CUSTOMER_TYPE_CHOICES,
         default="residential",
     )
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="active")
+
+    status = models.CharField(
+        max_length=50,
+        choices=STATUS_CHOICES,
+        default="active",
+    )
+
     address = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
@@ -115,7 +123,7 @@ class MaterialCatalog(models.Model):
 
     unit = models.CharField(max_length=50, default="each")
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    labor_hours = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    labor_hours = models.DecimalField(max_digits=8, decimal_places=2, default=0)
 
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -162,9 +170,12 @@ class ServiceTemplateMaterial(models.Model):
 class Job(models.Model):
     STATUS_CHOICES = [
         ("new", "New"),
+        ("site_visit", "Site Visit"),
         ("scheduled", "Scheduled"),
         ("in_progress", "In Progress"),
         ("waiting_parts", "Waiting on Parts"),
+        ("estimate_sent", "Estimate Sent"),
+        ("approved", "Approved"),
         ("completed", "Completed"),
         ("cancelled", "Cancelled"),
     ]
@@ -205,6 +216,15 @@ class Job(models.Model):
     completed_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def material_total(self):
+        return sum(item.material_total for item in self.job_materials.all())
+
+    def labor_total(self):
+        return sum(item.labor_total for item in self.job_materials.all())
+
+    def installed_total(self):
+        return sum(item.total_cost for item in self.job_materials.all())
+
     def __str__(self):
         return self.title
 
@@ -228,6 +248,12 @@ class JobMaterial(models.Model):
 
     quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1)
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    labor_hours = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    labor_rate = models.DecimalField(max_digits=10, decimal_places=2, default=95.00)
+
+    material_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    labor_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -237,7 +263,9 @@ class JobMaterial(models.Model):
         verbose_name_plural = "Job Materials"
 
     def save(self, *args, **kwargs):
-        self.total_cost = self.quantity * self.unit_cost
+        self.material_total = self.quantity * self.unit_cost
+        self.labor_total = self.quantity * self.labor_hours * self.labor_rate
+        self.total_cost = self.material_total + self.labor_total
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -297,6 +325,10 @@ class Estimate(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        self.total = self.subtotal + self.tax
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.title
 
@@ -325,10 +357,12 @@ class Invoice(models.Model):
     job = models.ForeignKey(
         Job,
         on_delete=models.CASCADE,
+        blank=True,
+        null=True,
         related_name="invoices",
     )
 
-    invoice_number = models.CharField(max_length=100, unique=True)
+    invoice_number = models.CharField(max_length=100, unique=True, blank=True, null=True)
     title = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="draft")
@@ -344,11 +378,17 @@ class Invoice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
+        if not self.invoice_number:
+            latest_id = Invoice.objects.count() + 1
+            self.invoice_number = f"JCV-{latest_id:05d}"
+
+        self.total = self.subtotal + self.tax
         self.amount_due = self.total - self.amount_paid
+
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.invoice_number
+        return self.invoice_number or "Invoice"
 
 
 # =========================================================
@@ -376,6 +416,21 @@ class Payment(models.Model):
     reference = models.CharField(max_length=255, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
     paid_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        invoice = self.invoice
+        invoice.amount_paid = sum(payment.amount for payment in invoice.payments.all())
+        invoice.amount_due = invoice.total - invoice.amount_paid
+
+        if invoice.amount_due <= 0:
+            invoice.status = "paid"
+            invoice.paid_date = timezone.now().date()
+        elif invoice.amount_paid > 0:
+            invoice.status = "partial"
+
+        invoice.save()
 
     def __str__(self):
         return f"{self.invoice} - ${self.amount}"
@@ -417,6 +472,7 @@ class Task(models.Model):
         ("open", "Open"),
         ("in_progress", "In Progress"),
         ("done", "Done"),
+        ("completed", "Completed"),
         ("cancelled", "Cancelled"),
     ]
 

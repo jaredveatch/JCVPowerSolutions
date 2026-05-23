@@ -31,6 +31,23 @@ class JobMaterialInline(admin.TabularInline):
     model = JobMaterial
     extra = 1
 
+    readonly_fields = (
+        "material_total",
+        "labor_total",
+        "total_cost",
+    )
+
+    fields = (
+        "material",
+        "quantity",
+        "unit_cost",
+        "labor_hours",
+        "labor_rate",
+        "material_total",
+        "labor_total",
+        "total_cost",
+    )
+
 
 class JobPhotoInline(admin.TabularInline):
     model = JobPhoto
@@ -336,17 +353,28 @@ class JobMaterialAdmin(admin.ModelAdmin):
         "material",
         "quantity",
         "unit_cost",
+        "labor_hours",
+        "labor_rate",
+        "material_total",
+        "labor_total",
         "total_cost",
     )
 
     list_filter = (
         "material",
+        "labor_rate",
     )
 
     search_fields = (
         "job__title",
         "job__customer__name",
         "material__name",
+    )
+
+    readonly_fields = (
+        "material_total",
+        "labor_total",
+        "total_cost",
     )
 
 
