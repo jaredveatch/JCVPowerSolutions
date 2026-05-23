@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.utils import timezone
 
@@ -171,12 +173,15 @@ class Job(models.Model):
     STATUS_CHOICES = [
         ("new", "New"),
         ("site_visit", "Site Visit"),
+        ("estimate_needed", "Estimate Needed"),
+        ("estimate_sent", "Estimate Sent"),
+        ("approved", "Approved"),
         ("scheduled", "Scheduled"),
         ("in_progress", "In Progress"),
         ("waiting_parts", "Waiting on Parts"),
-        ("estimate_sent", "Estimate Sent"),
-        ("approved", "Approved"),
         ("completed", "Completed"),
+        ("invoiced", "Invoiced"),
+        ("paid", "Paid"),
         ("cancelled", "Cancelled"),
     ]
 
@@ -217,13 +222,22 @@ class Job(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def material_total(self):
-        return sum(item.material_total for item in self.job_materials.all())
+        return sum(
+            (item.material_total for item in self.job_materials.all()),
+            Decimal("0.00"),
+        )
 
     def labor_total(self):
-        return sum(item.labor_total for item in self.job_materials.all())
+        return sum(
+            (item.labor_total for item in self.job_materials.all()),
+            Decimal("0.00"),
+        )
 
     def installed_total(self):
-        return sum(item.total_cost for item in self.job_materials.all())
+        return sum(
+            (item.total_cost for item in self.job_materials.all()),
+            Decimal("0.00"),
+        )
 
     def __str__(self):
         return self.title
@@ -250,7 +264,7 @@ class JobMaterial(models.Model):
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     labor_hours = models.DecimalField(max_digits=8, decimal_places=2, default=0)
-    labor_rate = models.DecimalField(max_digits=10, decimal_places=2, default=95.00)
+    labor_rate = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("95.00"))
 
     material_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     labor_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -263,9 +277,15 @@ class JobMaterial(models.Model):
         verbose_name_plural = "Job Materials"
 
     def save(self, *args, **kwargs):
-        self.material_total = self.quantity * self.unit_cost
-        self.labor_total = self.quantity * self.labor_hours * self.labor_rate
+        quantity = Decimal(str(self.quantity or 0))
+        unit_cost = Decimal(str(self.unit_cost or 0))
+        labor_hours = Decimal(str(self.labor_hours or 0))
+        labor_rate = Decimal(str(self.labor_rate or 0))
+
+        self.material_total = quantity * unit_cost
+        self.labor_total = quantity * labor_hours * labor_rate
         self.total_cost = self.material_total + self.labor_total
+
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -326,7 +346,11 @@ class Estimate(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        self.total = self.subtotal + self.tax
+        subtotal = Decimal(str(self.subtotal or 0))
+        tax = Decimal(str(self.tax or 0))
+
+        self.total = subtotal + tax
+
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -382,8 +406,12 @@ class Invoice(models.Model):
             latest_id = Invoice.objects.count() + 1
             self.invoice_number = f"JCV-{latest_id:05d}"
 
-        self.total = self.subtotal + self.tax
-        self.amount_due = self.total - self.amount_paid
+        subtotal = Decimal(str(self.subtotal or 0))
+        tax = Decimal(str(self.tax or 0))
+        amount_paid = Decimal(str(self.amount_paid or 0))
+
+        self.total = subtotal + tax
+        self.amount_due = self.total - amount_paid
 
         super().save(*args, **kwargs)
 
@@ -421,7 +449,12 @@ class Payment(models.Model):
         super().save(*args, **kwargs)
 
         invoice = self.invoice
-        invoice.amount_paid = sum(payment.amount for payment in invoice.payments.all())
+
+        invoice.amount_paid = sum(
+            (payment.amount for payment in invoice.payments.all()),
+            Decimal("0.00"),
+        )
+
         invoice.amount_due = invoice.total - invoice.amount_paid
 
         if invoice.amount_due <= 0:
