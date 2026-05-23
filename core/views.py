@@ -12,7 +12,9 @@ from .models import (
     CareerApplication,
     Customer,
     ServiceTemplate,
+    MaterialCatalog,
     Job,
+    JobMaterial,
     Estimate,
     Invoice,
     Payment,
@@ -21,13 +23,8 @@ from .models import (
 )
 
 
-# =========================================================
-# HOME PAGE
-# =========================================================
-
 def home(request):
     if request.method == "POST":
-
         if "quote_form" in request.POST:
             QuoteRequest.objects.create(
                 name=request.POST.get("name"),
@@ -36,11 +33,7 @@ def home(request):
                 service=request.POST.get("service"),
                 message=request.POST.get("message"),
             )
-
-            return JsonResponse({
-                "success": True,
-                "message": "Thank you for submitting your request.",
-            })
+            return JsonResponse({"success": True, "message": "Thank you for submitting your request."})
 
         if "career_form" in request.POST:
             CareerApplication.objects.create(
@@ -52,22 +45,14 @@ def home(request):
                 license_info=request.POST.get("license"),
                 message=request.POST.get("career_message"),
             )
-
-            return JsonResponse({
-                "success": True,
-                "message": "Application submitted successfully.",
-            })
+            return JsonResponse({"success": True, "message": "Application submitted successfully."})
 
     return render(request, "home.html")
 
 
-# =========================================================
-# DASHBOARD
-# =========================================================
-
 @staff_member_required
 def dashboard(request):
-    context = {
+    return render(request, "dashboard.html", {
         "new_quotes": QuoteRequest.objects.order_by("-created_at")[:5],
         "recent_jobs": Job.objects.order_by("-created_at")[:5],
         "recent_tasks": Task.objects.filter(status="open").order_by("due_date")[:5],
@@ -77,70 +62,50 @@ def dashboard(request):
         "estimates_count": Estimate.objects.count(),
         "invoices_count": Invoice.objects.count(),
         "open_tasks_count": Task.objects.filter(status="open").count(),
-    }
+    })
 
-    return render(request, "dashboard.html", context)
-
-
-# =========================================================
-# GLOBAL SEARCH
-# =========================================================
 
 @staff_member_required
 def global_search(request):
     query = request.GET.get("q", "").strip()
-
     customers = []
     jobs = []
     invoices = []
 
     if query:
         customers = Customer.objects.filter(
-            Q(name__icontains=query)
-            | Q(phone__icontains=query)
-            | Q(email__icontains=query)
+            Q(name__icontains=query) |
+            Q(phone__icontains=query) |
+            Q(email__icontains=query)
         )
-
         jobs = Job.objects.filter(
-            Q(title__icontains=query)
-            | Q(job_address__icontains=query)
-            | Q(description__icontains=query)
+            Q(title__icontains=query) |
+            Q(job_address__icontains=query) |
+            Q(description__icontains=query)
         )
-
         invoices = Invoice.objects.filter(
-            Q(invoice_number__icontains=query)
-            | Q(title__icontains=query)
+            Q(invoice_number__icontains=query) |
+            Q(title__icontains=query)
         )
 
-    return render(
-        request,
-        "search_results.html",
-        {
-            "query": query,
-            "customers": customers,
-            "jobs": jobs,
-            "invoices": invoices,
-        },
-    )
+    return render(request, "search_results.html", {
+        "query": query,
+        "customers": customers,
+        "jobs": jobs,
+        "invoices": invoices,
+    })
 
-
-# =========================================================
-# LEADS
-# =========================================================
 
 @staff_member_required
 def leads(request):
-    return render(
-        request,
-        "leads.html",
-        {"leads": QuoteRequest.objects.order_by("-created_at")},
-    )
+    return render(request, "leads.html", {
+        "leads": QuoteRequest.objects.order_by("-created_at")
+    })
 
 
 @staff_member_required
 def lead_detail(request, lead_id):
     lead = get_object_or_404(QuoteRequest, id=lead_id)
-
     return render(request, "lead_detail.html", {"lead": lead})
 
 
@@ -173,17 +138,11 @@ def delete_lead(request, lead_id):
     return redirect(f"/leads/{lead.id}/")
 
 
-# =========================================================
-# CUSTOMERS
-# =========================================================
-
 @staff_member_required
 def customers(request):
-    return render(
-        request,
-        "customers.html",
-        {"customers": Customer.objects.all().order_by("-id")},
-    )
+    return render(request, "customers.html", {
+        "customers": Customer.objects.all().order_by("-id")
+    })
 
 
 @staff_member_required
@@ -215,15 +174,11 @@ def create_customer(request):
 def customer_detail(request, customer_id):
     customer = get_object_or_404(Customer, id=customer_id)
 
-    return render(
-        request,
-        "customer_detail.html",
-        {
-            "customer": customer,
-            "jobs": customer.jobs.all().order_by("-created_at"),
-            "tasks": customer.tasks.all().order_by("-created_at"),
-        },
-    )
+    return render(request, "customer_detail.html", {
+        "customer": customer,
+        "jobs": customer.jobs.all().order_by("-created_at"),
+        "tasks": customer.tasks.all().order_by("-created_at"),
+    })
 
 
 @staff_member_required
@@ -257,20 +212,11 @@ def delete_customer(request, customer_id):
     return redirect(f"/customers/{customer.id}/")
 
 
-# =========================================================
-# JOBS
-# =========================================================
-
 @staff_member_required
 def create_job(request, customer_id):
     customer = get_object_or_404(Customer, id=customer_id)
 
-    templates = ServiceTemplate.objects.filter(
-        active=True
-    ).order_by(
-        "category",
-        "name",
-    )
+    templates = ServiceTemplate.objects.filter(active=True).order_by("category", "name")
 
     if request.method == "POST":
         template_id = request.POST.get("template")
@@ -280,7 +226,6 @@ def create_job(request, customer_id):
             template = ServiceTemplate.objects.filter(id=template_id).first()
 
         title = request.POST.get("title", "").strip()
-
         status = request.POST.get("status") or "new"
         priority = request.POST.get("priority") or "normal"
         assigned_to = request.POST.get("assigned_to", "").strip()
@@ -290,10 +235,7 @@ def create_job(request, customer_id):
         material_notes = request.POST.get("material_notes", "").strip()
 
         scheduled_date_raw = request.POST.get("scheduled_date", "").strip()
-        scheduled_date = None
-
-        if scheduled_date_raw:
-            scheduled_date = parse_datetime(scheduled_date_raw)
+        scheduled_date = parse_datetime(scheduled_date_raw) if scheduled_date_raw else None
 
         price_raw = request.POST.get("estimated_total_price", "").strip()
 
@@ -330,41 +272,32 @@ def create_job(request, customer_id):
 
         return redirect(f"/jobs/{job.id}/")
 
-    return render(
-        request,
-        "create_job.html",
-        {
-            "customer": customer,
-            "templates": templates,
-        },
-    )
+    return render(request, "create_job.html", {
+        "customer": customer,
+        "templates": templates,
+    })
 
 
 @staff_member_required
 def jobs(request):
-    return render(
-        request,
-        "jobs.html",
-        {"jobs": Job.objects.all().order_by("-created_at")},
-    )
+    return render(request, "jobs.html", {
+        "jobs": Job.objects.all().order_by("-created_at")
+    })
 
 
 @staff_member_required
 def job_detail(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
-    return render(
-        request,
-        "job_detail.html",
-        {
-            "job": job,
-            "estimates": Estimate.objects.filter(job=job).order_by("-created_at"),
-            "invoices": Invoice.objects.filter(job=job).order_by("-created_at"),
-            "notes": job.notes.all().order_by("-created_at"),
-            "tasks": job.tasks.all().order_by("-created_at"),
-            "job_materials": job.job_materials.all(),
-        },
-    )
+    return render(request, "job_detail.html", {
+        "job": job,
+        "estimates": Estimate.objects.filter(job=job).order_by("-created_at"),
+        "invoices": Invoice.objects.filter(job=job).order_by("-created_at"),
+        "notes": job.notes.all().order_by("-created_at"),
+        "tasks": job.tasks.all().order_by("-created_at"),
+        "job_materials": job.job_materials.all(),
+        "catalog_materials": MaterialCatalog.objects.filter(active=True).order_by("name"),
+    })
 
 
 @staff_member_required
@@ -438,17 +371,67 @@ def add_job_note(request, job_id):
     return redirect(f"/jobs/{job.id}/")
 
 
-# =========================================================
-# ESTIMATES
-# =========================================================
+@staff_member_required
+def add_catalog_material_to_job(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+
+    if request.method == "POST":
+        material_id = request.POST.get("material")
+        quantity = request.POST.get("quantity") or "1"
+
+        material = get_object_or_404(MaterialCatalog, id=material_id)
+
+        existing = JobMaterial.objects.filter(
+            job=job,
+            material=material,
+        ).first()
+
+        if existing:
+            existing.quantity += Decimal(quantity)
+            existing.save()
+        else:
+            JobMaterial.objects.create(
+                job=job,
+                material=material,
+                quantity=Decimal(quantity),
+                unit_cost=material.unit_cost,
+                labor_hours=material.labor_hours,
+            )
+
+    return redirect(f"/jobs/{job.id}/")
+
+
+@staff_member_required
+def increase_job_material(request, material_id):
+    item = get_object_or_404(JobMaterial, id=material_id)
+
+    item.quantity += Decimal("1.00")
+    item.save()
+
+    return redirect(f"/jobs/{item.job.id}/")
+
+
+@staff_member_required
+def decrease_job_material(request, material_id):
+    item = get_object_or_404(JobMaterial, id=material_id)
+
+    item.quantity -= Decimal("1.00")
+
+    if item.quantity <= 0:
+        job_id = item.job.id
+        item.delete()
+        return redirect(f"/jobs/{job_id}/")
+
+    item.save()
+
+    return redirect(f"/jobs/{item.job.id}/")
+
 
 @staff_member_required
 def estimates(request):
-    return render(
-        request,
-        "estimates.html",
-        {"estimates": Estimate.objects.all().order_by("-created_at")},
-    )
+    return render(request, "estimates.html", {
+        "estimates": Estimate.objects.all().order_by("-created_at")
+    })
 
 
 @staff_member_required
@@ -456,9 +439,7 @@ def create_estimate_from_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
     scope = job.description or "Electrical work as discussed during walkthrough."
-
     material_based_total = job.installed_total() if hasattr(job, "installed_total") else Decimal("0.00")
-
     subtotal = material_based_total or job.estimated_total_price or Decimal("0.00")
 
     estimate = Estimate.objects.create(
@@ -480,7 +461,6 @@ def create_estimate_from_job(request, job_id):
 @staff_member_required
 def estimate_detail(request, estimate_id):
     estimate = get_object_or_404(Estimate, id=estimate_id)
-
     return render(request, "estimate_detail.html", {"estimate": estimate})
 
 
@@ -500,7 +480,6 @@ def edit_estimate(request, estimate_id):
         estimate.subtotal = Decimal(subtotal) if subtotal else Decimal("0.00")
         estimate.tax = Decimal(tax) if tax else Decimal("0.00")
         estimate.total = estimate.subtotal + estimate.tax
-
         estimate.save()
 
         return redirect(f"/estimates/{estimate.id}/")
@@ -567,17 +546,11 @@ def delete_estimate(request, estimate_id):
     return redirect(f"/estimates/{estimate.id}/")
 
 
-# =========================================================
-# INVOICES
-# =========================================================
-
 @staff_member_required
 def invoices(request):
-    return render(
-        request,
-        "invoices.html",
-        {"invoices": Invoice.objects.all().order_by("-created_at")},
-    )
+    return render(request, "invoices.html", {
+        "invoices": Invoice.objects.all().order_by("-created_at")
+    })
 
 
 @staff_member_required
@@ -605,14 +578,10 @@ def create_invoice_from_job(request, job_id):
 def invoice_detail(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
 
-    return render(
-        request,
-        "invoice_detail.html",
-        {
-            "invoice": invoice,
-            "payments": invoice.payments.all().order_by("-paid_at"),
-        },
-    )
+    return render(request, "invoice_detail.html", {
+        "invoice": invoice,
+        "payments": invoice.payments.all().order_by("-paid_at"),
+    })
 
 
 @staff_member_required
@@ -630,7 +599,6 @@ def edit_invoice(request, invoice_id):
         invoice.subtotal = Decimal(subtotal) if subtotal else Decimal("0.00")
         invoice.tax = Decimal(tax) if tax else Decimal("0.00")
         invoice.total = invoice.subtotal + invoice.tax
-
         invoice.save()
 
         return redirect(f"/invoices/{invoice.id}/")
@@ -657,22 +625,11 @@ def add_payment(request, invoice_id):
     return redirect(f"/invoices/{invoice.id}/")
 
 
-# =========================================================
-# TASKS
-# =========================================================
-
 @staff_member_required
 def tasks(request):
-    return render(
-        request,
-        "tasks.html",
-        {
-            "tasks": Task.objects.all().order_by(
-                "status",
-                "due_date",
-            )
-        },
-    )
+    return render(request, "tasks.html", {
+        "tasks": Task.objects.all().order_by("status", "due_date")
+    })
 
 
 @staff_member_required
@@ -698,20 +655,15 @@ def create_task(request):
 
         return redirect("/tasks/")
 
-    return render(
-        request,
-        "create_task.html",
-        {
-            "customers": customers_list,
-            "jobs": jobs_list,
-        },
-    )
+    return render(request, "create_task.html", {
+        "customers": customers_list,
+        "jobs": jobs_list,
+    })
 
 
 @staff_member_required
 def complete_task(request, task_id):
     task = get_object_or_404(Task, id=task_id)
-
     task.status = "completed"
     task.save()
 
