@@ -215,7 +215,6 @@ def delete_customer(request, customer_id):
 @staff_member_required
 def create_job(request, customer_id):
     customer = get_object_or_404(Customer, id=customer_id)
-
     templates = ServiceTemplate.objects.filter(active=True).order_by("category", "name")
 
     if request.method == "POST":
@@ -460,6 +459,50 @@ def delete_job_material(request, material_id):
 
 
 @staff_member_required
+def update_job_material_quantity(request, material_id):
+    item = get_object_or_404(JobMaterial, id=material_id)
+    job = item.job
+
+    if request.method == "POST":
+        quantity_raw = request.POST.get("quantity", "1")
+
+        try:
+            quantity = Decimal(quantity_raw)
+        except:
+            quantity = Decimal("1.00")
+
+        if quantity <= 0:
+            item.delete()
+
+            return JsonResponse({
+                "deleted": True,
+                "job_material_total": str(job.material_total()),
+                "job_labor_total": str(job.labor_total()),
+                "job_installed_total": str(job.installed_total()),
+            })
+
+        item.quantity = quantity
+        item.save()
+
+        return JsonResponse({
+            "deleted": False,
+            "quantity": str(item.quantity),
+            "material_total": str(item.material_total()),
+            "labor_total": str(item.labor_total()),
+            "total_cost": str(item.total_cost()),
+            "job_material_total": str(job.material_total()),
+            "job_labor_total": str(job.labor_total()),
+            "job_installed_total": str(job.installed_total()),
+        })
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+# =====================================================
+# ESTIMATES
+# =====================================================
+
+@staff_member_required
 def estimates(request):
     return render(request, "estimates.html", {
         "estimates": Estimate.objects.all().order_by("-created_at")
@@ -578,6 +621,10 @@ def delete_estimate(request, estimate_id):
     return redirect(f"/estimates/{estimate.id}/")
 
 
+# =====================================================
+# INVOICES
+# =====================================================
+
 @staff_member_required
 def invoices(request):
     return render(request, "invoices.html", {
@@ -656,6 +703,10 @@ def add_payment(request, invoice_id):
 
     return redirect(f"/invoices/{invoice.id}/")
 
+
+# =====================================================
+# TASKS
+# =====================================================
 
 @staff_member_required
 def tasks(request):

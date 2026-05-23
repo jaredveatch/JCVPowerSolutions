@@ -41,6 +41,7 @@ urlpatterns = [
     path("jobs/materials/<int:material_id>/increase/", views.increase_job_material, name="increase_job_material"),
     path("jobs/materials/<int:material_id>/decrease/", views.decrease_job_material, name="decrease_job_material"),
     path("jobs/materials/<int:material_id>/delete/", views.delete_job_material, name="delete_job_material"),
+    path("jobs/materials/<int:material_id>/update-quantity/", views.update_job_material_quantity, name="update_job_material_quantity"),
 
     # ESTIMATES
     path("estimates/", views.estimates, name="estimates"),
