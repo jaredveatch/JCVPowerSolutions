@@ -220,10 +220,7 @@ def create_job(request, customer_id):
 
     if request.method == "POST":
         template_id = request.POST.get("template")
-        template = None
-
-        if template_id:
-            template = ServiceTemplate.objects.filter(id=template_id).first()
+        template = ServiceTemplate.objects.filter(id=template_id).first() if template_id else None
 
         title = request.POST.get("title", "").strip()
         status = request.POST.get("status") or "new"
@@ -371,34 +368,58 @@ def add_job_note(request, job_id):
     return redirect(f"/jobs/{job.id}/")
 
 
+# =====================================================
+# JOB MATERIALS
+# =====================================================
+
+@staff_member_required
+def job_material_list(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+
+    return render(request, "job_material_list.html", {
+        "job": job,
+        "job_materials": job.job_materials.all(),
+    })
+
+
 @staff_member_required
 def add_catalog_material_to_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
+    catalog_materials = MaterialCatalog.objects.filter(active=True).order_by("name")
 
     if request.method == "POST":
         material_id = request.POST.get("material")
-        quantity = request.POST.get("quantity") or "1"
+        quantity_raw = request.POST.get("quantity") or "1"
 
-        material = get_object_or_404(MaterialCatalog, id=material_id)
+        if material_id:
+            material = get_object_or_404(MaterialCatalog, id=material_id)
+            quantity = Decimal(quantity_raw)
 
-        existing = JobMaterial.objects.filter(
-            job=job,
-            material=material,
-        ).first()
-
-        if existing:
-            existing.quantity += Decimal(quantity)
-            existing.save()
-        else:
-            JobMaterial.objects.create(
+            existing = JobMaterial.objects.filter(
                 job=job,
                 material=material,
-                quantity=Decimal(quantity),
-                unit_cost=material.unit_cost,
-                labor_hours=material.labor_hours,
-            )
+            ).first()
 
-    return redirect(f"/jobs/{job.id}/")
+            if existing:
+                existing.quantity += quantity
+                existing.unit_cost = material.unit_cost
+                existing.labor_hours = material.labor_hours
+                existing.save()
+            else:
+                JobMaterial.objects.create(
+                    job=job,
+                    material=material,
+                    quantity=quantity,
+                    unit_cost=material.unit_cost,
+                    labor_hours=material.labor_hours,
+                )
+
+        return redirect(f"/jobs/{job.id}/")
+
+    return render(request, "add_catalog_material_to_job.html", {
+        "job": job,
+        "catalog_materials": catalog_materials,
+    })
 
 
 @staff_member_required
@@ -414,17 +435,28 @@ def increase_job_material(request, material_id):
 @staff_member_required
 def decrease_job_material(request, material_id):
     item = get_object_or_404(JobMaterial, id=material_id)
+    job_id = item.job.id
 
     item.quantity -= Decimal("1.00")
 
     if item.quantity <= 0:
-        job_id = item.job.id
         item.delete()
         return redirect(f"/jobs/{job_id}/")
 
     item.save()
 
-    return redirect(f"/jobs/{item.job.id}/")
+    return redirect(f"/jobs/{job_id}/")
+
+
+@staff_member_required
+def delete_job_material(request, material_id):
+    item = get_object_or_404(JobMaterial, id=material_id)
+    job_id = item.job.id
+
+    if request.method == "POST":
+        item.delete()
+
+    return redirect(f"/jobs/{job_id}/")
 
 
 @staff_member_required
