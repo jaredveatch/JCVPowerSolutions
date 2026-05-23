@@ -5,7 +5,10 @@ from .models import (
     CareerApplication,
     Customer,
     ServiceTemplate,
+    MaterialCatalog,
+    ServiceTemplateMaterial,
     Job,
+    JobMaterial,
     JobPhoto,
     Estimate,
     Invoice,
@@ -18,6 +21,16 @@ from .models import (
 # =========================================================
 # INLINES
 # =========================================================
+
+class ServiceTemplateMaterialInline(admin.TabularInline):
+    model = ServiceTemplateMaterial
+    extra = 1
+
+
+class JobMaterialInline(admin.TabularInline):
+    model = JobMaterial
+    extra = 1
+
 
 class JobPhotoInline(admin.TabularInline):
     model = JobPhoto
@@ -191,6 +204,53 @@ class ServiceTemplateAdmin(admin.ModelAdmin):
         "internal_checklist",
     )
 
+    inlines = [
+        ServiceTemplateMaterialInline,
+    ]
+
+
+# =========================================================
+# MATERIAL CATALOG
+# =========================================================
+
+@admin.register(MaterialCatalog)
+class MaterialCatalogAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "manufacturer",
+        "part_number",
+        "unit",
+        "unit_cost",
+        "labor_hours",
+        "active",
+    )
+
+    list_filter = (
+        "active",
+        "manufacturer",
+    )
+
+    search_fields = (
+        "name",
+        "manufacturer",
+        "part_number",
+        "description",
+    )
+
+
+@admin.register(ServiceTemplateMaterial)
+class ServiceTemplateMaterialAdmin(admin.ModelAdmin):
+    list_display = (
+        "service_template",
+        "material",
+        "quantity",
+    )
+
+    search_fields = (
+        "service_template__name",
+        "material__name",
+    )
+
 
 # =========================================================
 # JOBS
@@ -258,10 +318,36 @@ class JobAdmin(admin.ModelAdmin):
     )
 
     inlines = [
+        JobMaterialInline,
         JobPhotoInline,
         JobNoteInline,
         TaskInline,
     ]
+
+
+# =========================================================
+# JOB MATERIALS
+# =========================================================
+
+@admin.register(JobMaterial)
+class JobMaterialAdmin(admin.ModelAdmin):
+    list_display = (
+        "job",
+        "material",
+        "quantity",
+        "unit_cost",
+        "total_cost",
+    )
+
+    list_filter = (
+        "material",
+    )
+
+    search_fields = (
+        "job__title",
+        "job__customer__name",
+        "material__name",
+    )
 
 
 # =========================================================

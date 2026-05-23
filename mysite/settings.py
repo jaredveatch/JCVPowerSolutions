@@ -9,15 +9,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get(
     "SECRET_KEY",
-    "django-insecure-7cl)aa(y)w=synat%d9au)xdlk3$!p&fv=o@xs$jzd8u5%_emf"
+    "django-insecure-7cl)aa(y)w=synat%d9au)xdlk3$!p&fv=o@xs$jzd8u5%_emf",
 )
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = os.environ.get(
     "ALLOWED_HOSTS",
-    "127.0.0.1,localhost"
+    "127.0.0.1,localhost",
 ).split(",")
+
+
+# =========================================================
+# APPLICATIONS
+# =========================================================
 
 INSTALLED_APPS = [
     "jazzmin",
@@ -27,8 +32,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "core",
+    "core.apps.CoreConfig",
 ]
+
+
+# =========================================================
+# MIDDLEWARE
+# =========================================================
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -41,7 +51,13 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+
 ROOT_URLCONF = "mysite.urls"
+
+
+# =========================================================
+# TEMPLATES
+# =========================================================
 
 TEMPLATES = [
     {
@@ -58,7 +74,13 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = "mysite.wsgi.application"
+
+
+# =========================================================
+# DATABASE
+# =========================================================
 
 DATABASES = {
     "default": {
@@ -66,6 +88,11 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+
+# =========================================================
+# PASSWORD VALIDATION
+# =========================================================
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -82,6 +109,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+# =========================================================
+# INTERNATIONALIZATION
+# =========================================================
+
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
@@ -89,6 +121,11 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
+
+
+# =========================================================
+# STATIC FILES
+# =========================================================
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -102,7 +139,17 @@ STORAGES = {
     },
 }
 
+
+# =========================================================
+# MEDIA FILES
+# =========================================================
+
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+
+# =========================================================
+# DEFAULT PRIMARY KEY
+# =========================================================
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
