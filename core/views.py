@@ -221,10 +221,6 @@ def delete_customer(request, customer_id):
     return redirect(f"/customers/{customer.id}/")
 
 
-# =====================================================
-# JOBS
-# =====================================================
-
 @staff_member_required
 def create_job(request, customer_id):
     customer = get_object_or_404(Customer, id=customer_id)
@@ -453,10 +449,6 @@ def add_job_note(request, job_id):
     return redirect(f"/jobs/{job.id}/")
 
 
-# =====================================================
-# JOB MATERIALS
-# =====================================================
-
 @staff_member_required
 def job_material_list(request, job_id):
     job = get_object_or_404(Job, id=job_id)
@@ -522,7 +514,6 @@ def increase_job_material(request, material_id):
         return redirect("/jobs/")
 
     item = get_object_or_404(JobMaterial, id=material_id)
-
     item.quantity = Decimal(str(item.quantity)) + Decimal("1")
     item.save()
 
@@ -580,10 +571,8 @@ def update_job_material_quantity(request, material_id):
 
     if action == "plus":
         new_quantity = current_quantity + 1
-
     elif action == "minus":
         new_quantity = current_quantity - 1
-
     elif action == "set":
         try:
             new_quantity = int(float(quantity_raw))
@@ -592,7 +581,6 @@ def update_job_material_quantity(request, material_id):
                 "success": False,
                 "error": "Invalid quantity",
             }, status=400)
-
     else:
         return JsonResponse({
             "success": False,
@@ -628,10 +616,6 @@ def update_job_material_quantity(request, material_id):
         "job_installed_total": f"${job.installed_total():,.2f}",
     })
 
-
-# =====================================================
-# ESTIMATES
-# =====================================================
 
 @staff_member_required
 def estimates(request):
@@ -717,134 +701,186 @@ def estimate_pdf(request, estimate_id):
 
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=letter)
-
     width, height = letter
-    y = height - 0.85 * inch
 
+    left = 0.70 * inch
+    right = width - 0.70 * inch
+    top = height - 0.65 * inch
+    y = top
+
+    def money(value):
+        return f"${Decimal(str(value or 0)):,.2f}"
+
+    def wrapped_text(text, max_chars=92):
+        words = str(text or "").split()
+        lines = []
+        current = ""
+
+        for word in words:
+            test = f"{current} {word}".strip()
+            if len(test) <= max_chars:
+                current = test
+            else:
+                if current:
+                    lines.append(current)
+                current = word
+
+        if current:
+            lines.append(current)
+
+        return lines or [""]
+
+    def section_title(title, current_y):
+        pdf.setStrokeColorRGB(0.86, 0.68, 0.20)
+        pdf.setLineWidth(1)
+        pdf.line(left, current_y - 0.08 * inch, right, current_y - 0.08 * inch)
+
+        pdf.setFillColorRGB(0.05, 0.05, 0.05)
+        pdf.setFont("Helvetica-Bold", 13)
+        pdf.drawString(left, current_y, title)
+
+        pdf.setFillColorRGB(0, 0, 0)
+        return current_y - 0.32 * inch
+
+    def check_page(current_y, needed=1.4 * inch):
+        if current_y < needed:
+            pdf.showPage()
+            draw_footer()
+            return top
+        return current_y
+
+    def draw_footer():
+        pdf.setFont("Helvetica", 8)
+        pdf.setFillColorRGB(0.45, 0.45, 0.45)
+        pdf.drawCentredString(
+            width / 2,
+            0.45 * inch,
+            "JCV Power Solutions • Professional Electrical Services"
+        )
+        pdf.setFillColorRGB(0, 0, 0)
+
+    pdf.setFillColorRGB(0.05, 0.05, 0.05)
+    pdf.rect(0, height - 1.35 * inch, width, 1.35 * inch, stroke=0, fill=1)
+
+    pdf.setFillColorRGB(0.95, 0.75, 0.22)
     pdf.setFont("Helvetica-Bold", 24)
-    pdf.drawString(0.75 * inch, y, "JCV Power Solutions")
+    pdf.drawString(left, height - 0.62 * inch, "JCV Power Solutions")
 
-    y -= 0.28 * inch
-    pdf.setFont("Helvetica", 11)
-    pdf.drawString(0.75 * inch, y, "Professional Electrical Services")
+    pdf.setFillColorRGB(1, 1, 1)
+    pdf.setFont("Helvetica", 10)
+    pdf.drawString(left, height - 0.90 * inch, "Professional Electrical Services")
 
-    y -= 0.60 * inch
-    pdf.setFont("Helvetica-Bold", 20)
-    pdf.drawString(0.75 * inch, y, "Customer Estimate")
+    pdf.setFillColorRGB(1, 1, 1)
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawRightString(right, height - 0.62 * inch, "CUSTOMER ESTIMATE")
 
-    y -= 0.45 * inch
+    pdf.setFont("Helvetica", 9)
+    pdf.drawRightString(right, height - 0.90 * inch, f"Estimate #{estimate.id}")
 
-    pdf.setFont("Helvetica-Bold", 11)
-    pdf.drawString(0.75 * inch, y, "Customer:")
-    pdf.setFont("Helvetica", 11)
-    pdf.drawString(1.75 * inch, y, estimate.job.customer.name)
+    pdf.setFillColorRGB(0, 0, 0)
+    y = height - 1.75 * inch
 
-    y -= 0.24 * inch
+    info_box_height = 1.20 * inch
 
-    pdf.setFont("Helvetica-Bold", 11)
-    pdf.drawString(0.75 * inch, y, "Project:")
-    pdf.setFont("Helvetica", 11)
-    pdf.drawString(1.75 * inch, y, estimate.job.title[:75])
+    pdf.setStrokeColorRGB(0.82, 0.82, 0.82)
+    pdf.roundRect(left, y - info_box_height, right - left, info_box_height, 10, stroke=1, fill=0)
 
-    y -= 0.24 * inch
+    pdf.setFont("Helvetica-Bold", 10)
+    pdf.drawString(left + 0.20 * inch, y - 0.30 * inch, "CUSTOMER")
+    pdf.drawString(left + 3.70 * inch, y - 0.30 * inch, "PROJECT")
 
-    pdf.setFont("Helvetica-Bold", 11)
-    pdf.drawString(0.75 * inch, y, "Date:")
-    pdf.setFont("Helvetica", 11)
-    pdf.drawString(1.75 * inch, y, estimate.created_at.strftime("%m/%d/%Y"))
+    pdf.setFont("Helvetica", 10)
+    pdf.drawString(left + 0.20 * inch, y - 0.55 * inch, estimate.job.customer.name[:42])
+    pdf.drawString(left + 3.70 * inch, y - 0.55 * inch, estimate.job.title[:45])
 
-    y -= 0.50 * inch
+    pdf.setFont("Helvetica-Bold", 10)
+    pdf.drawString(left + 0.20 * inch, y - 0.90 * inch, "DATE")
+    pdf.drawString(left + 3.70 * inch, y - 0.90 * inch, "STATUS")
 
-    pdf.setFont("Helvetica-Bold", 15)
-    pdf.drawString(0.75 * inch, y, "Scope of Work")
+    pdf.setFont("Helvetica", 10)
+    pdf.drawString(left + 0.75 * inch, y - 0.90 * inch, estimate.created_at.strftime("%m/%d/%Y"))
+    pdf.drawString(left + 4.35 * inch, y - 0.90 * inch, estimate.status.title())
 
-    y -= 0.30 * inch
-    pdf.setFont("Helvetica", 11)
+    y -= info_box_height + 0.45 * inch
+
+    y = section_title("Scope of Work", y)
+
+    pdf.setFont("Helvetica", 10)
+    pdf.setFillColorRGB(0.12, 0.12, 0.12)
 
     scope = estimate.scope_of_work or "Electrical work as discussed."
+    for line in wrapped_text(scope, 95):
+        y = check_page(y)
+        pdf.drawString(left + 0.10 * inch, y, line)
+        y -= 0.20 * inch
 
-    for line in scope.splitlines():
-        if y < 1.60 * inch:
-            pdf.showPage()
-            y = height - 0.85 * inch
-            pdf.setFont("Helvetica", 11)
-
-        pdf.drawString(0.90 * inch, y, line[:95])
-        y -= 0.22 * inch
-
-    y -= 0.30 * inch
+    y -= 0.18 * inch
 
     if estimate.exclusions:
-        pdf.setFont("Helvetica-Bold", 15)
-        pdf.drawString(0.75 * inch, y, "Exclusions")
+        y = check_page(y, 2 * inch)
+        y = section_title("Exclusions", y)
 
-        y -= 0.30 * inch
-        pdf.setFont("Helvetica", 10)
+        pdf.setFont("Helvetica", 9)
+        pdf.setFillColorRGB(0.20, 0.20, 0.20)
 
-        for line in estimate.exclusions.splitlines():
-            if y < 1.60 * inch:
-                pdf.showPage()
-                y = height - 0.85 * inch
-                pdf.setFont("Helvetica", 10)
+        for line in wrapped_text(estimate.exclusions, 105):
+            y = check_page(y)
+            pdf.drawString(left + 0.10 * inch, y, line)
+            y -= 0.18 * inch
 
-            pdf.drawString(0.90 * inch, y, line[:100])
-            y -= 0.20 * inch
-
-        y -= 0.30 * inch
-
-    if y < 3 * inch:
-        pdf.showPage()
-        y = height - 0.85 * inch
-
-    pdf.roundRect(
-        4.5 * inch,
-        y - 0.55 * inch,
-        2.25 * inch,
-        0.75 * inch,
-        8,
-        stroke=1,
-        fill=0,
-    )
-
-    pdf.setFont("Helvetica-Bold", 12)
-    pdf.drawString(4.75 * inch, y - 0.15 * inch, "Project Total")
-
-    pdf.setFont("Helvetica-Bold", 20)
-    pdf.drawString(4.75 * inch, y - 0.45 * inch, f"${estimate.total:,.2f}")
-
-    y -= 1.10 * inch
-
-    pdf.setFont("Helvetica-Bold", 15)
-    pdf.drawString(0.75 * inch, y, "Terms & Conditions")
-
-    y -= 0.30 * inch
-    pdf.setFont("Helvetica", 9)
-
-    terms = estimate.terms or (
-        "Estimate valid for 30 days. Material pricing subject to availability "
-        "and utility requirements."
-    )
-
-    for line in terms.splitlines():
-        if y < 1.80 * inch:
-            pdf.showPage()
-            y = height - 0.85 * inch
-            pdf.setFont("Helvetica", 9)
-
-        pdf.drawString(0.90 * inch, y, line[:110])
         y -= 0.18 * inch
 
-    y -= 0.60 * inch
+    y = check_page(y, 2.3 * inch)
 
-    if y < 1.50 * inch:
-        pdf.showPage()
-        y = height - 0.85 * inch
+    total_box_width = 2.90 * inch
+    total_box_height = 1.05 * inch
+    total_x = right - total_box_width
 
-    pdf.line(0.75 * inch, y, 3.50 * inch, y)
-    pdf.drawString(0.75 * inch, y - 0.18 * inch, "Customer Signature")
+    pdf.setFillColorRGB(0.05, 0.05, 0.05)
+    pdf.roundRect(total_x, y - total_box_height, total_box_width, total_box_height, 10, stroke=0, fill=1)
 
-    pdf.line(4.50 * inch, y, 7.25 * inch, y)
-    pdf.drawString(4.50 * inch, y - 0.18 * inch, "Date")
+    pdf.setFillColorRGB(0.95, 0.75, 0.22)
+    pdf.setFont("Helvetica-Bold", 11)
+    pdf.drawString(total_x + 0.25 * inch, y - 0.32 * inch, "PROJECT TOTAL")
+
+    pdf.setFillColorRGB(1, 1, 1)
+    pdf.setFont("Helvetica-Bold", 24)
+    pdf.drawString(total_x + 0.25 * inch, y - 0.72 * inch, money(estimate.total))
+
+    pdf.setFillColorRGB(0, 0, 0)
+
+    y -= total_box_height + 0.45 * inch
+
+    y = check_page(y, 2 * inch)
+    y = section_title("Terms & Conditions", y)
+
+    pdf.setFont("Helvetica", 9)
+    pdf.setFillColorRGB(0.20, 0.20, 0.20)
+
+    terms = estimate.terms or (
+        "Estimate valid for 30 days. Material pricing is subject to availability, "
+        "utility requirements, permitting requirements, and field conditions discovered during work."
+    )
+
+    for line in wrapped_text(terms, 105):
+        y = check_page(y)
+        pdf.drawString(left + 0.10 * inch, y, line)
+        y -= 0.18 * inch
+
+    y -= 0.55 * inch
+
+    y = check_page(y, 1.5 * inch)
+
+    pdf.setStrokeColorRGB(0.20, 0.20, 0.20)
+    pdf.line(left, y, left + 2.70 * inch, y)
+    pdf.line(right - 2.70 * inch, y, right, y)
+
+    pdf.setFont("Helvetica", 9)
+    pdf.setFillColorRGB(0.30, 0.30, 0.30)
+    pdf.drawString(left, y - 0.18 * inch, "Customer Signature")
+    pdf.drawString(right - 2.70 * inch, y - 0.18 * inch, "Date")
+
+    draw_footer()
 
     pdf.save()
     buffer.seek(0)
@@ -947,10 +983,6 @@ def delete_estimate(request, estimate_id):
     return redirect(f"/estimates/{estimate.id}/")
 
 
-# =====================================================
-# INVOICES
-# =====================================================
-
 @staff_member_required
 def invoices(request):
     return render(request, "invoices.html", {
@@ -1028,10 +1060,6 @@ def add_payment(request, invoice_id):
 
     return redirect(f"/invoices/{invoice.id}/")
 
-
-# =====================================================
-# TASKS
-# =====================================================
 
 @staff_member_required
 def tasks(request):
