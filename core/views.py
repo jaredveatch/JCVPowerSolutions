@@ -421,7 +421,7 @@ def add_catalog_material_to_job(request, job_id):
                     labor_hours=material.labor_hours,
                 )
 
-        return redirect(f"/jobs/{job.id}/")
+        return redirect("job_detail", job_id=job.id)
 
     return render(request, "add_catalog_material_to_job.html", {
         "job": job,
@@ -431,40 +431,45 @@ def add_catalog_material_to_job(request, job_id):
 
 @staff_member_required
 def increase_job_material(request, material_id):
+    if request.method != "POST":
+        return redirect("/jobs/")
+
     item = get_object_or_404(JobMaterial, id=material_id)
 
     item.quantity = int(item.quantity) + 1
     item.save()
 
-    return redirect(f"/jobs/{item.job.id}/")
+    return redirect("job_detail", job_id=item.job.id)
 
 
 @staff_member_required
 def decrease_job_material(request, material_id):
+    if request.method != "POST":
+        return redirect("/jobs/")
+
     item = get_object_or_404(JobMaterial, id=material_id)
     job_id = item.job.id
 
-    new_quantity = int(item.quantity) - 1
-
-    if new_quantity <= 0:
+    if int(item.quantity) > 1:
+        item.quantity = int(item.quantity) - 1
+        item.save()
+    else:
         item.delete()
-        return redirect(f"/jobs/{job_id}/")
 
-    item.quantity = new_quantity
-    item.save()
-
-    return redirect(f"/jobs/{job_id}/")
+    return redirect("job_detail", job_id=job_id)
 
 
 @staff_member_required
 def delete_job_material(request, material_id):
+    if request.method != "POST":
+        return redirect("/jobs/")
+
     item = get_object_or_404(JobMaterial, id=material_id)
     job_id = item.job.id
 
-    if request.method == "POST":
-        item.delete()
+    item.delete()
 
-    return redirect(f"/jobs/{job_id}/")
+    return redirect("job_detail", job_id=job_id)
 
 
 @staff_member_required
@@ -475,13 +480,16 @@ def update_job_material_quantity(request, material_id):
     if request.method != "POST":
         return JsonResponse({
             "success": False,
-            "error": "Invalid request",
+            "error": "POST required",
         }, status=400)
 
     action = request.POST.get("action")
     quantity_raw = request.POST.get("quantity", "0")
 
-    current_quantity = int(item.quantity)
+    try:
+        current_quantity = int(item.quantity)
+    except ValueError:
+        current_quantity = 1
 
     if action == "plus":
         new_quantity = current_quantity + 1
