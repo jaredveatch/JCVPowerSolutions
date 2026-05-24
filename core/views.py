@@ -533,9 +533,13 @@ def update_job_material_quantity(request, material_id):
         "deleted": False,
         "material_id": item.id,
         "quantity": int(item.quantity),
-        "material_total": f"${item.material_total():,.2f}",
-        "labor_total": f"${item.labor_total():,.2f}",
-        "installed_total": f"${item.total_cost():,.2f}",
+
+        # These are properties on JobMaterial, so DO NOT use parentheses.
+        "material_total": f"${item.material_total:,.2f}",
+        "labor_total": f"${item.labor_total:,.2f}",
+        "installed_total": f"${item.total_cost:,.2f}",
+
+        # These are methods on Job, so keep parentheses.
         "job_material_total": f"${job.material_total():,.2f}",
         "job_labor_total": f"${job.labor_total():,.2f}",
         "job_installed_total": f"${job.installed_total():,.2f}",
