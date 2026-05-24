@@ -450,9 +450,7 @@ class Estimate(models.Model):
     def save(self, *args, **kwargs):
         subtotal = Decimal(str(self.subtotal or 0))
         tax = Decimal(str(self.tax or 0))
-
         self.total = subtotal + tax
-
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -509,7 +507,6 @@ class EstimateLineItem(models.Model):
         unit_price = Decimal(str(self.unit_price or 0))
 
         self.total = quantity * unit_price
-
         super().save(*args, **kwargs)
 
         estimate = self.estimate
@@ -664,6 +661,96 @@ class JobNote(models.Model):
 
     def __str__(self):
         return f"{self.job} - {self.author or 'Note'}"
+
+
+# =========================================================
+# AI SUGGESTIONS
+# =========================================================
+
+class AISuggestion(models.Model):
+    CATEGORY_CHOICES = [
+        ("estimate", "Estimate"),
+        ("pricing", "Pricing"),
+        ("materials", "Materials"),
+        ("scope", "Scope of Work"),
+        ("website", "Website Content"),
+        ("service_template", "Service Template"),
+        ("job", "Job"),
+        ("general", "General"),
+    ]
+
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+        ("applied", "Applied"),
+    ]
+
+    title = models.CharField(max_length=255)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default="general")
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="pending")
+
+    prompt = models.TextField(blank=True, null=True)
+    suggestion = models.TextField()
+    reason = models.TextField(blank=True, null=True)
+
+    related_customer = models.ForeignKey(
+        Customer,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="ai_suggestions",
+    )
+
+    related_job = models.ForeignKey(
+        Job,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="ai_suggestions",
+    )
+
+    related_estimate = models.ForeignKey(
+        Estimate,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="ai_suggestions",
+    )
+
+    related_service_template = models.ForeignKey(
+        ServiceTemplate,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="ai_suggestions",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "AI Suggestion"
+        verbose_name_plural = "AI Suggestions"
+
+    def approve(self):
+        self.status = "approved"
+        self.reviewed_at = timezone.now()
+        self.save()
+
+    def reject(self):
+        self.status = "rejected"
+        self.reviewed_at = timezone.now()
+        self.save()
+
+    def mark_applied(self):
+        self.status = "applied"
+        self.reviewed_at = timezone.now()
+        self.save()
+
+    def __str__(self):
+        return self.title
 
 
 # =========================================================
