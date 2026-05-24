@@ -16,6 +16,7 @@ from .models import (
     Payment,
     JobNote,
     Task,
+    AISuggestion,
 )
 
 
@@ -766,6 +767,97 @@ class TaskAdmin(admin.ModelAdmin):
         "assigned_to",
         "notes",
     )
+
+
+# =========================================================
+# AI SUGGESTIONS
+# =========================================================
+
+@admin.register(AISuggestion)
+class AISuggestionAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "category",
+        "status",
+        "related_customer",
+        "related_job",
+        "related_estimate",
+        "related_service_template",
+        "created_at",
+    )
+
+    list_filter = (
+        "category",
+        "status",
+        "created_at",
+    )
+
+    search_fields = (
+        "title",
+        "prompt",
+        "suggestion",
+        "reason",
+        "related_customer__name",
+        "related_job__title",
+        "related_estimate__title",
+        "related_service_template__name",
+    )
+
+    readonly_fields = (
+        "created_at",
+        "reviewed_at",
+    )
+
+    fieldsets = (
+        ("Suggestion", {
+            "fields": (
+                "title",
+                "category",
+                "status",
+                "prompt",
+                "suggestion",
+                "reason",
+            )
+        }),
+        ("Related Records", {
+            "fields": (
+                "related_customer",
+                "related_job",
+                "related_estimate",
+                "related_service_template",
+            )
+        }),
+        ("Review Dates", {
+            "fields": (
+                "created_at",
+                "reviewed_at",
+            )
+        }),
+    )
+
+    actions = (
+        "approve_suggestions",
+        "reject_suggestions",
+        "mark_suggestions_applied",
+    )
+
+    def approve_suggestions(self, request, queryset):
+        for suggestion in queryset:
+            suggestion.approve()
+
+    approve_suggestions.short_description = "Approve selected AI suggestions"
+
+    def reject_suggestions(self, request, queryset):
+        for suggestion in queryset:
+            suggestion.reject()
+
+    reject_suggestions.short_description = "Reject selected AI suggestions"
+
+    def mark_suggestions_applied(self, request, queryset):
+        for suggestion in queryset:
+            suggestion.mark_applied()
+
+    mark_suggestions_applied.short_description = "Mark selected AI suggestions as applied"
 
 
 # =========================================================
