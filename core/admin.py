@@ -26,38 +26,47 @@ from .models import (
 class ServiceTemplateMaterialInline(admin.TabularInline):
     model = ServiceTemplateMaterial
     extra = 1
+    readonly_fields = (
+        "material_total",
+        "labor_total",
+    )
+    fields = (
+        "material",
+        "quantity",
+        "material_total",
+        "labor_total",
+    )
 
 
 class JobMaterialInline(admin.TabularInline):
     model = JobMaterial
     extra = 1
-
     readonly_fields = (
         "material_total",
+        "material_sell_total",
         "labor_total",
         "total_cost",
+        "sell_total",
     )
-
     fields = (
         "material",
         "quantity",
         "unit_cost",
+        "material_markup",
         "labor_hours",
         "labor_rate",
         "material_total",
+        "material_sell_total",
         "labor_total",
         "total_cost",
+        "sell_total",
     )
 
 
 class EstimateLineItemInline(admin.TabularInline):
     model = EstimateLineItem
     extra = 1
-
-    readonly_fields = (
-        "total",
-    )
-
+    readonly_fields = ("total",)
     fields = (
         "item_type",
         "description",
@@ -103,21 +112,8 @@ class QuoteRequestAdmin(admin.ModelAdmin):
         "source",
         "created_at",
     )
-
-    list_filter = (
-        "status",
-        "service",
-        "source",
-        "created_at",
-    )
-
-    search_fields = (
-        "name",
-        "phone",
-        "email",
-        "service",
-        "message",
-    )
+    list_filter = ("status", "service", "source", "created_at")
+    search_fields = ("name", "phone", "email", "service", "message")
 
 
 # =========================================================
@@ -134,12 +130,7 @@ class CareerApplicationAdmin(admin.ModelAdmin):
         "experience",
         "created_at",
     )
-
-    list_filter = (
-        "position",
-        "created_at",
-    )
-
+    list_filter = ("position", "created_at")
     search_fields = (
         "name",
         "phone",
@@ -166,14 +157,7 @@ class CustomerAdmin(admin.ModelAdmin):
         "status",
         "created_at",
     )
-
-    list_filter = (
-        "status",
-        "customer_type",
-        "city",
-        "created_at",
-    )
-
+    list_filter = ("status", "customer_type", "city", "created_at")
     search_fields = (
         "name",
         "company_name",
@@ -183,7 +167,6 @@ class CustomerAdmin(admin.ModelAdmin):
         "city",
         "notes",
     )
-
     fieldsets = (
         ("Customer Info", {
             "fields": (
@@ -196,21 +179,13 @@ class CustomerAdmin(admin.ModelAdmin):
             )
         }),
         ("Address", {
-            "fields": (
-                "address",
-                "city",
-            )
+            "fields": ("address", "city")
         }),
         ("Notes", {
-            "fields": (
-                "notes",
-            )
+            "fields": ("notes",)
         }),
     )
-
-    inlines = [
-        TaskInline,
-    ]
+    inlines = [TaskInline]
 
 
 # =========================================================
@@ -224,12 +199,20 @@ class ServiceTemplateAdmin(admin.ModelAdmin):
         "name",
         "category",
         "default_labor_hours",
+        "labor_rate",
+        "estimated_material_cost",
+        "material_markup",
+        "labor_total_display",
+        "material_sell_price_display",
+        "calculated_price_display",
         "default_price",
+        "permit_required",
         "active",
     )
 
     list_filter = (
         "category",
+        "permit_required",
         "active",
     )
 
@@ -238,16 +221,85 @@ class ServiceTemplateAdmin(admin.ModelAdmin):
         "category",
         "customer_description",
         "internal_checklist",
+        "notes",
     )
 
-    ordering = (
-        "category",
-        "name",
+    list_editable = (
+        "default_labor_hours",
+        "labor_rate",
+        "estimated_material_cost",
+        "material_markup",
+        "permit_required",
+        "active",
     )
 
-    inlines = [
-        ServiceTemplateMaterialInline,
-    ]
+    readonly_fields = (
+        "labor_total_display",
+        "material_sell_price_display",
+        "calculated_price_display",
+        "default_price",
+        "created_at",
+    )
+
+    fieldsets = (
+        ("Service Info", {
+            "fields": (
+                "icon",
+                "name",
+                "category",
+                "active",
+                "permit_required",
+            )
+        }),
+        ("Customer / Internal Notes", {
+            "fields": (
+                "customer_description",
+                "internal_checklist",
+                "notes",
+            )
+        }),
+        ("Labor Pricing", {
+            "fields": (
+                "default_labor_hours",
+                "labor_rate",
+                "labor_total_display",
+            )
+        }),
+        ("Material Pricing", {
+            "fields": (
+                "estimated_material_cost",
+                "material_markup",
+                "material_sell_price_display",
+            )
+        }),
+        ("Calculated Sell Price", {
+            "fields": (
+                "calculated_price_display",
+                "default_price",
+            )
+        }),
+        ("System", {
+            "fields": ("created_at",)
+        }),
+    )
+
+    ordering = ("category", "name")
+    inlines = [ServiceTemplateMaterialInline]
+
+    def labor_total_display(self, obj):
+        return f"${obj.labor_total:,.2f}"
+
+    labor_total_display.short_description = "Labor Total"
+
+    def material_sell_price_display(self, obj):
+        return f"${obj.material_sell_price:,.2f}"
+
+    material_sell_price_display.short_description = "Material Sell Price"
+
+    def calculated_price_display(self, obj):
+        return f"${obj.calculated_price:,.2f}"
+
+    calculated_price_display.short_description = "Calculated Price"
 
 
 # =========================================================
@@ -265,22 +317,10 @@ class MaterialCatalogAdmin(admin.ModelAdmin):
         "labor_hours",
         "active",
     )
-
-    list_filter = (
-        "active",
-        "manufacturer",
-    )
-
-    search_fields = (
-        "name",
-        "manufacturer",
-        "part_number",
-        "description",
-    )
-
-    ordering = (
-        "name",
-    )
+    list_filter = ("active", "manufacturer")
+    search_fields = ("name", "manufacturer", "part_number", "description")
+    list_editable = ("unit_cost", "labor_hours", "active")
+    ordering = ("name",)
 
 
 @admin.register(ServiceTemplateMaterial)
@@ -289,23 +329,32 @@ class ServiceTemplateMaterialAdmin(admin.ModelAdmin):
         "service_template",
         "material",
         "quantity",
+        "material_total_display",
+        "labor_total_display",
     )
-
     list_filter = (
         "service_template__category",
         "service_template",
     )
-
     search_fields = (
         "service_template__name",
         "material__name",
     )
-
     ordering = (
         "service_template__category",
         "service_template__name",
         "material__name",
     )
+
+    def material_total_display(self, obj):
+        return f"${obj.material_total:,.2f}"
+
+    material_total_display.short_description = "Material Cost"
+
+    def labor_total_display(self, obj):
+        return f"{obj.labor_total:,.2f} hrs"
+
+    labor_total_display.short_description = "Labor Hours"
 
 
 # =========================================================
@@ -322,6 +371,9 @@ class JobAdmin(admin.ModelAdmin):
         "priority",
         "assigned_to",
         "estimated_total_price",
+        "material_total_display",
+        "labor_total_display",
+        "installed_total_display",
         "scheduled_date",
         "created_at",
     )
@@ -343,6 +395,12 @@ class JobAdmin(admin.ModelAdmin):
         "description",
         "site_notes",
         "material_notes",
+    )
+
+    readonly_fields = (
+        "material_total_display",
+        "labor_total_display",
+        "installed_total_display",
     )
 
     fieldsets = (
@@ -367,6 +425,9 @@ class JobAdmin(admin.ModelAdmin):
         ("Money / Schedule", {
             "fields": (
                 "estimated_total_price",
+                "material_total_display",
+                "labor_total_display",
+                "installed_total_display",
                 "scheduled_date",
                 "completed_at",
             )
@@ -380,6 +441,21 @@ class JobAdmin(admin.ModelAdmin):
         TaskInline,
     ]
 
+    def material_total_display(self, obj):
+        return f"${obj.material_total():,.2f}"
+
+    material_total_display.short_description = "Material Cost"
+
+    def labor_total_display(self, obj):
+        return f"${obj.labor_total():,.2f}"
+
+    labor_total_display.short_description = "Labor Total"
+
+    def installed_total_display(self, obj):
+        return f"${obj.installed_total():,.2f}"
+
+    installed_total_display.short_description = "Installed Cost"
+
 
 # =========================================================
 # JOB MATERIALS
@@ -392,16 +468,20 @@ class JobMaterialAdmin(admin.ModelAdmin):
         "material",
         "quantity",
         "unit_cost",
+        "material_markup",
+        "material_total",
+        "material_sell_total",
         "labor_hours",
         "labor_rate",
-        "material_total",
         "labor_total",
         "total_cost",
+        "sell_total",
     )
 
     list_filter = (
         "material",
         "labor_rate",
+        "material_markup",
     )
 
     search_fields = (
@@ -412,8 +492,10 @@ class JobMaterialAdmin(admin.ModelAdmin):
 
     readonly_fields = (
         "material_total",
+        "material_sell_total",
         "labor_total",
         "total_cost",
+        "sell_total",
     )
 
     ordering = (
@@ -433,7 +515,6 @@ class JobPhotoAdmin(admin.ModelAdmin):
         "caption",
         "uploaded_at",
     )
-
     search_fields = (
         "job__title",
         "job__customer__name",
@@ -471,9 +552,7 @@ class EstimateAdmin(admin.ModelAdmin):
         "scope_of_work",
     )
 
-    readonly_fields = (
-        "total",
-    )
+    readonly_fields = ("total",)
 
     fieldsets = (
         ("Estimate Info", {
@@ -506,9 +585,7 @@ class EstimateAdmin(admin.ModelAdmin):
         }),
     )
 
-    inlines = [
-        EstimateLineItemInline,
-    ]
+    inlines = [EstimateLineItemInline]
 
 
 @admin.register(EstimateLineItem)
@@ -534,14 +611,8 @@ class EstimateLineItemAdmin(admin.ModelAdmin):
         "description",
     )
 
-    readonly_fields = (
-        "total",
-    )
-
-    ordering = (
-        "estimate",
-        "id",
-    )
+    readonly_fields = ("total",)
+    ordering = ("estimate", "id")
 
 
 # =========================================================
@@ -614,9 +685,7 @@ class InvoiceAdmin(admin.ModelAdmin):
         }),
     )
 
-    inlines = [
-        PaymentInline,
-    ]
+    inlines = [PaymentInline]
 
 
 # =========================================================
@@ -632,12 +701,7 @@ class PaymentAdmin(admin.ModelAdmin):
         "reference",
         "paid_at",
     )
-
-    list_filter = (
-        "method",
-        "paid_at",
-    )
-
+    list_filter = ("method", "paid_at")
     search_fields = (
         "invoice__invoice_number",
         "reference",
@@ -657,12 +721,10 @@ class JobNoteAdmin(admin.ModelAdmin):
         "internal",
         "created_at",
     )
-
     list_filter = (
         "internal",
         "created_at",
     )
-
     search_fields = (
         "job__title",
         "job__customer__name",
