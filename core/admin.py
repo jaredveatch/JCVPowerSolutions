@@ -1,4 +1,6 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+
+from core.services.ai_apply_engine import apply_ai_suggestion
 
 from .models import (
     QuoteRequest,
@@ -27,16 +29,8 @@ from .models import (
 class ServiceTemplateMaterialInline(admin.TabularInline):
     model = ServiceTemplateMaterial
     extra = 1
-    readonly_fields = (
-        "material_total",
-        "labor_total",
-    )
-    fields = (
-        "material",
-        "quantity",
-        "material_total",
-        "labor_total",
-    )
+    readonly_fields = ("material_total", "labor_total")
+    fields = ("material", "quantity", "material_total", "labor_total")
 
 
 class JobMaterialInline(admin.TabularInline):
@@ -168,6 +162,7 @@ class CustomerAdmin(admin.ModelAdmin):
         "city",
         "notes",
     )
+
     fieldsets = (
         ("Customer Info", {
             "fields": (
@@ -186,6 +181,7 @@ class CustomerAdmin(admin.ModelAdmin):
             "fields": ("notes",)
         }),
     )
+
     inlines = [TaskInline]
 
 
@@ -779,6 +775,7 @@ class AISuggestionAdmin(admin.ModelAdmin):
         "title",
         "category",
         "status",
+        "action_type",
         "related_customer",
         "related_job",
         "related_estimate",
@@ -789,6 +786,7 @@ class AISuggestionAdmin(admin.ModelAdmin):
     list_filter = (
         "category",
         "status",
+        "action_type",
         "created_at",
     )
 
@@ -797,6 +795,7 @@ class AISuggestionAdmin(admin.ModelAdmin):
         "prompt",
         "suggestion",
         "reason",
+        "action_type",
         "related_customer__name",
         "related_job__title",
         "related_estimate__title",
@@ -819,6 +818,12 @@ class AISuggestionAdmin(admin.ModelAdmin):
                 "reason",
             )
         }),
+        ("Apply Engine", {
+            "fields": (
+                "action_type",
+                "action_payload",
+            )
+        }),
         ("Related Records", {
             "fields": (
                 "related_customer",
@@ -839,11 +844,18 @@ class AISuggestionAdmin(admin.ModelAdmin):
         "approve_suggestions",
         "reject_suggestions",
         "mark_suggestions_applied",
+        "apply_selected_ai_suggestions",
     )
 
     def approve_suggestions(self, request, queryset):
         for suggestion in queryset:
             suggestion.approve()
+
+        self.message_user(
+            request,
+            f"Approved {queryset.count()} AI suggestion(s).",
+            messages.SUCCESS,
+        )
 
     approve_suggestions.short_description = "Approve selected AI suggestions"
 
@@ -851,13 +863,47 @@ class AISuggestionAdmin(admin.ModelAdmin):
         for suggestion in queryset:
             suggestion.reject()
 
+        self.message_user(
+            request,
+            f"Rejected {queryset.count()} AI suggestion(s).",
+            messages.SUCCESS,
+        )
+
     reject_suggestions.short_description = "Reject selected AI suggestions"
 
     def mark_suggestions_applied(self, request, queryset):
         for suggestion in queryset:
             suggestion.mark_applied()
 
+        self.message_user(
+            request,
+            f"Marked {queryset.count()} AI suggestion(s) as applied.",
+            messages.SUCCESS,
+        )
+
     mark_suggestions_applied.short_description = "Mark selected AI suggestions as applied"
+
+    def apply_selected_ai_suggestions(self, request, queryset):
+        applied_count = 0
+
+        for suggestion in queryset:
+            try:
+                apply_ai_suggestion(suggestion.id)
+                applied_count += 1
+            except Exception as error:
+                self.message_user(
+                    request,
+                    f"Could not apply '{suggestion.title}': {error}",
+                    messages.ERROR,
+                )
+
+        self.message_user(
+            request,
+            f"Applied {applied_count} AI suggestion(s).",
+            messages.SUCCESS,
+        )
+
+    apply_selected_ai_suggestions.short_description = "Apply selected AI suggestions"
 
 
 # =========================================================

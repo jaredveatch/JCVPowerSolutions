@@ -694,6 +694,19 @@ class AISuggestion(models.Model):
     suggestion = models.TextField()
     reason = models.TextField(blank=True, null=True)
 
+    action_type = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="What this suggestion can apply, such as update_pricing, create_service_page, create_task, update_estimate_scope.",
+    )
+
+    action_payload = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Structured data the apply engine can use.",
+    )
+
     related_customer = models.ForeignKey(
         Customer,
         on_delete=models.SET_NULL,
