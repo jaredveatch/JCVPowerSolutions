@@ -2,83 +2,160 @@
 
 {% block content %}
 
-<div class="card">
+<div class="card"
+     style="
+        background:linear-gradient(135deg, #0b0b0c 0%, #1c1c1c 100%);
+        color:white;
+     ">
 
-    <h1 class="section-title">
-        Estimates
-    </h1>
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:20px;
+        flex-wrap:wrap;
+    ">
 
-    <table>
+        <div>
 
-        <thead>
+            <div class="badge"
+                 style="
+                    background:rgba(255,196,0,.14);
+                    color:var(--gold);
+                    margin-bottom:18px;
+                 ">
+                ESTIMATES
+            </div>
 
-            <tr>
-                <th>Estimate</th>
-                <th>Customer</th>
-                <th>Status</th>
-                <th>Total</th>
-                <th></th>
-            </tr>
+            <h1 class="section-title"
+                style="color:white; margin-bottom:12px;">
+                Customer Estimates
+            </h1>
 
-        </thead>
+            <p style="color:#d1d5db; margin:0; line-height:1.7;">
+                Review draft, sent, approved, and rejected customer estimates.
+            </p>
 
-        <tbody>
+        </div>
 
-        {% for estimate in estimates %}
-
-            <tr>
-
-                <td>
-                    {{ estimate.title }}
-                </td>
-
-                <td>
-                    {{ estimate.job.customer.name }}
-                </td>
-
-                <td>
-
-                    <span class="badge">
-                        {{ estimate.status }}
-                    </span>
-
-                </td>
-
-                <td>
-                    ${{ estimate.total }}
-                </td>
-
-                <td>
-
-                    <a class="btn btn-gold"
-                       href="/estimates/{{ estimate.id }}/">
-
-                        Open
-
-                    </a>
-
-                </td>
-
-            </tr>
-
-        {% empty %}
-
-            <tr>
-
-                <td colspan="5">
-
-                    No estimates found.
-
-                </td>
-
-            </tr>
-
-        {% endfor %}
-
-        </tbody>
-
-    </table>
+    </div>
 
 </div>
+
+
+<div class="card">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        flex-wrap:wrap;
+        margin-bottom:18px;
+    ">
+
+        <h2 style="margin:0;">
+            Estimate List
+        </h2>
+
+        <input type="text"
+               id="estimateSearch"
+               placeholder="Search estimates..."
+               onkeyup="filterEstimates()"
+               style="max-width:320px;">
+
+    </div>
+
+    <div style="overflow-x:auto;">
+
+        <table style="width:100%; border-collapse:collapse;">
+
+            <thead>
+
+                <tr style="border-bottom:1px solid rgba(255,255,255,.08);">
+                    <th style="text-align:left; padding:14px 10px;">Estimate</th>
+                    <th style="text-align:left; padding:14px 10px;">Customer</th>
+                    <th style="text-align:left; padding:14px 10px;">Job</th>
+                    <th style="text-align:left; padding:14px 10px;">Status</th>
+                    <th style="text-align:right; padding:14px 10px;">Total</th>
+                    <th style="text-align:right; padding:14px 10px;">Actions</th>
+                </tr>
+
+            </thead>
+
+            <tbody id="estimateTable">
+
+            {% for estimate in estimates %}
+
+                <tr style="border-bottom:1px solid rgba(255,255,255,.06);">
+
+                    <td style="padding:14px 10px;">
+                        <strong>{{ estimate.title }}</strong>
+                    </td>
+
+                    <td style="padding:14px 10px;">
+                        {{ estimate.job.customer.name }}
+                    </td>
+
+                    <td style="padding:14px 10px;">
+                        {{ estimate.job.title }}
+                    </td>
+
+                    <td style="padding:14px 10px;">
+                        <span class="badge">
+                            {{ estimate.status }}
+                        </span>
+                    </td>
+
+                    <td style="
+                        padding:14px 10px;
+                        text-align:right;
+                        font-weight:800;
+                        color:var(--gold);
+                    ">
+                        ${{ estimate.total }}
+                    </td>
+
+                    <td style="padding:14px 10px; text-align:right;">
+                        <a class="btn btn-gold"
+                           href="/estimates/{{ estimate.id }}/">
+                            Open
+                        </a>
+                    </td>
+
+                </tr>
+
+            {% empty %}
+
+                <tr>
+                    <td colspan="6"
+                        style="padding:20px; color:#9ca3af;">
+                        No estimates found.
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<script>
+function filterEstimates() {
+    const search = document.getElementById("estimateSearch").value.toLowerCase();
+    const rows = document.querySelectorAll("#estimateTable tr");
+
+    rows.forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(search)
+            ? ""
+            : "none";
+    });
+}
+</script>
 
 {% endblock %}

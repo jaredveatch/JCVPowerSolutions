@@ -1,21 +1,28 @@
 from decimal import Decimal
+from io import BytesIO
 
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
+
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
 
 from .models import (
     QuoteRequest,
     CareerApplication,
     Customer,
     ServiceTemplate,
+    ServiceTemplateMaterial,
     MaterialCatalog,
     Job,
     JobMaterial,
     Estimate,
+    EstimateLineItem,
     Invoice,
     Payment,
     JobNote,
@@ -212,10 +219,50 @@ def delete_customer(request, customer_id):
     return redirect(f"/customers/{customer.id}/")
 
 
+# =====================================================
+# JOBS
+# =====================================================
+
 @staff_member_required
 def create_job(request, customer_id):
     customer = get_object_or_404(Customer, id=customer_id)
-    templates = ServiceTemplate.objects.filter(active=True).order_by("category", "name")
+
+    categories = [
+        "Panel / Service Work",
+        "Subpanels",
+        "Dedicated Circuits",
+        "Outlets / Switches",
+        "Lighting",
+        "Fans",
+        "Troubleshooting",
+        "Low Voltage",
+    ]
+
+    template_groups = []
+
+    for category in categories:
+        templates = ServiceTemplate.objects.filter(
+            active=True,
+            category=category,
+        ).order_by("name")
+
+        if templates.exists():
+            template_groups.append({
+                "category": category,
+                "templates": templates,
+            })
+
+    other_templates = ServiceTemplate.objects.filter(
+        active=True,
+    ).exclude(
+        category__in=categories,
+    ).order_by("category", "name")
+
+    if other_templates.exists():
+        template_groups.append({
+            "category": "Other",
+            "templates": other_templates,
+        })
 
     if request.method == "POST":
         template_id = request.POST.get("template")
@@ -266,11 +313,27 @@ def create_job(request, customer_id):
             scheduled_date=scheduled_date,
         )
 
-        return redirect(f"/jobs/{job.id}/")
+        if template:
+            template_materials = ServiceTemplateMaterial.objects.filter(
+                service_template=template,
+            ).select_related("material")
+
+            for template_material in template_materials:
+                material = template_material.material
+
+                JobMaterial.objects.create(
+                    job=job,
+                    material=material,
+                    quantity=Decimal("1"),
+                    unit_cost=material.unit_cost or Decimal("0.00"),
+                    labor_hours=material.labor_hours or Decimal("0.00"),
+                )
+
+        return redirect("job_detail", job_id=job.id)
 
     return render(request, "create_job.html", {
         "customer": customer,
-        "templates": templates,
+        "template_groups": template_groups,
     })
 
 
@@ -408,17 +471,17 @@ def add_catalog_material_to_job(request, job_id):
             ).first()
 
             if existing:
-                existing.quantity = int(existing.quantity) + quantity
-                existing.unit_cost = material.unit_cost
-                existing.labor_hours = material.labor_hours
+                existing.quantity = Decimal(str(existing.quantity)) + Decimal(str(quantity))
+                existing.unit_cost = material.unit_cost or Decimal("0.00")
+                existing.labor_hours = material.labor_hours or Decimal("0.00")
                 existing.save()
             else:
                 JobMaterial.objects.create(
                     job=job,
                     material=material,
-                    quantity=quantity,
-                    unit_cost=material.unit_cost,
-                    labor_hours=material.labor_hours,
+                    quantity=Decimal(str(quantity)),
+                    unit_cost=material.unit_cost or Decimal("0.00"),
+                    labor_hours=material.labor_hours or Decimal("0.00"),
                 )
 
         return redirect("job_detail", job_id=job.id)
@@ -436,7 +499,7 @@ def increase_job_material(request, material_id):
 
     item = get_object_or_404(JobMaterial, id=material_id)
 
-    item.quantity = int(item.quantity) + 1
+    item.quantity = Decimal(str(item.quantity)) + Decimal("1")
     item.save()
 
     return redirect("job_detail", job_id=item.job.id)
@@ -450,8 +513,8 @@ def decrease_job_material(request, material_id):
     item = get_object_or_404(JobMaterial, id=material_id)
     job_id = item.job.id
 
-    if int(item.quantity) > 1:
-        item.quantity = int(item.quantity) - 1
+    if Decimal(str(item.quantity)) > Decimal("1"):
+        item.quantity = Decimal(str(item.quantity)) - Decimal("1")
         item.save()
     else:
         item.delete()
@@ -525,7 +588,7 @@ def update_job_material_quantity(request, material_id):
             "job_installed_total": f"${job.installed_total():,.2f}",
         })
 
-    item.quantity = new_quantity
+    item.quantity = Decimal(str(new_quantity))
     item.save()
 
     return JsonResponse({
@@ -533,13 +596,9 @@ def update_job_material_quantity(request, material_id):
         "deleted": False,
         "material_id": item.id,
         "quantity": int(item.quantity),
-
-        # These are properties on JobMaterial, so DO NOT use parentheses.
         "material_total": f"${item.material_total:,.2f}",
         "labor_total": f"${item.labor_total:,.2f}",
         "installed_total": f"${item.total_cost:,.2f}",
-
-        # These are methods on Job, so keep parentheses.
         "job_material_total": f"${job.material_total():,.2f}",
         "job_labor_total": f"${job.labor_total():,.2f}",
         "job_installed_total": f"${job.installed_total():,.2f}",
@@ -562,17 +621,46 @@ def create_estimate_from_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
     scope = job.description or "Electrical work as discussed during walkthrough."
-    subtotal = job.installed_total() or job.estimated_total_price or Decimal("0.00")
 
     estimate = Estimate.objects.create(
         job=job,
         title=f"Estimate - {job.title}",
         scope_of_work=scope,
-        subtotal=subtotal,
+        subtotal=Decimal("0.00"),
         tax=Decimal("0.00"),
-        total=subtotal,
+        total=Decimal("0.00"),
         status="draft",
     )
+
+    for item in job.job_materials.all():
+        material_name = item.material.name if item.material else "Material"
+
+        if item.material_total and item.material_total > 0:
+            EstimateLineItem.objects.create(
+                estimate=estimate,
+                item_type="material",
+                description=material_name,
+                quantity=item.quantity,
+                unit_price=item.unit_cost,
+                source_job_material=item,
+            )
+
+        if item.labor_total and item.labor_total > 0:
+            EstimateLineItem.objects.create(
+                estimate=estimate,
+                item_type="labor",
+                description=f"Labor - {material_name}",
+                quantity=Decimal("1"),
+                unit_price=item.labor_total,
+                source_job_material=item,
+            )
+
+    estimate.subtotal = sum(
+        (line.total for line in estimate.line_items.all()),
+        Decimal("0.00"),
+    )
+    estimate.total = estimate.subtotal + estimate.tax
+    estimate.save()
 
     job.status = "estimate_sent"
     job.save()
@@ -583,7 +671,167 @@ def create_estimate_from_job(request, job_id):
 @staff_member_required
 def estimate_detail(request, estimate_id):
     estimate = get_object_or_404(Estimate, id=estimate_id)
-    return render(request, "estimate_detail.html", {"estimate": estimate})
+
+    return render(request, "estimate_detail.html", {
+        "estimate": estimate,
+        "line_items": estimate.line_items.all(),
+    })
+
+
+@staff_member_required
+def estimate_pdf(request, estimate_id):
+    estimate = get_object_or_404(Estimate, id=estimate_id)
+
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    y = height - 0.75 * inch
+
+    pdf.setFont("Helvetica-Bold", 22)
+    pdf.drawString(0.75 * inch, y, "JCV Power Solutions")
+
+    y -= 0.30 * inch
+    pdf.setFont("Helvetica", 11)
+    pdf.drawString(0.75 * inch, y, "Professional Electrical Services")
+
+    y -= 0.55 * inch
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawString(0.75 * inch, y, "Customer Estimate")
+
+    y -= 0.40 * inch
+    pdf.setFont("Helvetica", 10)
+    pdf.drawString(0.75 * inch, y, f"Estimate: {estimate.title}")
+
+    y -= 0.22 * inch
+    pdf.drawString(0.75 * inch, y, f"Customer: {estimate.job.customer.name}")
+
+    y -= 0.22 * inch
+    pdf.drawString(0.75 * inch, y, f"Job: {estimate.job.title}")
+
+    y -= 0.22 * inch
+    pdf.drawString(0.75 * inch, y, f"Status: {estimate.status}")
+
+    y -= 0.22 * inch
+    pdf.drawString(0.75 * inch, y, f"Created: {estimate.created_at.strftime('%m/%d/%Y')}")
+
+    y -= 0.45 * inch
+    pdf.setFont("Helvetica-Bold", 13)
+    pdf.drawString(0.75 * inch, y, "Scope of Work")
+
+    y -= 0.28 * inch
+    pdf.setFont("Helvetica", 10)
+
+    scope = estimate.scope_of_work or "Electrical work as discussed."
+    for line in scope.splitlines():
+        pdf.drawString(0.75 * inch, y, line[:100])
+        y -= 0.18 * inch
+
+        if y < 1.40 * inch:
+            pdf.showPage()
+            y = height - 0.75 * inch
+            pdf.setFont("Helvetica", 10)
+
+    y -= 0.30 * inch
+    pdf.setFont("Helvetica-Bold", 13)
+    pdf.drawString(0.75 * inch, y, "Estimate Line Items")
+
+    y -= 0.30 * inch
+    pdf.setFont("Helvetica-Bold", 9)
+
+    pdf.drawString(0.75 * inch, y, "Type")
+    pdf.drawString(1.55 * inch, y, "Description")
+    pdf.drawRightString(5.25 * inch, y, "Qty")
+    pdf.drawRightString(6.25 * inch, y, "Unit")
+    pdf.drawRightString(7.50 * inch, y, "Total")
+
+    y -= 0.15 * inch
+    pdf.line(0.75 * inch, y, 7.50 * inch, y)
+    y -= 0.22 * inch
+
+    pdf.setFont("Helvetica", 9)
+
+    for item in estimate.line_items.all():
+        if y < 1.40 * inch:
+            pdf.showPage()
+            y = height - 0.75 * inch
+            pdf.setFont("Helvetica", 9)
+
+        pdf.drawString(0.75 * inch, y, item.item_type.title())
+        pdf.drawString(1.55 * inch, y, item.description[:50])
+        pdf.drawRightString(5.25 * inch, y, str(item.quantity))
+        pdf.drawRightString(6.25 * inch, y, f"${item.unit_price:,.2f}")
+        pdf.drawRightString(7.50 * inch, y, f"${item.total:,.2f}")
+
+        y -= 0.22 * inch
+
+    y -= 0.20 * inch
+
+    if y < 1.40 * inch:
+        pdf.showPage()
+        y = height - 0.75 * inch
+
+    pdf.line(5.0 * inch, y, 7.5 * inch, y)
+
+    y -= 0.25 * inch
+    pdf.setFont("Helvetica-Bold", 10)
+
+    pdf.drawRightString(6.25 * inch, y, "Subtotal:")
+    pdf.drawRightString(7.50 * inch, y, f"${estimate.subtotal:,.2f}")
+
+    y -= 0.22 * inch
+    pdf.drawRightString(6.25 * inch, y, "Tax:")
+    pdf.drawRightString(7.50 * inch, y, f"${estimate.tax:,.2f}")
+
+    y -= 0.28 * inch
+    pdf.setFont("Helvetica-Bold", 14)
+    pdf.drawRightString(6.25 * inch, y, "Total:")
+    pdf.drawRightString(7.50 * inch, y, f"${estimate.total:,.2f}")
+
+    y -= 0.55 * inch
+
+    if y < 1.40 * inch:
+        pdf.showPage()
+        y = height - 0.75 * inch
+
+    pdf.setFont("Helvetica-Bold", 13)
+    pdf.drawString(0.75 * inch, y, "Terms & Conditions")
+
+    y -= 0.28 * inch
+    pdf.setFont("Helvetica", 9)
+
+    terms = estimate.terms or "Estimate valid for 30 days unless otherwise stated."
+    for line in terms.splitlines():
+        if y < 1.40 * inch:
+            pdf.showPage()
+            y = height - 0.75 * inch
+            pdf.setFont("Helvetica", 9)
+
+        pdf.drawString(0.75 * inch, y, line[:105])
+        y -= 0.18 * inch
+
+    y -= 0.45 * inch
+
+    if y < 1.20 * inch:
+        pdf.showPage()
+        y = height - 0.75 * inch
+
+    pdf.line(0.75 * inch, y, 3.50 * inch, y)
+    pdf.drawString(0.75 * inch, y - 0.18 * inch, "Customer Approval Signature")
+
+    pdf.line(4.50 * inch, y, 7.50 * inch, y)
+    pdf.drawString(4.50 * inch, y - 0.18 * inch, "Date")
+
+    pdf.save()
+    buffer.seek(0)
+
+    filename = f"estimate-{estimate.id}.pdf"
+
+    return FileResponse(
+        buffer,
+        as_attachment=True,
+        filename=filename,
+    )
 
 
 @staff_member_required
@@ -606,7 +854,10 @@ def edit_estimate(request, estimate_id):
 
         return redirect(f"/estimates/{estimate.id}/")
 
-    return render(request, "edit_estimate.html", {"estimate": estimate})
+    return render(request, "edit_estimate.html", {
+        "estimate": estimate,
+        "line_items": estimate.line_items.all(),
+    })
 
 
 @staff_member_required

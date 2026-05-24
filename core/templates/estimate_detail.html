@@ -2,76 +2,463 @@
 
 {% block content %}
 
-<div class="card">
+<!-- HEADER -->
+<div class="card"
+     style="
+        background:linear-gradient(
+            135deg,
+            #0b0b0c 0%,
+            #1c1c1c 100%
+        );
+        color:white;
+     ">
 
-    <h1 class="section-title">
-        {{ estimate.title }}
-    </h1>
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:24px;
+        flex-wrap:wrap;
+    ">
 
-    <p>
-        <strong>Customer:</strong>
-        {{ estimate.job.customer.name }}
-    </p>
+        <div>
 
-    <p>
-        <strong>Job:</strong>
-        {{ estimate.job.title }}
-    </p>
+            <div class="badge"
+                 style="
+                    background:rgba(255,196,0,.14);
+                    color:var(--gold);
+                    margin-bottom:18px;
+                 ">
 
-    <p>
-        <strong>Status:</strong>
-        <span class="badge">{{ estimate.status }}</span>
-    </p>
+                CUSTOMER ESTIMATE
+
+            </div>
+
+            <h1 class="section-title"
+                style="
+                    color:white;
+                    margin-bottom:14px;
+                ">
+
+                {{ estimate.title }}
+
+            </h1>
+
+            <div style="
+                display:grid;
+                grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+                gap:14px;
+            ">
+
+                <div>
+
+                    <small style="color:#9ca3af;">
+                        Customer
+                    </small>
+
+                    <div>
+                        {{ estimate.job.customer.name }}
+                    </div>
+
+                </div>
+
+                <div>
+
+                    <small style="color:#9ca3af;">
+                        Job
+                    </small>
+
+                    <div>
+                        {{ estimate.job.title }}
+                    </div>
+
+                </div>
+
+                <div>
+
+                    <small style="color:#9ca3af;">
+                        Status
+                    </small>
+
+                    <div>
+
+                        <span class="badge">
+                            {{ estimate.status }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div>
+
+                    <small style="color:#9ca3af;">
+                        Created
+                    </small>
+
+                    <div>
+                        {{ estimate.created_at }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div style="
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+        ">
+
+            <a class="btn"
+               href="/jobs/{{ estimate.job.id }}/">
+
+                ← Back to Job
+
+            </a>
+
+        </div>
+
+    </div>
 
 </div>
 
+
+<!-- SCOPE -->
 <div class="card">
 
-    <h2>
-        Scope of Work
-    </h2>
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:18px;
+        flex-wrap:wrap;
+        gap:12px;
+    ">
 
-    <p>
+        <h2 style="margin:0;">
+            Scope of Work
+        </h2>
+
+    </div>
+
+    <div style="
+        line-height:1.8;
+        color:#d1d5db;
+    ">
+
         {{ estimate.scope_of_work|linebreaks }}
-    </p>
+
+    </div>
 
 </div>
 
+
+<!-- LINE ITEMS -->
 <div class="card">
 
-    <h2>
-        Estimate Totals
-    </h2>
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:18px;
+        flex-wrap:wrap;
+        gap:12px;
+    ">
 
-    <p><strong>Subtotal:</strong> ${{ estimate.subtotal }}</p>
-    <p><strong>Tax:</strong> ${{ estimate.tax }}</p>
-    <p><strong>Total:</strong> ${{ estimate.total }}</p>
+        <h2 style="margin:0;">
+            Estimate Line Items
+        </h2>
+
+    </div>
+
+    {% if line_items %}
+
+    <div style="
+        overflow-x:auto;
+    ">
+
+        <table style="
+            width:100%;
+            border-collapse:collapse;
+        ">
+
+            <thead>
+
+                <tr style="
+                    border-bottom:1px solid rgba(255,255,255,.08);
+                ">
+
+                    <th style="
+                        text-align:left;
+                        padding:14px 10px;
+                    ">
+                        Type
+                    </th>
+
+                    <th style="
+                        text-align:left;
+                        padding:14px 10px;
+                    ">
+                        Description
+                    </th>
+
+                    <th style="
+                        text-align:center;
+                        padding:14px 10px;
+                    ">
+                        Qty
+                    </th>
+
+                    <th style="
+                        text-align:right;
+                        padding:14px 10px;
+                    ">
+                        Unit Price
+                    </th>
+
+                    <th style="
+                        text-align:right;
+                        padding:14px 10px;
+                    ">
+                        Total
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for item in line_items %}
+
+                <tr style="
+                    border-bottom:1px solid rgba(255,255,255,.06);
+                ">
+
+                    <td style="padding:14px 10px;">
+
+                        {% if item.item_type == "material" %}
+
+                            <span class="badge">
+                                Material
+                            </span>
+
+                        {% elif item.item_type == "labor" %}
+
+                            <span class="badge btn-gold">
+                                Labor
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge">
+                                {{ item.item_type }}
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td style="
+                        padding:14px 10px;
+                        min-width:240px;
+                    ">
+
+                        {{ item.description }}
+
+                    </td>
+
+                    <td style="
+                        padding:14px 10px;
+                        text-align:center;
+                    ">
+
+                        {{ item.quantity }}
+
+                    </td>
+
+                    <td style="
+                        padding:14px 10px;
+                        text-align:right;
+                    ">
+
+                        ${{ item.unit_price }}
+
+                    </td>
+
+                    <td style="
+                        padding:14px 10px;
+                        text-align:right;
+                        font-weight:700;
+                    ">
+
+                        ${{ item.total }}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+        <p style="
+            color:#9ca3af;
+            margin:0;
+        ">
+
+            No estimate line items yet.
+
+        </p>
+
+    {% endif %}
 
 </div>
 
+
+<!-- TOTALS -->
 <div class="card">
 
-    <h2>
-        Actions
-    </h2>
+    <div style="
+        display:flex;
+        justify-content:flex-end;
+    ">
 
-    <a class="btn"
-       href="/estimates/{{ estimate.id }}/edit/">
-        Edit Estimate
-    </a>
+        <div style="
+            width:100%;
+            max-width:420px;
+        ">
 
-    <form method="post"
-          action="/estimates/{{ estimate.id }}/approve/"
-          style="display:inline;">
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                margin-bottom:14px;
+                padding-bottom:14px;
+                border-bottom:1px solid rgba(255,255,255,.08);
+            ">
 
-        {% csrf_token %}
+                <strong>
+                    Subtotal
+                </strong>
 
-        <button class="btn btn-gold"
-                type="submit">
-            Approve Estimate
-        </button>
+                <span>
+                    ${{ estimate.subtotal }}
+                </span>
 
-    </form>
+            </div>
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                margin-bottom:14px;
+                padding-bottom:14px;
+                border-bottom:1px solid rgba(255,255,255,.08);
+            ">
+
+                <strong>
+                    Tax
+                </strong>
+
+                <span>
+                    ${{ estimate.tax }}
+                </span>
+
+            </div>
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                font-size:1.3rem;
+                font-weight:800;
+                color:var(--gold);
+            ">
+
+                <span>
+                    Total
+                </span>
+
+                <span>
+                    ${{ estimate.total }}
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ACTIONS -->
+<div class="card">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        flex-wrap:wrap;
+        gap:12px;
+    ">
+
+        <h2 style="margin:0;">
+            Actions
+        </h2>
+
+        <div style="
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+        ">
+
+            <a class="btn"
+               href="/estimates/{{ estimate.id }}/edit/">
+
+                Edit Estimate
+
+            </a>
+
+            <a class="btn btn-gold"
+               href="/estimates/{{ estimate.id }}/pdf/">
+
+                Download PDF
+
+            </a>
+
+            <a class="btn"
+               href="/jobs/{{ estimate.job.id }}/create-invoice/">
+
+                Create Invoice
+
+            </a>
+
+            <form method="post"
+                  action="/estimates/{{ estimate.id }}/approve/"
+                  style="margin:0;">
+
+                {% csrf_token %}
+
+                <button class="btn btn-gold"
+                        type="submit">
+
+                    Approve Estimate
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
 
 </div>
 

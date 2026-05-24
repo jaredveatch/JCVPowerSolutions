@@ -32,9 +32,14 @@
                 {{ invoice.invoice_number }}
             </h1>
 
-            <p style="color:#d1d5db; margin:0; line-height:1.7;">
-                Update invoice scope, totals, payment status,
-                balance due, and customer billing details.
+            <p style="
+                color:#d1d5db;
+                margin:0;
+                line-height:1.7;
+                max-width:720px;
+            ">
+                Update billing details, description, invoice status,
+                subtotal, tax, and customer-facing invoice notes.
             </p>
 
         </div>
@@ -55,58 +60,177 @@
 
     <div class="grid grid-2">
 
+        <!-- LEFT COLUMN -->
         <div class="card">
 
             <h2 style="margin-top:0;">
                 Invoice Information
             </h2>
 
-            <label>Invoice Title</label>
+            <label>
+                Invoice Title
+            </label>
+
             <input type="text"
                    name="title"
-                   value="{{ invoice.title }}">
+                   value="{{ invoice.title }}"
+                   placeholder="Invoice title">
 
-            <label>Status</label>
+            <label>
+                Status
+            </label>
+
             <select name="status">
-                <option value="draft" {% if invoice.status == "draft" %}selected{% endif %}>Draft</option>
-                <option value="sent" {% if invoice.status == "sent" %}selected{% endif %}>Sent</option>
-                <option value="partial" {% if invoice.status == "partial" %}selected{% endif %}>Partially Paid</option>
-                <option value="paid" {% if invoice.status == "paid" %}selected{% endif %}>Paid</option>
-                <option value="overdue" {% if invoice.status == "overdue" %}selected{% endif %}>Overdue</option>
-                <option value="void" {% if invoice.status == "void" %}selected{% endif %}>Void</option>
+
+                <option value="draft" {% if invoice.status == "draft" %}selected{% endif %}>
+                    Draft
+                </option>
+
+                <option value="sent" {% if invoice.status == "sent" %}selected{% endif %}>
+                    Sent
+                </option>
+
+                <option value="partial" {% if invoice.status == "partial" %}selected{% endif %}>
+                    Partially Paid
+                </option>
+
+                <option value="paid" {% if invoice.status == "paid" %}selected{% endif %}>
+                    Paid
+                </option>
+
+                <option value="overdue" {% if invoice.status == "overdue" %}selected{% endif %}>
+                    Overdue
+                </option>
+
             </select>
 
-            <label>Description</label>
+            <label>
+                Description
+            </label>
+
             <textarea name="description"
-                      rows="12">{{ invoice.description }}</textarea>
+                      rows="12"
+                      placeholder="Customer-facing invoice description...">{{ invoice.description }}</textarea>
+
+            {% if invoice.job %}
+
+                <div class="list-card"
+                     style="margin-top:18px;">
+
+                    <h3 style="margin-top:0;">
+                        Linked Job
+                    </h3>
+
+                    <p>
+                        <strong>Customer:</strong>
+                        {{ invoice.job.customer.name }}
+                    </p>
+
+                    <p>
+                        <strong>Job:</strong>
+                        {{ invoice.job.title }}
+                    </p>
+
+                    <a class="btn"
+                       href="/jobs/{{ invoice.job.id }}/">
+                        View Job
+                    </a>
+
+                </div>
+
+            {% endif %}
 
         </div>
 
 
+        <!-- RIGHT COLUMN -->
         <div class="card">
 
             <h2 style="margin-top:0;">
                 Totals
             </h2>
 
-            <label>Subtotal</label>
+            <label>
+                Subtotal
+            </label>
+
             <input type="number"
                    step="0.01"
                    name="subtotal"
                    value="{{ invoice.subtotal }}">
 
-            <label>Tax</label>
+            <label>
+                Tax
+            </label>
+
             <input type="number"
                    step="0.01"
                    name="tax"
                    value="{{ invoice.tax }}">
 
-            <div class="list-card">
-                <h3 style="margin-top:0;">Current Summary</h3>
-                <p><strong>Total:</strong> ${{ invoice.total }}</p>
-                <p><strong>Paid:</strong> ${{ invoice.amount_paid }}</p>
-                <p><strong>Due:</strong> ${{ invoice.amount_due }}</p>
-                <p><strong>Due Date:</strong> {{ invoice.due_date }}</p>
+            <div class="list-card"
+                 style="margin-top:18px;">
+
+                <h3 style="margin-top:0;">
+                    Current Summary
+                </h3>
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    margin-bottom:10px;
+                ">
+                    <strong>Total</strong>
+                    <span>${{ invoice.total }}</span>
+                </div>
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    margin-bottom:10px;
+                ">
+                    <strong>Paid</strong>
+                    <span>${{ invoice.amount_paid }}</span>
+                </div>
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    margin-bottom:10px;
+                    color:var(--gold);
+                    font-weight:800;
+                ">
+                    <strong>Due</strong>
+                    <span>${{ invoice.amount_due }}</span>
+                </div>
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                ">
+                    <strong>Due Date</strong>
+                    <span>{{ invoice.due_date }}</span>
+                </div>
+
+            </div>
+
+            <div class="list-card"
+                 style="margin-top:18px;">
+
+                <h3 style="margin-top:0;">
+                    Payment Status
+                </h3>
+
+                <p style="
+                    margin-bottom:0;
+                    color:#d1d5db;
+                    line-height:1.7;
+                ">
+                    Payments are added on the invoice detail page.
+                    The invoice balance updates automatically when
+                    a payment is recorded.
+                </p>
+
             </div>
 
         </div>

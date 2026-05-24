@@ -11,6 +11,7 @@ from .models import (
     JobMaterial,
     JobPhoto,
     Estimate,
+    EstimateLineItem,
     Invoice,
     Payment,
     JobNote,
@@ -46,6 +47,24 @@ class JobMaterialInline(admin.TabularInline):
         "material_total",
         "labor_total",
         "total_cost",
+    )
+
+
+class EstimateLineItemInline(admin.TabularInline):
+    model = EstimateLineItem
+    extra = 1
+
+    readonly_fields = (
+        "total",
+    )
+
+    fields = (
+        "item_type",
+        "description",
+        "quantity",
+        "unit_price",
+        "total",
+        "source_job_material",
     )
 
 
@@ -221,6 +240,11 @@ class ServiceTemplateAdmin(admin.ModelAdmin):
         "internal_checklist",
     )
 
+    ordering = (
+        "category",
+        "name",
+    )
+
     inlines = [
         ServiceTemplateMaterialInline,
     ]
@@ -254,6 +278,10 @@ class MaterialCatalogAdmin(admin.ModelAdmin):
         "description",
     )
 
+    ordering = (
+        "name",
+    )
+
 
 @admin.register(ServiceTemplateMaterial)
 class ServiceTemplateMaterialAdmin(admin.ModelAdmin):
@@ -263,7 +291,18 @@ class ServiceTemplateMaterialAdmin(admin.ModelAdmin):
         "quantity",
     )
 
+    list_filter = (
+        "service_template__category",
+        "service_template",
+    )
+
     search_fields = (
+        "service_template__name",
+        "material__name",
+    )
+
+    ordering = (
+        "service_template__category",
         "service_template__name",
         "material__name",
     )
@@ -377,6 +416,11 @@ class JobMaterialAdmin(admin.ModelAdmin):
         "total_cost",
     )
 
+    ordering = (
+        "job",
+        "material__name",
+    )
+
 
 # =========================================================
 # JOB PHOTOS
@@ -427,6 +471,10 @@ class EstimateAdmin(admin.ModelAdmin):
         "scope_of_work",
     )
 
+    readonly_fields = (
+        "total",
+    )
+
     fieldsets = (
         ("Estimate Info", {
             "fields": (
@@ -456,6 +504,43 @@ class EstimateAdmin(admin.ModelAdmin):
                 "accepted_terms",
             )
         }),
+    )
+
+    inlines = [
+        EstimateLineItemInline,
+    ]
+
+
+@admin.register(EstimateLineItem)
+class EstimateLineItemAdmin(admin.ModelAdmin):
+    list_display = (
+        "estimate",
+        "item_type",
+        "description",
+        "quantity",
+        "unit_price",
+        "total",
+    )
+
+    list_filter = (
+        "item_type",
+        "estimate__status",
+    )
+
+    search_fields = (
+        "estimate__title",
+        "estimate__job__title",
+        "estimate__job__customer__name",
+        "description",
+    )
+
+    readonly_fields = (
+        "total",
+    )
+
+    ordering = (
+        "estimate",
+        "id",
     )
 
 
@@ -494,6 +579,11 @@ class InvoiceAdmin(admin.ModelAdmin):
         "estimate__job__customer__name",
         "job__title",
         "job__customer__name",
+    )
+
+    readonly_fields = (
+        "total",
+        "amount_due",
     )
 
     fieldsets = (

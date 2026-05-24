@@ -51,8 +51,9 @@
             ">
 
                 Start a walkthrough, estimate request,
-                service call, panel upgrade,
-                troubleshooting visit, or active job
+                troubleshooting visit, panel install,
+                dedicated circuit install, lighting project,
+                or active residential electrical job
                 for {{ customer.name }}.
 
             </p>
@@ -81,36 +82,71 @@
 
     <div class="grid grid-2">
 
+        <!-- LEFT COLUMN -->
         <div class="card">
 
             <h2 style="margin-top:0;">
                 Basic Job Information
             </h2>
 
+            <!-- SEARCH -->
+            <label>
+                Search Templates
+            </label>
+
+            <input
+                type="text"
+                id="templateSearch"
+                placeholder="Search templates..."
+                onkeyup="filterTemplates()"
+            >
+
+            <!-- TEMPLATE -->
             <label>
                 Service Template
             </label>
 
-            <select name="template">
+            <select name="template"
+                    id="templateSelect">
 
                 <option value="">
                     No template / custom job
                 </option>
 
-                {% for template in templates %}
+                {% for group in template_groups %}
 
-                    <option value="{{ template.id }}">
+                    <optgroup label="{{ group.category }}">
 
-                        {{ template.icon }}
-                        {{ template.name }}
-                        — ${{ template.default_price }}
+                        {% for template in group.templates %}
 
-                    </option>
+                            <option value="{{ template.id }}">
+
+                                {{ template.icon }}
+                                {{ template.name }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </optgroup>
 
                 {% endfor %}
 
             </select>
 
+            <small style="
+                color:#9ca3af;
+                display:block;
+                margin-top:8px;
+                margin-bottom:22px;
+            ">
+
+                Selecting a template automatically
+                loads recommended starter materials.
+
+            </small>
+
+            <!-- TITLE -->
             <label>
                 Job Title
             </label>
@@ -119,6 +155,7 @@
                    name="title"
                    placeholder="Example: 200A Panel Upgrade">
 
+            <!-- STATUS -->
             <label>
                 Status
             </label>
@@ -143,6 +180,7 @@
 
             </select>
 
+            <!-- PRIORITY -->
             <label>
                 Priority
             </label>
@@ -168,6 +206,7 @@
 
             </select>
 
+            <!-- ASSIGNED -->
             <label>
                 Assigned Technician
             </label>
@@ -176,6 +215,7 @@
                    name="assigned_to"
                    placeholder="Technician / Crew">
 
+            <!-- ADDRESS -->
             <label>
                 Job Address
             </label>
@@ -184,6 +224,7 @@
                    name="job_address"
                    value="{{ customer.address }}">
 
+            <!-- DATE -->
             <label>
                 Scheduled Date
             </label>
@@ -191,6 +232,7 @@
             <input type="datetime-local"
                    name="scheduled_date">
 
+            <!-- PRICE -->
             <label>
                 Estimated Total Price
             </label>
@@ -203,12 +245,14 @@
         </div>
 
 
+        <!-- RIGHT COLUMN -->
         <div class="card">
 
             <h2 style="margin-top:0;">
                 Scope & Field Notes
             </h2>
 
+            <!-- DESCRIPTION -->
             <label>
                 Customer-Facing Description
             </label>
@@ -217,27 +261,30 @@
                       rows="6"
                       placeholder="Describe the work for the customer..."></textarea>
 
+            <!-- SITE NOTES -->
             <label>
                 Site Visit Notes
             </label>
 
             <textarea name="site_notes"
                       rows="6"
-                      placeholder="Panel location, attic access, grounding, utility notes, measurements, troubleshooting findings..."></textarea>
+                      placeholder="Panel location, attic access, grounding, utility notes, troubleshooting findings, measurements..."></textarea>
 
+            <!-- MATERIAL NOTES -->
             <label>
                 Material Notes
             </label>
 
             <textarea name="material_notes"
                       rows="6"
-                      placeholder="Wire, conduit, fittings, permit notes, breaker sizes, material list, equipment requirements..."></textarea>
+                      placeholder="Wire, conduit, fittings, permits, breaker sizes, grounding, material reminders, NEC notes..."></textarea>
 
         </div>
 
     </div>
 
 
+    <!-- BUTTONS -->
     <div class="card">
 
         <div style="
@@ -266,5 +313,40 @@
     </div>
 
 </form>
+
+
+<!-- TEMPLATE SEARCH FILTER -->
+<script>
+
+function filterTemplates() {
+
+    const search = document
+        .getElementById("templateSearch")
+        .value
+        .toLowerCase();
+
+    const select = document.getElementById("templateSelect");
+
+    const options = select.querySelectorAll("option");
+
+    options.forEach(option => {
+
+        const text = option.textContent.toLowerCase();
+
+        if (option.value === "") {
+
+            option.hidden = false;
+
+        } else {
+
+            option.hidden = !text.includes(search);
+
+        }
+
+    });
+
+}
+
+</script>
 
 {% endblock %}

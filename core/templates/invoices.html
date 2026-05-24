@@ -2,104 +2,269 @@
 
 {% block content %}
 
+<div class="card"
+     style="
+        background:linear-gradient(135deg, #0b0b0c 0%, #1c1c1c 100%);
+        color:white;
+     ">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:20px;
+        flex-wrap:wrap;
+    ">
+
+        <div>
+
+            <div class="badge"
+                 style="
+                    background:rgba(255,196,0,.14);
+                    color:var(--gold);
+                    margin-bottom:18px;
+                 ">
+                INVOICES
+            </div>
+
+            <h1 class="section-title"
+                style="
+                    color:white;
+                    margin-bottom:12px;
+                ">
+                Customer Invoices
+            </h1>
+
+            <p style="
+                color:#d1d5db;
+                margin:0;
+                line-height:1.7;
+            ">
+                Track sent invoices, balances due,
+                customer payments, and invoice status.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
 <div class="card">
 
     <div style="
         display:flex;
         justify-content:space-between;
         align-items:center;
-        margin-bottom:20px;
+        gap:12px;
+        flex-wrap:wrap;
+        margin-bottom:18px;
     ">
 
-        <h1 class="section-title"
-            style="margin:0;">
-            Invoices
-        </h1>
+        <h2 style="margin:0;">
+            Invoice List
+        </h2>
+
+        <input type="text"
+               id="invoiceSearch"
+               placeholder="Search invoices..."
+               onkeyup="filterInvoices()"
+               style="max-width:320px;">
 
     </div>
 
-    <table>
+    <div style="overflow-x:auto;">
 
-        <thead>
+        <table style="
+            width:100%;
+            border-collapse:collapse;
+        ">
 
-            <tr>
-                <th>Invoice</th>
-                <th>Customer</th>
-                <th>Status</th>
-                <th>Total</th>
-                <th>Due</th>
-                <th></th>
-            </tr>
+            <thead>
 
-        </thead>
+                <tr style="
+                    border-bottom:1px solid rgba(255,255,255,.08);
+                ">
 
-        <tbody>
+                    <th style="
+                        text-align:left;
+                        padding:14px 10px;
+                    ">
+                        Invoice
+                    </th>
 
-        {% for invoice in invoices %}
+                    <th style="
+                        text-align:left;
+                        padding:14px 10px;
+                    ">
+                        Customer
+                    </th>
 
-            <tr>
+                    <th style="
+                        text-align:left;
+                        padding:14px 10px;
+                    ">
+                        Status
+                    </th>
 
-                <td>
-                    {{ invoice.invoice_number }}
-                </td>
+                    <th style="
+                        text-align:right;
+                        padding:14px 10px;
+                    ">
+                        Total
+                    </th>
 
-                <td>
+                    <th style="
+                        text-align:right;
+                        padding:14px 10px;
+                    ">
+                        Due
+                    </th>
 
-                    {% if invoice.job %}
-                        {{ invoice.job.customer.name }}
-                    {% elif invoice.estimate %}
-                        {{ invoice.estimate.job.customer.name }}
-                    {% endif %}
+                    <th style="
+                        text-align:right;
+                        padding:14px 10px;
+                    ">
+                        Actions
+                    </th>
 
-                </td>
+                </tr>
 
-                <td>
+            </thead>
 
-                    <span class="badge">
-                        {{ invoice.status }}
-                    </span>
+            <tbody id="invoiceTable">
 
-                </td>
+            {% for invoice in invoices %}
 
-                <td>
-                    ${{ invoice.total }}
-                </td>
+                <tr style="
+                    border-bottom:1px solid rgba(255,255,255,.06);
+                ">
 
-                <td>
-                    ${{ invoice.amount_due }}
-                </td>
+                    <td style="
+                        padding:14px 10px;
+                    ">
 
-                <td>
+                        <strong>
+                            {{ invoice.invoice_number }}
+                        </strong>
 
-                    <a class="btn btn-gold"
-                       href="/invoices/{{ invoice.id }}/">
+                    </td>
 
-                        Open
+                    <td style="
+                        padding:14px 10px;
+                    ">
 
-                    </a>
+                        {% if invoice.job %}
 
-                </td>
+                            {{ invoice.job.customer.name }}
 
-            </tr>
+                        {% elif invoice.estimate %}
 
-        {% empty %}
+                            {{ invoice.estimate.job.customer.name }}
 
-            <tr>
+                        {% endif %}
 
-                <td colspan="6">
+                    </td>
 
-                    No invoices found.
+                    <td style="
+                        padding:14px 10px;
+                    ">
 
-                </td>
+                        <span class="badge">
+                            {{ invoice.status }}
+                        </span>
 
-            </tr>
+                    </td>
 
-        {% endfor %}
+                    <td style="
+                        padding:14px 10px;
+                        text-align:right;
+                        font-weight:800;
+                    ">
 
-        </tbody>
+                        ${{ invoice.total }}
 
-    </table>
+                    </td>
+
+                    <td style="
+                        padding:14px 10px;
+                        text-align:right;
+                        color:var(--gold);
+                        font-weight:900;
+                    ">
+
+                        ${{ invoice.amount_due }}
+
+                    </td>
+
+                    <td style="
+                        padding:14px 10px;
+                        text-align:right;
+                    ">
+
+                        <a class="btn btn-gold"
+                           href="/invoices/{{ invoice.id }}/">
+
+                            Open
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% empty %}
+
+                <tr>
+
+                    <td colspan="6"
+                        style="
+                            padding:20px;
+                            color:#9ca3af;
+                        ">
+
+                        No invoices found.
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
 
 </div>
+
+
+<script>
+
+function filterInvoices() {
+
+    const search = document
+        .getElementById("invoiceSearch")
+        .value
+        .toLowerCase();
+
+    const rows = document.querySelectorAll("#invoiceTable tr");
+
+    rows.forEach(row => {
+
+        row.style.display = row.textContent
+            .toLowerCase()
+            .includes(search)
+
+            ? ""
+            : "none";
+
+    });
+
+}
+
+</script>
 
 {% endblock %}

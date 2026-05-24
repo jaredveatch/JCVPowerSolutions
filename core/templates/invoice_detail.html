@@ -2,88 +2,174 @@
 
 {% block content %}
 
-<div class="card">
+<!-- HEADER -->
+<div class="card"
+     style="
+        background:linear-gradient(
+            135deg,
+            #0b0b0c 0%,
+            #1c1c1c 100%
+        );
+        color:white;
+     ">
 
     <div style="
         display:flex;
         justify-content:space-between;
         align-items:flex-start;
-        gap:20px;
+        gap:24px;
         flex-wrap:wrap;
     ">
 
         <div>
 
+            <div class="badge"
+                 style="
+                    background:rgba(255,196,0,.14);
+                    color:var(--gold);
+                    margin-bottom:18px;
+                 ">
+
+                CUSTOMER INVOICE
+
+            </div>
+
             <h1 class="section-title"
-                style="margin-bottom:10px;">
+                style="
+                    color:white;
+                    margin-bottom:12px;
+                ">
 
                 {{ invoice.invoice_number }}
 
             </h1>
 
-            <p>
-                <strong>Status:</strong>
+            <div style="
+                display:grid;
+                grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+                gap:14px;
+            ">
 
-                <span class="badge">
-                    {{ invoice.status }}
-                </span>
-            </p>
+                <div>
 
-            {% if invoice.job %}
-            <p>
-                <strong>Customer:</strong>
-                {{ invoice.job.customer.name }}
-            </p>
+                    <small style="color:#9ca3af;">
+                        Status
+                    </small>
 
-            <p>
-                <strong>Job:</strong>
-                {{ invoice.job.title }}
-            </p>
-            {% endif %}
+                    <div>
+
+                        <span class="badge">
+                            {{ invoice.status }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+                {% if invoice.job %}
+
+                <div>
+
+                    <small style="color:#9ca3af;">
+                        Customer
+                    </small>
+
+                    <div>
+                        {{ invoice.job.customer.name }}
+                    </div>
+
+                </div>
+
+                <div>
+
+                    <small style="color:#9ca3af;">
+                        Job
+                    </small>
+
+                    <div>
+                        {{ invoice.job.title }}
+                    </div>
+
+                </div>
+
+                {% endif %}
+
+                <div>
+
+                    <small style="color:#9ca3af;">
+                        Due Date
+                    </small>
+
+                    <div>
+                        {{ invoice.due_date }}
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
+        <!-- TOTAL BOX -->
         <div style="
-            min-width:260px;
-            background:#fafafa;
-            border:1px solid var(--border);
+            min-width:300px;
+            background:rgba(255,255,255,.04);
+            border:1px solid rgba(255,255,255,.08);
             border-radius:24px;
-            padding:20px;
+            padding:24px;
         ">
 
-            <div style="margin-bottom:12px;">
+            <div style="margin-bottom:18px;">
 
                 <div style="
                     font-size:13px;
-                    color:var(--muted);
+                    color:#9ca3af;
                     font-weight:900;
                     text-transform:uppercase;
                     margin-bottom:6px;
                 ">
-                    Total
+                    Invoice Total
                 </div>
 
                 <div style="
-                    font-size:34px;
+                    font-size:42px;
                     font-weight:950;
-                    letter-spacing:-.04em;
+                    letter-spacing:-.05em;
+                    color:var(--gold);
                 ">
                     ${{ invoice.total }}
                 </div>
 
             </div>
 
-            <div style="margin-bottom:10px;">
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                margin-bottom:10px;
+            ">
 
-                <strong>Paid:</strong>
-                ${{ invoice.amount_paid }}
+                <strong>
+                    Paid
+                </strong>
+
+                <span>
+                    ${{ invoice.amount_paid }}
+                </span>
 
             </div>
 
-            <div>
+            <div style="
+                display:flex;
+                justify-content:space-between;
+            ">
 
-                <strong>Remaining:</strong>
-                ${{ invoice.amount_due }}
+                <strong>
+                    Remaining
+                </strong>
+
+                <span>
+                    ${{ invoice.amount_due }}
+                </span>
 
             </div>
 
@@ -93,44 +179,91 @@
 
 </div>
 
+
+<!-- MAIN GRID -->
 <div class="grid grid-2">
 
+    <!-- LEFT -->
     <div class="card">
 
         <h2 style="margin-top:0;">
             Invoice Details
         </h2>
 
-        <p>
+        <div style="
+            line-height:1.8;
+            color:#d1d5db;
+            margin-bottom:24px;
+        ">
+
             {{ invoice.description|linebreaks }}
-        </p>
 
-        <table>
+        </div>
 
-            <tr>
-                <th>Subtotal</th>
-                <td>${{ invoice.subtotal }}</td>
+        <table style="
+            width:100%;
+            border-collapse:collapse;
+        ">
+
+            <tr style="
+                border-bottom:1px solid rgba(255,255,255,.08);
+            ">
+                <th style="
+                    text-align:left;
+                    padding:14px 0;
+                ">
+                    Subtotal
+                </th>
+
+                <td style="
+                    text-align:right;
+                ">
+                    ${{ invoice.subtotal }}
+                </td>
+            </tr>
+
+            <tr style="
+                border-bottom:1px solid rgba(255,255,255,.08);
+            ">
+                <th style="
+                    text-align:left;
+                    padding:14px 0;
+                ">
+                    Tax
+                </th>
+
+                <td style="
+                    text-align:right;
+                ">
+                    ${{ invoice.tax }}
+                </td>
             </tr>
 
             <tr>
-                <th>Tax</th>
-                <td>${{ invoice.tax }}</td>
-            </tr>
+                <th style="
+                    text-align:left;
+                    padding:18px 0;
+                    font-size:1.2rem;
+                ">
+                    Total
+                </th>
 
-            <tr>
-                <th>Total</th>
-                <td><strong>${{ invoice.total }}</strong></td>
-            </tr>
-
-            <tr>
-                <th>Due Date</th>
-                <td>{{ invoice.due_date }}</td>
+                <td style="
+                    text-align:right;
+                    font-size:1.2rem;
+                    font-weight:900;
+                    color:var(--gold);
+                ">
+                    ${{ invoice.total }}
+                </td>
             </tr>
 
         </table>
 
     </div>
 
+
+    <!-- RIGHT -->
     <div class="card">
 
         <h2 style="margin-top:0;">
@@ -149,7 +282,7 @@
             <input type="number"
                    step="0.01"
                    name="amount"
-                   placeholder="Amount">
+                   placeholder="Payment amount">
 
             <label>
                 Payment Method
@@ -171,6 +304,10 @@
 
                 <option value="ach">
                     ACH
+                </option>
+
+                <option value="zelle">
+                    Zelle
                 </option>
 
                 <option value="other">
@@ -198,7 +335,7 @@
             <button class="btn btn-gold"
                     type="submit">
 
-                Add Payment
+                💵 Add Payment
 
             </button>
 
@@ -208,11 +345,24 @@
 
 </div>
 
+
+<!-- PAYMENT HISTORY -->
 <div class="card">
 
-    <h2 style="margin-top:0;">
-        Payment History
-    </h2>
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:18px;
+        flex-wrap:wrap;
+        gap:12px;
+    ">
+
+        <h2 style="margin:0;">
+            Payment History
+        </h2>
+
+    </div>
 
     {% for payment in payments %}
 
@@ -228,8 +378,13 @@
 
                 <div>
 
-                    <h3 style="margin-bottom:8px;">
+                    <h3 style="
+                        margin-bottom:10px;
+                        color:var(--gold);
+                    ">
+
                         ${{ payment.amount }}
+
                     </h3>
 
                     <p>
@@ -238,16 +393,22 @@
                     </p>
 
                     {% if payment.reference %}
+
                     <p>
                         <strong>Reference:</strong>
                         {{ payment.reference }}
                     </p>
+
                     {% endif %}
 
                     {% if payment.notes %}
-                    <p>
+
+                    <p style="
+                        color:#d1d5db;
+                    ">
                         {{ payment.notes }}
                     </p>
+
                     {% endif %}
 
                 </div>
@@ -268,11 +429,71 @@
 
         <div class="list-card">
 
-            No payments added yet.
+            <p style="
+                margin:0;
+                color:#9ca3af;
+            ">
+
+                No payments added yet.
+
+            </p>
 
         </div>
 
     {% endfor %}
+
+</div>
+
+
+<!-- ACTIONS -->
+<div class="card">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        flex-wrap:wrap;
+        gap:12px;
+    ">
+
+        <h2 style="margin:0;">
+            Actions
+        </h2>
+
+        <div style="
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+        ">
+
+            <a class="btn"
+               href="/invoices/{{ invoice.id }}/edit/">
+
+                Edit Invoice
+
+            </a>
+
+            {% if invoice.job %}
+
+            <a class="btn"
+               href="/jobs/{{ invoice.job.id }}/">
+
+                View Job
+
+            </a>
+
+            {% endif %}
+
+            <a class="btn"
+               href="/estimates/">
+
+                All Estimates
+
+            </a>
+
+        </div>
+
+    </div>
 
 </div>
 

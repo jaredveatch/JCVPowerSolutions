@@ -109,6 +109,9 @@ class ServiceTemplate(models.Model):
     default_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     active = models.BooleanField(default=True)
 
+    class Meta:
+        ordering = ["category", "name"]
+
     def __str__(self):
         return self.name
 
@@ -133,6 +136,7 @@ class MaterialCatalog(models.Model):
     class Meta:
         verbose_name = "Material"
         verbose_name_plural = "Materials"
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
@@ -160,6 +164,8 @@ class ServiceTemplateMaterial(models.Model):
     class Meta:
         verbose_name = "Service Template Material"
         verbose_name_plural = "Service Template Materials"
+        ordering = ["service_template__category", "service_template__name", "material__name"]
+        unique_together = ("service_template", "material")
 
     def __str__(self):
         return f"{self.service_template} - {self.material} x {self.quantity}"
@@ -221,6 +227,9 @@ class Job(models.Model):
     completed_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ["-created_at"]
+
     def material_total(self):
         return sum(
             (item.material_total for item in self.job_materials.all()),
@@ -275,6 +284,7 @@ class JobMaterial(models.Model):
     class Meta:
         verbose_name = "Job Material"
         verbose_name_plural = "Job Materials"
+        ordering = ["material__name"]
 
     def save(self, *args, **kwargs):
         quantity = Decimal(str(self.quantity or 0))
@@ -345,6 +355,20 @@ class Estimate(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ["-created_at"]
+
+    def recalculate_totals(self):
+        line_subtotal = sum(
+            (line.total for line in self.line_items.all()),
+            Decimal("0.00"),
+        )
+
+        if line_subtotal > 0:
+            self.subtotal = line_subtotal
+
+        self.total = Decimal(str(self.subtotal or 0)) + Decimal(str(self.tax or 0))
+
     def save(self, *args, **kwargs):
         subtotal = Decimal(str(self.subtotal or 0))
         tax = Decimal(str(self.tax or 0))
@@ -355,6 +379,74 @@ class Estimate(models.Model):
 
     def __str__(self):
         return self.title
+
+
+# =========================================================
+# ESTIMATE LINE ITEMS
+# =========================================================
+
+class EstimateLineItem(models.Model):
+    ITEM_TYPE_CHOICES = [
+        ("material", "Material"),
+        ("labor", "Labor"),
+        ("service", "Service"),
+        ("fee", "Fee"),
+        ("discount", "Discount"),
+    ]
+
+    estimate = models.ForeignKey(
+        Estimate,
+        on_delete=models.CASCADE,
+        related_name="line_items",
+    )
+
+    item_type = models.CharField(
+        max_length=50,
+        choices=ITEM_TYPE_CHOICES,
+        default="material",
+    )
+
+    description = models.CharField(max_length=255)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    source_job_material = models.ForeignKey(
+        JobMaterial,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="estimate_line_items",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Estimate Line Item"
+        verbose_name_plural = "Estimate Line Items"
+        ordering = ["id"]
+
+    def save(self, *args, **kwargs):
+        quantity = Decimal(str(self.quantity or 0))
+        unit_price = Decimal(str(self.unit_price or 0))
+
+        self.total = quantity * unit_price
+
+        super().save(*args, **kwargs)
+
+        estimate = self.estimate
+        estimate.subtotal = sum(
+            (line.total for line in estimate.line_items.all()),
+            Decimal("0.00"),
+        )
+        estimate.total = estimate.subtotal + Decimal(str(estimate.tax or 0))
+        Estimate.objects.filter(id=estimate.id).update(
+            subtotal=estimate.subtotal,
+            total=estimate.total,
+        )
+
+    def __str__(self):
+        return f"{self.estimate} - {self.description}"
 
 
 # =========================================================
@@ -400,6 +492,9 @@ class Invoice(models.Model):
     due_date = models.DateField(blank=True, null=True)
     paid_date = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
 
     def save(self, *args, **kwargs):
         if not self.invoice_number:
@@ -485,6 +580,9 @@ class JobNote(models.Model):
     internal = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ["-created_at"]
+
     def __str__(self):
         return f"{self.job} - {self.author or 'Note'}"
 
@@ -533,6 +631,9 @@ class Task(models.Model):
     due_date = models.DateTimeField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["status", "due_date", "-created_at"]
 
     def __str__(self):
         return self.title

@@ -10,6 +10,7 @@ idna==3.10
 pillow==12.2.0
 python-dateutil==2.9.0.post0
 PyYAML==6.0.2
+reportlab==4.4.3
 requests==2.32.4
 sgmllib3k==1.0.0
 six==1.17.0
