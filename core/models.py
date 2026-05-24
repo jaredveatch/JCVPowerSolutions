@@ -101,16 +101,65 @@ class Customer(models.Model):
 
 class ServiceTemplate(models.Model):
     icon = models.CharField(max_length=50, blank=True, null=True)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     category = models.CharField(max_length=255, blank=True, null=True)
+
     customer_description = models.TextField(blank=True, null=True)
     internal_checklist = models.TextField(blank=True, null=True)
-    default_labor_hours = models.DecimalField(max_digits=8, decimal_places=2, default=0)
-    default_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    notes = models.TextField(blank=True, null=True)
+
+    default_labor_hours = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=0,
+    )
+
+    labor_rate = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("110.00"),
+    )
+
+    estimated_material_cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
+    material_markup = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("1.35"),
+    )
+
+    default_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
+    permit_required = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["category", "name"]
+
+    @property
+    def labor_total(self):
+        return Decimal(str(self.default_labor_hours or 0)) * Decimal(str(self.labor_rate or 0))
+
+    @property
+    def material_sell_price(self):
+        return Decimal(str(self.estimated_material_cost or 0)) * Decimal(str(self.material_markup or 0))
+
+    @property
+    def calculated_price(self):
+        return self.labor_total + self.material_sell_price
+
+    def save(self, *args, **kwargs):
+        self.default_price = self.calculated_price
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -166,6 +215,14 @@ class ServiceTemplateMaterial(models.Model):
         verbose_name_plural = "Service Template Materials"
         ordering = ["service_template__category", "service_template__name", "material__name"]
         unique_together = ("service_template", "material")
+
+    @property
+    def material_total(self):
+        return Decimal(str(self.quantity or 0)) * Decimal(str(self.material.unit_cost or 0))
+
+    @property
+    def labor_total(self):
+        return Decimal(str(self.quantity or 0)) * Decimal(str(self.material.labor_hours or 0))
 
     def __str__(self):
         return f"{self.service_template} - {self.material} x {self.quantity}"
@@ -248,6 +305,12 @@ class Job(models.Model):
             Decimal("0.00"),
         )
 
+    def save(self, *args, **kwargs):
+        if self.template and not self.estimated_total_price:
+            self.estimated_total_price = self.template.default_price
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.title
 
@@ -272,12 +335,20 @@ class JobMaterial(models.Model):
     quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1)
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
+    material_markup = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("1.35"),
+    )
+
     labor_hours = models.DecimalField(max_digits=8, decimal_places=2, default=0)
-    labor_rate = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("95.00"))
+    labor_rate = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("110.00"))
 
     material_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    material_sell_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     labor_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    sell_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -288,13 +359,24 @@ class JobMaterial(models.Model):
 
     def save(self, *args, **kwargs):
         quantity = Decimal(str(self.quantity or 0))
+
+        if self.material:
+            if not self.unit_cost:
+                self.unit_cost = self.material.unit_cost
+
+            if not self.labor_hours:
+                self.labor_hours = self.material.labor_hours
+
         unit_cost = Decimal(str(self.unit_cost or 0))
         labor_hours = Decimal(str(self.labor_hours or 0))
         labor_rate = Decimal(str(self.labor_rate or 0))
+        markup = Decimal(str(self.material_markup or 1))
 
         self.material_total = quantity * unit_cost
+        self.material_sell_total = self.material_total * markup
         self.labor_total = quantity * labor_hours * labor_rate
         self.total_cost = self.material_total + self.labor_total
+        self.sell_total = self.material_sell_total + self.labor_total
 
         super().save(*args, **kwargs)
 
@@ -359,14 +441,10 @@ class Estimate(models.Model):
         ordering = ["-created_at"]
 
     def recalculate_totals(self):
-        line_subtotal = sum(
+        self.subtotal = sum(
             (line.total for line in self.line_items.all()),
             Decimal("0.00"),
         )
-
-        if line_subtotal > 0:
-            self.subtotal = line_subtotal
-
         self.total = Decimal(str(self.subtotal or 0)) + Decimal(str(self.tax or 0))
 
     def save(self, *args, **kwargs):
@@ -440,6 +518,7 @@ class EstimateLineItem(models.Model):
             Decimal("0.00"),
         )
         estimate.total = estimate.subtotal + Decimal(str(estimate.tax or 0))
+
         Estimate.objects.filter(id=estimate.id).update(
             subtotal=estimate.subtotal,
             total=estimate.total,
