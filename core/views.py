@@ -85,11 +85,13 @@ def global_search(request):
             Q(phone__icontains=query) |
             Q(email__icontains=query)
         )
+
         jobs = Job.objects.filter(
             Q(title__icontains=query) |
             Q(job_address__icontains=query) |
             Q(description__icontains=query)
         )
+
         invoices = Invoice.objects.filter(
             Q(invoice_number__icontains=query) |
             Q(title__icontains=query)
@@ -106,7 +108,7 @@ def global_search(request):
 @staff_member_required
 def leads(request):
     return render(request, "leads.html", {
-        "leads": QuoteRequest.objects.order_by("-created_at")
+        "leads": QuoteRequest.objects.order_by("-created_at"),
     })
 
 
@@ -148,7 +150,7 @@ def delete_lead(request, lead_id):
 @staff_member_required
 def customers(request):
     return render(request, "customers.html", {
-        "customers": Customer.objects.all().order_by("-id")
+        "customers": Customer.objects.all().order_by("-id"),
     })
 
 
@@ -321,13 +323,24 @@ def create_job(request, customer_id):
             for template_material in template_materials:
                 material = template_material.material
 
-                JobMaterial.objects.create(
+                existing_material = JobMaterial.objects.filter(
                     job=job,
                     material=material,
-                    quantity=Decimal("1"),
-                    unit_cost=material.unit_cost or Decimal("0.00"),
-                    labor_hours=material.labor_hours or Decimal("0.00"),
-                )
+                ).first()
+
+                if existing_material:
+                    existing_material.quantity = Decimal("1")
+                    existing_material.unit_cost = material.unit_cost or Decimal("0.00")
+                    existing_material.labor_hours = material.labor_hours or Decimal("0.00")
+                    existing_material.save()
+                else:
+                    JobMaterial.objects.create(
+                        job=job,
+                        material=material,
+                        quantity=Decimal("1"),
+                        unit_cost=material.unit_cost or Decimal("0.00"),
+                        labor_hours=material.labor_hours or Decimal("0.00"),
+                    )
 
         return redirect("job_detail", job_id=job.id)
 
@@ -340,14 +353,20 @@ def create_job(request, customer_id):
 @staff_member_required
 def jobs(request):
     return render(request, "jobs.html", {
-        "jobs": Job.objects.all().order_by("-created_at")
+        "jobs": Job.objects.all().order_by("-created_at"),
     })
 
 
 @staff_member_required
 def job_detail(request, job_id):
     job = get_object_or_404(Job, id=job_id)
-    job_materials = job.job_materials.all()
+
+    job_materials = job.job_materials.all().order_by(
+        "-total_cost",
+        "-labor_total",
+        "-material_total",
+        "material__name",
+    )
 
     return render(request, "job_detail.html", {
         "job": job,
@@ -444,7 +463,12 @@ def job_material_list(request, job_id):
 
     return render(request, "job_material_list.html", {
         "job": job,
-        "job_materials": job.job_materials.all(),
+        "job_materials": job.job_materials.all().order_by(
+            "-total_cost",
+            "-labor_total",
+            "-material_total",
+            "material__name",
+        ),
     })
 
 
@@ -612,7 +636,7 @@ def update_job_material_quantity(request, material_id):
 @staff_member_required
 def estimates(request):
     return render(request, "estimates.html", {
-        "estimates": Estimate.objects.all().order_by("-created_at")
+        "estimates": Estimate.objects.all().order_by("-created_at"),
     })
 
 
@@ -632,7 +656,12 @@ def create_estimate_from_job(request, job_id):
         status="draft",
     )
 
-    for item in job.job_materials.all():
+    for item in job.job_materials.all().order_by(
+        "-total_cost",
+        "-labor_total",
+        "-material_total",
+        "material__name",
+    ):
         material_name = item.material.name if item.material else "Material"
 
         if item.material_total and item.material_total > 0:
@@ -674,7 +703,11 @@ def estimate_detail(request, estimate_id):
 
     return render(request, "estimate_detail.html", {
         "estimate": estimate,
-        "line_items": estimate.line_items.all(),
+        "line_items": estimate.line_items.all().order_by(
+            "item_type",
+            "-total",
+            "description",
+        ),
     })
 
 
@@ -751,7 +784,11 @@ def estimate_pdf(request, estimate_id):
 
     pdf.setFont("Helvetica", 9)
 
-    for item in estimate.line_items.all():
+    for item in estimate.line_items.all().order_by(
+        "item_type",
+        "-total",
+        "description",
+    ):
         if y < 1.40 * inch:
             pdf.showPage()
             y = height - 0.75 * inch
@@ -856,7 +893,11 @@ def edit_estimate(request, estimate_id):
 
     return render(request, "edit_estimate.html", {
         "estimate": estimate,
-        "line_items": estimate.line_items.all(),
+        "line_items": estimate.line_items.all().order_by(
+            "item_type",
+            "-total",
+            "description",
+        ),
     })
 
 
@@ -926,7 +967,7 @@ def delete_estimate(request, estimate_id):
 @staff_member_required
 def invoices(request):
     return render(request, "invoices.html", {
-        "invoices": Invoice.objects.all().order_by("-created_at")
+        "invoices": Invoice.objects.all().order_by("-created_at"),
     })
 
 
@@ -1008,7 +1049,7 @@ def add_payment(request, invoice_id):
 @staff_member_required
 def tasks(request):
     return render(request, "tasks.html", {
-        "tasks": Task.objects.all().order_by("status", "due_date")
+        "tasks": Task.objects.all().order_by("status", "due_date"),
     })
 
 
