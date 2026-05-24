@@ -2,32 +2,14 @@
 
 {% block content %}
 
-<div class="card"
-     style="
-        background:linear-gradient(135deg, #0b0b0c 0%, #1c1c1c 100%);
-        color:white;
-     ">
-
-    <div style="
-        display:flex;
-        justify-content:space-between;
-        align-items:flex-start;
-        gap:20px;
-        flex-wrap:wrap;
-    ">
-
+<div class="card" style="background:linear-gradient(135deg, #0b0b0c 0%, #1c1c1c 100%); color:white;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap;">
         <div>
-            <div class="badge"
-                 style="
-                    background:rgba(255,196,0,.14);
-                    color:var(--gold);
-                    margin-bottom:18px;
-                 ">
+            <div class="badge" style="background:rgba(255,196,0,.14); color:var(--gold); margin-bottom:18px;">
                 JOB WORK ORDER
             </div>
 
-            <h1 class="section-title"
-                style="color:white; margin-bottom:10px;">
+            <h1 class="section-title" style="color:white; margin-bottom:10px;">
                 {{ job.title }}
             </h1>
 
@@ -37,84 +19,54 @@
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <a class="btn btn-gold" href="/jobs/{{ job.id }}/create-estimate/">
-                📋 Create Estimate
-            </a>
-
-            <a class="btn" href="/jobs/{{ job.id }}/create-invoice/">
-                💵 Create Invoice
-            </a>
-
-            <a class="btn" href="/jobs/{{ job.id }}/edit/">
-                Edit Job
-            </a>
+            <a class="btn btn-gold" href="/jobs/{{ job.id }}/create-estimate/">📋 Create Estimate</a>
+            <a class="btn" href="/jobs/{{ job.id }}/create-invoice/">💵 Create Invoice</a>
+            <a class="btn" href="/jobs/{{ job.id }}/edit/">Edit Job</a>
         </div>
-
     </div>
-
 </div>
 
 
 <div class="grid grid-4">
-
     <div class="card">
-        <div style="color:var(--muted); font-size:12px; font-weight:900; text-transform:uppercase; margin-bottom:10px;">
-            Status
-        </div>
+        <div style="color:var(--muted); font-size:12px; font-weight:900; text-transform:uppercase; margin-bottom:10px;">Status</div>
         <span class="badge">{{ job.status }}</span>
     </div>
 
     <div class="card">
-        <div style="color:var(--muted); font-size:12px; font-weight:900; text-transform:uppercase; margin-bottom:10px;">
-            Priority
-        </div>
+        <div style="color:var(--muted); font-size:12px; font-weight:900; text-transform:uppercase; margin-bottom:10px;">Priority</div>
         <strong>{{ job.priority }}</strong>
     </div>
 
     <div class="card">
-        <div style="color:var(--muted); font-size:12px; font-weight:900; text-transform:uppercase; margin-bottom:10px;">
-            Assigned To
-        </div>
+        <div style="color:var(--muted); font-size:12px; font-weight:900; text-transform:uppercase; margin-bottom:10px;">Assigned To</div>
         <strong>{{ job.assigned_to|default:"Unassigned" }}</strong>
     </div>
 
     <div class="card">
-        <div style="color:var(--muted); font-size:12px; font-weight:900; text-transform:uppercase; margin-bottom:10px;">
-            Estimated
-        </div>
-        <strong style="font-size:28px;">
-            ${{ job.estimated_total_price|default:"0.00" }}
-        </strong>
+        <div style="color:var(--muted); font-size:12px; font-weight:900; text-transform:uppercase; margin-bottom:10px;">Estimated</div>
+        <strong style="font-size:28px;">${{ job.estimated_total_price|default:"0.00" }}</strong>
     </div>
-
 </div>
 
 
 <div class="grid grid-2">
-
     <div class="card">
         <h2 style="margin-top:0;">Job Details</h2>
 
         <table>
             <tr>
                 <th>Customer</th>
-                <td>
-                    <a href="/customers/{{ job.customer.id }}/">
-                        {{ job.customer.name }}
-                    </a>
-                </td>
+                <td><a href="/customers/{{ job.customer.id }}/">{{ job.customer.name }}</a></td>
             </tr>
-
             <tr>
                 <th>Address</th>
                 <td>{{ job.job_address }}</td>
             </tr>
-
             <tr>
                 <th>Scheduled</th>
                 <td>{{ job.scheduled_date }}</td>
             </tr>
-
             <tr>
                 <th>Created</th>
                 <td>{{ job.created_at }}</td>
@@ -142,12 +94,9 @@
                 <option value="cancelled">Cancelled</option>
             </select>
 
-            <button class="btn btn-gold" type="submit">
-                Update Status
-            </button>
+            <button class="btn btn-gold" type="submit">Update Status</button>
         </form>
     </div>
-
 </div>
 
 
@@ -155,9 +104,7 @@
     <h2 style="margin-top:0;">Scope / Description</h2>
 
     {% if job.description %}
-        <p style="line-height:1.8;">
-            {{ job.description|linebreaks }}
-        </p>
+        <p style="line-height:1.8;">{{ job.description|linebreaks }}</p>
     {% else %}
         <p>No description entered.</p>
     {% endif %}
@@ -165,14 +112,11 @@
 
 
 <div class="grid grid-2">
-
     <div class="card">
         <h2 style="margin-top:0;">Site Notes</h2>
 
         {% if job.site_notes %}
-            <p style="line-height:1.8;">
-                {{ job.site_notes|linebreaks }}
-            </p>
+            <p style="line-height:1.8;">{{ job.site_notes|linebreaks }}</p>
         {% else %}
             <p>No site notes.</p>
         {% endif %}
@@ -182,36 +126,21 @@
         <h2 style="margin-top:0;">Material Notes</h2>
 
         {% if job.material_notes %}
-            <p style="line-height:1.8;">
-                {{ job.material_notes|linebreaks }}
-            </p>
+            <p style="line-height:1.8;">{{ job.material_notes|linebreaks }}</p>
         {% else %}
             <p>No material notes.</p>
         {% endif %}
     </div>
-
 </div>
 
 
 <div class="card" id="materials-card">
-
-    <div style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        gap:20px;
-        flex-wrap:wrap;
-        margin-bottom:20px;
-    ">
-
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:20px; flex-wrap:wrap; margin-bottom:20px;">
         <h2 style="margin:0;">Job Materials</h2>
 
-        <button type="button"
-                class="btn btn-gold"
-                onclick="openMaterialModal()">
+        <button type="button" class="btn btn-gold" onclick="openMaterialModal()">
             + Add From Catalog
         </button>
-
     </div>
 
     <table>
@@ -227,10 +156,8 @@
             </tr>
         </thead>
 
-        <tbody>
-
+        <tbody id="materials-table-body">
             {% for item in job_materials %}
-
             <tr id="material-row-{{ item.id }}">
                 <td>{{ item.material.name }}</td>
 
@@ -238,240 +165,126 @@
                     <input type="number"
                            class="material-qty-input"
                            data-material-id="{{ item.id }}"
-                           value="{{ item.quantity }}"
+                           value="{{ item.quantity|floatformat:0 }}"
                            min="0"
-                           step="0.01"
-                           style="
-                                width:90px;
-                                padding:8px;
-                                border-radius:8px;
-                                border:1px solid #d1d5db;
-                                font-weight:800;
-                           ">
+                           step="1"
+                           style="width:90px; padding:8px; border-radius:8px; border:1px solid #d1d5db; font-weight:800;">
                 </td>
 
-                <td>${{ item.unit_cost }}</td>
-                <td class="material-total">${{ item.material_total }}</td>
-                <td class="labor-total">${{ item.labor_total }}</td>
-                <td class="installed-total">${{ item.total_cost }}</td>
+                <td>${{ item.unit_cost|floatformat:2 }}</td>
+                <td class="material-total">${{ item.material_total|floatformat:2 }}</td>
+                <td class="labor-total">${{ item.labor_total|floatformat:2 }}</td>
+                <td class="installed-total">${{ item.total_cost|floatformat:2 }}</td>
 
                 <td>
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
-
                         <button type="button"
                                 class="material-adjust-btn"
                                 data-material-id="{{ item.id }}"
-                                data-change="1"
-                                style="
-                                    background:#16a34a;
-                                    color:white;
-                                    padding:8px 14px;
-                                    border-radius:8px;
-                                    border:none;
-                                    cursor:pointer;
-                                    font-weight:900;
-                                ">
+                                data-action="plus"
+                                style="background:#16a34a; color:white; padding:8px 14px; border-radius:8px; border:none; cursor:pointer; font-weight:900;">
                             +
                         </button>
 
                         <button type="button"
                                 class="material-adjust-btn"
                                 data-material-id="{{ item.id }}"
-                                data-change="-1"
-                                style="
-                                    background:#dc2626;
-                                    color:white;
-                                    padding:8px 14px;
-                                    border-radius:8px;
-                                    border:none;
-                                    cursor:pointer;
-                                    font-weight:900;
-                                ">
+                                data-action="minus"
+                                style="background:#dc2626; color:white; padding:8px 14px; border-radius:8px; border:none; cursor:pointer; font-weight:900;">
                             -
                         </button>
 
                         <button type="button"
                                 class="material-delete-btn"
                                 data-material-id="{{ item.id }}"
-                                style="
-                                    background:#111827;
-                                    color:white;
-                                    border:none;
-                                    padding:8px 14px;
-                                    border-radius:8px;
-                                    cursor:pointer;
-                                    font-weight:900;
-                                ">
+                                style="background:#111827; color:white; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:900;">
                             Delete
                         </button>
-
                     </div>
                 </td>
             </tr>
-
             {% empty %}
-
-            <tr>
+            <tr id="no-materials-row">
                 <td colspan="7">
                     <div style="padding:30px; text-align:center;">
+                        <p style="color:var(--muted); margin-bottom:20px;">No materials added yet.</p>
 
-                        <p style="color:var(--muted); margin-bottom:20px;">
-                            No materials added yet.
-                        </p>
-
-                        <button type="button"
-                                class="btn btn-gold"
-                                onclick="openMaterialModal()">
+                        <button type="button" class="btn btn-gold" onclick="openMaterialModal()">
                             Add First Material
                         </button>
-
                     </div>
                 </td>
             </tr>
-
             {% endfor %}
-
         </tbody>
     </table>
 
     <hr>
 
     <div class="grid grid-3">
-
         <div>
             <div class="badge">Material Total</div>
-            <h3 id="job-material-total">${{ job.material_total }}</h3>
+            <h3 id="job-material-total">${{ material_total|floatformat:2 }}</h3>
         </div>
 
         <div>
             <div class="badge">Labor Total</div>
-            <h3 id="job-labor-total">${{ job.labor_total }}</h3>
+            <h3 id="job-labor-total">${{ labor_total|floatformat:2 }}</h3>
         </div>
 
         <div>
             <div class="badge">Installed Total</div>
-            <h2 id="job-installed-total" style="color:var(--gold);">
-                ${{ job.installed_total }}
-            </h2>
+            <h2 id="job-installed-total" style="color:var(--gold);">${{ installed_total|floatformat:2 }}</h2>
         </div>
-
     </div>
-
 </div>
 
 
-<!-- ADD MATERIAL POPUP MODAL -->
 <div id="materialModal"
-     style="
-        display:none;
-        position:fixed;
-        inset:0;
-        background:rgba(0,0,0,.72);
-        z-index:9999;
-        align-items:center;
-        justify-content:center;
-        padding:20px;
-     ">
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:9999; align-items:center; justify-content:center; padding:20px;">
 
-    <div style="
-        background:white;
-        color:#111827;
-        width:100%;
-        max-width:620px;
-        border-radius:18px;
-        box-shadow:0 25px 80px rgba(0,0,0,.45);
-        padding:24px;
-        position:relative;
-     ">
-
+    <div style="background:white; color:#111827; width:100%; max-width:620px; border-radius:18px; box-shadow:0 25px 80px rgba(0,0,0,.45); padding:24px; position:relative;">
         <button type="button"
                 onclick="closeMaterialModal()"
-                style="
-                    position:absolute;
-                    top:14px;
-                    right:14px;
-                    background:#111827;
-                    color:white;
-                    border:none;
-                    width:36px;
-                    height:36px;
-                    border-radius:999px;
-                    cursor:pointer;
-                    font-weight:900;
-                ">
+                style="position:absolute; top:14px; right:14px; background:#111827; color:white; border:none; width:36px; height:36px; border-radius:999px; cursor:pointer; font-weight:900;">
             ×
         </button>
 
-        <h2 style="margin-top:0; margin-bottom:10px;">
-            Add Material From Catalog
-        </h2>
+        <h2 style="margin-top:0; margin-bottom:10px;">Add Material From Catalog</h2>
 
-        <p style="color:#6b7280; margin-top:0;">
-            {{ job.title }}
-        </p>
+        <p style="color:#6b7280; margin-top:0;">{{ job.title }}</p>
 
-        <form method="post"
-              action="/jobs/{{ job.id }}/materials/add/">
-
+        <form method="post" action="/jobs/{{ job.id }}/materials/add/">
             {% csrf_token %}
 
-            <label style="display:block; font-weight:900; margin-bottom:8px;">
-                Material
-            </label>
+            <label style="display:block; font-weight:900; margin-bottom:8px;">Material</label>
 
             <select name="material"
                     required
-                    style="
-                        width:100%;
-                        padding:12px;
-                        border-radius:10px;
-                        border:1px solid #d1d5db;
-                        margin-bottom:16px;
-                    ">
+                    style="width:100%; padding:12px; border-radius:10px; border:1px solid #d1d5db; margin-bottom:16px;">
                 <option value="">Select material...</option>
 
                 {% for material in catalog_materials %}
-                    <option value="{{ material.id }}">
-                        {{ material.name }} - ${{ material.unit_cost }}
-                    </option>
+                    <option value="{{ material.id }}">{{ material.name }} - ${{ material.unit_cost }}</option>
                 {% endfor %}
             </select>
 
-            <label style="display:block; font-weight:900; margin-bottom:8px;">
-                Quantity
-            </label>
+            <label style="display:block; font-weight:900; margin-bottom:8px;">Quantity</label>
 
             <input type="number"
                    name="quantity"
                    value="1"
-                   min="0.01"
-                   step="0.01"
+                   min="1"
+                   step="1"
                    required
-                   style="
-                        width:100%;
-                        padding:12px;
-                        border-radius:10px;
-                        border:1px solid #d1d5db;
-                        margin-bottom:20px;
-                   ">
+                   style="width:100%; padding:12px; border-radius:10px; border:1px solid #d1d5db; margin-bottom:20px;">
 
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button type="submit"
-                        class="btn btn-gold">
-                    Add Material
-                </button>
-
-                <button type="button"
-                        class="btn"
-                        onclick="closeMaterialModal()">
-                    Cancel
-                </button>
+                <button type="submit" class="btn btn-gold">Add Material</button>
+                <button type="button" class="btn" onclick="closeMaterialModal()">Cancel</button>
             </div>
-
         </form>
-
     </div>
-
 </div>
 
 
@@ -485,40 +298,24 @@
                   rows="5"
                   placeholder="Add internal field note, customer update, material reminder, or next step..."></textarea>
 
-        <button class="btn btn-gold" type="submit">
-            Add Note
-        </button>
+        <button class="btn btn-gold" type="submit">Add Note</button>
     </form>
 </div>
 
 
 <div class="grid grid-2">
-
     <div class="card">
         <h2 style="margin-top:0;">Estimates</h2>
 
         {% for estimate in estimates %}
             <div class="list-card">
                 <h3>{{ estimate.title }}</h3>
-
-                <p>
-                    <strong>Status:</strong>
-                    {{ estimate.status }}
-                </p>
-
-                <p>
-                    <strong>Total:</strong>
-                    ${{ estimate.total }}
-                </p>
-
-                <a class="btn" href="/estimates/{{ estimate.id }}/">
-                    Open Estimate
-                </a>
+                <p><strong>Status:</strong> {{ estimate.status }}</p>
+                <p><strong>Total:</strong> ${{ estimate.total }}</p>
+                <a class="btn" href="/estimates/{{ estimate.id }}/">Open Estimate</a>
             </div>
         {% empty %}
-            <div class="list-card">
-                No estimates yet.
-            </div>
+            <div class="list-card">No estimates yet.</div>
         {% endfor %}
     </div>
 
@@ -528,28 +325,14 @@
         {% for invoice in invoices %}
             <div class="list-card">
                 <h3>{{ invoice.invoice_number }}</h3>
-
-                <p>
-                    <strong>Status:</strong>
-                    {{ invoice.status }}
-                </p>
-
-                <p>
-                    <strong>Due:</strong>
-                    ${{ invoice.amount_due }}
-                </p>
-
-                <a class="btn" href="/invoices/{{ invoice.id }}/">
-                    Open Invoice
-                </a>
+                <p><strong>Status:</strong> {{ invoice.status }}</p>
+                <p><strong>Due:</strong> ${{ invoice.amount_due }}</p>
+                <a class="btn" href="/invoices/{{ invoice.id }}/">Open Invoice</a>
             </div>
         {% empty %}
-            <div class="list-card">
-                No invoices yet.
-            </div>
+            <div class="list-card">No invoices yet.</div>
         {% endfor %}
     </div>
-
 </div>
 
 
@@ -559,17 +342,11 @@
     {% for note in notes %}
         <div class="list-card">
             <h3>{{ note.author|default:"JCV" }}</h3>
-
             <p>{{ note.note|linebreaks }}</p>
-
-            <span class="badge">
-                {{ note.created_at }}
-            </span>
+            <span class="badge">{{ note.created_at }}</span>
         </div>
     {% empty %}
-        <div class="list-card">
-            No job notes yet.
-        </div>
+        <div class="list-card">No job notes yet.</div>
     {% endfor %}
 </div>
 
@@ -598,7 +375,7 @@ function getCookie(name) {
         for (let i = 0; i < cookies.length; i++) {
             const cookie = cookies[i].trim();
 
-            if (cookie.substring(0, name.length + 1) === (name + "=")) {
+            if (cookie.substring(0, name.length + 1) === name + "=") {
                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                 break;
             }
@@ -608,53 +385,71 @@ function getCookie(name) {
     return cookieValue;
 }
 
-function updateMaterialQuantity(materialId, quantity) {
+function updateMaterialQuantity(materialId, action, quantity = null) {
+    const formData = new URLSearchParams();
+    formData.append("action", action);
+
+    if (quantity !== null) {
+        formData.append("quantity", quantity);
+    }
+
     fetch(`/jobs/materials/${materialId}/update-quantity/`, {
         method: "POST",
         headers: {
             "X-CSRFToken": getCookie("csrftoken"),
             "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: `quantity=${encodeURIComponent(quantity)}`
+        body: formData.toString()
     })
     .then(response => response.json())
     .then(data => {
+        if (!data.success) {
+            alert(data.error || "Could not update material.");
+            return;
+        }
+
         const row = document.querySelector(`#material-row-${materialId}`);
 
         if (data.deleted) {
             if (row) {
                 row.remove();
             }
+        } else {
+            if (!row) {
+                return;
+            }
 
-            document.querySelector("#job-material-total").innerText = `$${data.job_material_total}`;
-            document.querySelector("#job-labor-total").innerText = `$${data.job_labor_total}`;
-            document.querySelector("#job-installed-total").innerText = `$${data.job_installed_total}`;
-            return;
+            const input = row.querySelector(".material-qty-input");
+
+            input.value = data.quantity;
+            row.querySelector(".material-total").innerText = data.material_total;
+            row.querySelector(".labor-total").innerText = data.labor_total;
+            row.querySelector(".installed-total").innerText = data.installed_total;
         }
 
-        if (!row) {
-            return;
-        }
-
-        const input = row.querySelector(".material-qty-input");
-
-        input.value = data.quantity;
-        row.querySelector(".material-total").innerText = `$${data.material_total}`;
-        row.querySelector(".labor-total").innerText = `$${data.labor_total}`;
-        row.querySelector(".installed-total").innerText = `$${data.total_cost}`;
-
-        document.querySelector("#job-material-total").innerText = `$${data.job_material_total}`;
-        document.querySelector("#job-labor-total").innerText = `$${data.job_labor_total}`;
-        document.querySelector("#job-installed-total").innerText = `$${data.job_installed_total}`;
+        document.querySelector("#job-material-total").innerText = data.job_material_total;
+        document.querySelector("#job-labor-total").innerText = data.job_labor_total;
+        document.querySelector("#job-installed-total").innerText = data.job_installed_total;
+    })
+    .catch(error => {
+        console.error(error);
+        alert("Something went wrong updating this material.");
     });
 }
 
 document.querySelectorAll(".material-qty-input").forEach(function(input) {
     input.addEventListener("blur", function() {
         const materialId = this.dataset.materialId;
-        const quantity = this.value || "0";
 
-        updateMaterialQuantity(materialId, quantity);
+        let quantity = parseInt(this.value || "0");
+
+        if (isNaN(quantity) || quantity < 0) {
+            quantity = 0;
+        }
+
+        this.value = quantity;
+
+        updateMaterialQuantity(materialId, "set", quantity);
     });
 
     input.addEventListener("keydown", function(event) {
@@ -668,19 +463,9 @@ document.querySelectorAll(".material-qty-input").forEach(function(input) {
 document.querySelectorAll(".material-adjust-btn").forEach(function(button) {
     button.addEventListener("click", function() {
         const materialId = this.dataset.materialId;
-        const change = parseFloat(this.dataset.change);
+        const action = this.dataset.action;
 
-        const row = document.querySelector(`#material-row-${materialId}`);
-        const input = row.querySelector(".material-qty-input");
-
-        let currentQuantity = parseFloat(input.value || "0");
-        let newQuantity = currentQuantity + change;
-
-        if (newQuantity < 0) {
-            newQuantity = 0;
-        }
-
-        updateMaterialQuantity(materialId, newQuantity);
+        updateMaterialQuantity(materialId, action);
     });
 });
 
@@ -688,7 +473,7 @@ document.querySelectorAll(".material-delete-btn").forEach(function(button) {
     button.addEventListener("click", function() {
         const materialId = this.dataset.materialId;
 
-        updateMaterialQuantity(materialId, 0);
+        updateMaterialQuantity(materialId, "set", 0);
     });
 });
 </script>

@@ -284,6 +284,7 @@ def jobs(request):
 @staff_member_required
 def job_detail(request, job_id):
     job = get_object_or_404(Job, id=job_id)
+    job_materials = job.job_materials.all()
 
     return render(request, "job_detail.html", {
         "job": job,
@@ -291,8 +292,11 @@ def job_detail(request, job_id):
         "invoices": Invoice.objects.filter(job=job).order_by("-created_at"),
         "notes": job.notes.all().order_by("-created_at"),
         "tasks": job.tasks.all().order_by("-created_at"),
-        "job_materials": job.job_materials.all(),
+        "job_materials": job_materials,
         "catalog_materials": MaterialCatalog.objects.filter(active=True).order_by("name"),
+        "material_total": job.material_total(),
+        "labor_total": job.labor_total(),
+        "installed_total": job.installed_total(),
     })
 
 
@@ -392,7 +396,11 @@ def add_catalog_material_to_job(request, job_id):
 
         if material_id:
             material = get_object_or_404(MaterialCatalog, id=material_id)
-            quantity = Decimal(quantity_raw)
+
+            try:
+                quantity = max(int(float(quantity_raw)), 1)
+            except ValueError:
+                quantity = 1
 
             existing = JobMaterial.objects.filter(
                 job=job,
@@ -400,7 +408,7 @@ def add_catalog_material_to_job(request, job_id):
             ).first()
 
             if existing:
-                existing.quantity += quantity
+                existing.quantity = int(existing.quantity) + quantity
                 existing.unit_cost = material.unit_cost
                 existing.labor_hours = material.labor_hours
                 existing.save()
@@ -425,7 +433,7 @@ def add_catalog_material_to_job(request, job_id):
 def increase_job_material(request, material_id):
     item = get_object_or_404(JobMaterial, id=material_id)
 
-    item.quantity += Decimal("1.00")
+    item.quantity = int(item.quantity) + 1
     item.save()
 
     return redirect(f"/jobs/{item.job.id}/")
@@ -436,12 +444,13 @@ def decrease_job_material(request, material_id):
     item = get_object_or_404(JobMaterial, id=material_id)
     job_id = item.job.id
 
-    item.quantity -= Decimal("1.00")
+    new_quantity = int(item.quantity) - 1
 
-    if item.quantity <= 0:
+    if new_quantity <= 0:
         item.delete()
         return redirect(f"/jobs/{job_id}/")
 
+    item.quantity = new_quantity
     item.save()
 
     return redirect(f"/jobs/{job_id}/")
@@ -463,39 +472,66 @@ def update_job_material_quantity(request, material_id):
     item = get_object_or_404(JobMaterial, id=material_id)
     job = item.job
 
-    if request.method == "POST":
-        quantity_raw = request.POST.get("quantity", "1")
+    if request.method != "POST":
+        return JsonResponse({
+            "success": False,
+            "error": "Invalid request",
+        }, status=400)
 
+    action = request.POST.get("action")
+    quantity_raw = request.POST.get("quantity", "0")
+
+    current_quantity = int(item.quantity)
+
+    if action == "plus":
+        new_quantity = current_quantity + 1
+
+    elif action == "minus":
+        new_quantity = current_quantity - 1
+
+    elif action == "set":
         try:
-            quantity = Decimal(quantity_raw)
-        except:
-            quantity = Decimal("1.00")
-
-        if quantity <= 0:
-            item.delete()
-
+            new_quantity = int(float(quantity_raw))
+        except ValueError:
             return JsonResponse({
-                "deleted": True,
-                "job_material_total": str(job.material_total()),
-                "job_labor_total": str(job.labor_total()),
-                "job_installed_total": str(job.installed_total()),
-            })
+                "success": False,
+                "error": "Invalid quantity",
+            }, status=400)
 
-        item.quantity = quantity
-        item.save()
+    else:
+        return JsonResponse({
+            "success": False,
+            "error": "Invalid action",
+        }, status=400)
+
+    if new_quantity <= 0:
+        item_id = item.id
+        item.delete()
 
         return JsonResponse({
-            "deleted": False,
-            "quantity": str(item.quantity),
-            "material_total": str(item.material_total()),
-            "labor_total": str(item.labor_total()),
-            "total_cost": str(item.total_cost()),
-            "job_material_total": str(job.material_total()),
-            "job_labor_total": str(job.labor_total()),
-            "job_installed_total": str(job.installed_total()),
+            "success": True,
+            "deleted": True,
+            "material_id": item_id,
+            "job_material_total": f"${job.material_total():,.2f}",
+            "job_labor_total": f"${job.labor_total():,.2f}",
+            "job_installed_total": f"${job.installed_total():,.2f}",
         })
 
-    return JsonResponse({"error": "Invalid request"}, status=400)
+    item.quantity = new_quantity
+    item.save()
+
+    return JsonResponse({
+        "success": True,
+        "deleted": False,
+        "material_id": item.id,
+        "quantity": int(item.quantity),
+        "material_total": f"${item.material_total():,.2f}",
+        "labor_total": f"${item.labor_total():,.2f}",
+        "installed_total": f"${item.total_cost():,.2f}",
+        "job_material_total": f"${job.material_total():,.2f}",
+        "job_labor_total": f"${job.labor_total():,.2f}",
+        "job_installed_total": f"${job.installed_total():,.2f}",
+    })
 
 
 # =====================================================
@@ -514,8 +550,7 @@ def create_estimate_from_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
     scope = job.description or "Electrical work as discussed during walkthrough."
-    material_based_total = job.installed_total() if hasattr(job, "installed_total") else Decimal("0.00")
-    subtotal = material_based_total or job.estimated_total_price or Decimal("0.00")
+    subtotal = job.installed_total() or job.estimated_total_price or Decimal("0.00")
 
     estimate = Estimate.objects.create(
         job=job,
@@ -636,8 +671,7 @@ def invoices(request):
 def create_invoice_from_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
-    subtotal = job.installed_total() if hasattr(job, "installed_total") else job.estimated_total_price
-    subtotal = subtotal or Decimal("0.00")
+    subtotal = job.installed_total() or job.estimated_total_price or Decimal("0.00")
 
     invoice = Invoice.objects.create(
         job=job,
