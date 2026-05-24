@@ -106,27 +106,28 @@ def estimate_pdf(request, estimate_id):
 
     width, height = letter
 
-    left = 0.65 * inch
-    right = width - 0.65 * inch
+    left = 0.55 * inch
+    right = width - 0.55 * inch
     page_width = right - left
 
-    black = (0.06, 0.06, 0.06)
+    black = (0.055, 0.055, 0.055)
     gold = (0.95, 0.72, 0.16)
-    dark_gray = (0.22, 0.22, 0.22)
+    dark_gray = (0.18, 0.18, 0.18)
     mid_gray = (0.48, 0.48, 0.48)
-    light_gray = (0.91, 0.91, 0.91)
+    light_gray = (0.88, 0.88, 0.88)
     soft_gray = (0.97, 0.97, 0.97)
+    white = (1, 1, 1)
 
-    def set_fill(color):
+    def fill(color):
         pdf.setFillColorRGB(*color)
 
-    def set_stroke(color):
+    def stroke(color):
         pdf.setStrokeColorRGB(*color)
 
     def money(value):
         return f"${Decimal(str(value or 0)):,.2f}"
 
-    def wrap_text(text, max_chars=82):
+    def wrap_text(text, max_chars=76):
         words = str(text or "").split()
         lines = []
         current = ""
@@ -146,211 +147,177 @@ def estimate_pdf(request, estimate_id):
 
         return lines or [""]
 
-    def draw_card(x, y_top, w, h, fill=soft_gray):
-        set_fill(fill)
-        set_stroke(light_gray)
-
+    def card(x, y_top, w, h, fill_color=white, radius=9):
+        fill(fill_color)
+        stroke(light_gray)
+        pdf.setLineWidth(0.8)
         pdf.roundRect(
             x,
             y_top - h,
             w,
             h,
-            10,
+            radius,
             stroke=1,
             fill=1,
         )
 
-    def draw_footer():
-        set_stroke(light_gray)
-        pdf.line(left, 0.72 * inch, right, 0.72 * inch)
-
-        set_fill(mid_gray)
-        pdf.setFont("Helvetica", 8)
-
-        pdf.drawCentredString(
-            width / 2,
-            0.48 * inch,
-            "JCV Power Solutions • Professional Electrical Services • jcvpowersolutions.com",
-        )
-
-    def new_page():
-        pdf.showPage()
-        draw_footer()
-        return height - 0.85 * inch
-
-    def check_page(y, needed=1.4 * inch):
-        if y < needed:
-            return new_page()
-
-        return y
+    def label(text, x, y):
+        fill(gold)
+        pdf.setFont("Helvetica-Bold", 8)
+        pdf.drawString(x, y, text)
 
     # =====================================================
     # HEADER
     # =====================================================
 
-    set_fill(black)
+    header_h = 1.08 * inch
+
+    fill(black)
     pdf.rect(
         0,
-        height - 1.35 * inch,
+        height - header_h,
         width,
-        1.35 * inch,
+        header_h,
         stroke=0,
         fill=1,
     )
 
-    set_fill(gold)
-    pdf.setFont("Helvetica-Bold", 24)
-    pdf.drawString(left, height - 0.62 * inch, "JCV Power Solutions")
+    fill(gold)
+    pdf.setFont("Helvetica-Bold", 22)
+    pdf.drawString(left, height - 0.46 * inch, "JCV Power Solutions")
 
-    set_fill((1, 1, 1))
-    pdf.setFont("Helvetica", 10)
-    pdf.drawString(left, height - 0.90 * inch, "Professional Electrical Services")
-
-    set_fill((1, 1, 1))
-    pdf.setFont("Helvetica-Bold", 13)
-    pdf.drawRightString(right, height - 0.62 * inch, "ESTIMATE")
-
-    set_fill((0.78, 0.78, 0.78))
+    fill(white)
     pdf.setFont("Helvetica", 9)
-    pdf.drawRightString(right, height - 0.90 * inch, f"Estimate #{estimate.id}")
+    pdf.drawString(left, height - 0.72 * inch, "Professional Electrical Services")
+
+    fill(white)
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawRightString(right, height - 0.46 * inch, "ESTIMATE")
+
+    fill((0.78, 0.78, 0.78))
+    pdf.setFont("Helvetica", 8)
+    pdf.drawRightString(right, height - 0.72 * inch, f"Estimate #{estimate.id}")
 
     # =====================================================
     # TITLE
     # =====================================================
 
-    y = height - 1.85 * inch
+    y = height - 1.45 * inch
 
-    set_fill(black)
-    pdf.setFont("Helvetica-Bold", 22)
+    fill(black)
+    pdf.setFont("Helvetica-Bold", 20)
     pdf.drawCentredString(width / 2, y, "Electrical Service Proposal")
 
-    y -= 0.28 * inch
+    y -= 0.22 * inch
 
-    set_fill(mid_gray)
-    pdf.setFont("Helvetica", 10)
-    pdf.drawCentredString(
-        width / 2,
-        y,
-        "Prepared for your review and approval",
-    )
+    fill(mid_gray)
+    pdf.setFont("Helvetica", 9)
+    pdf.drawCentredString(width / 2, y, "Prepared for your review and approval")
 
-    y -= 0.48 * inch
+    y -= 0.34 * inch
 
     # =====================================================
-    # CUSTOMER / PROJECT CARDS
+    # INFO CARDS
     # =====================================================
 
-    card_gap = 0.20 * inch
-    card_width = (page_width - card_gap) / 2
-    card_height = 1.18 * inch
+    gap = 0.16 * inch
+    small_card_w = (page_width - gap) / 2
+    small_card_h = 0.86 * inch
 
-    draw_card(left, y, card_width, card_height)
-    draw_card(left + card_width + card_gap, y, card_width, card_height)
+    card(left, y, small_card_w, small_card_h, soft_gray)
+    card(left + small_card_w + gap, y, small_card_w, small_card_h, soft_gray)
 
-    set_fill(mid_gray)
-    pdf.setFont("Helvetica-Bold", 8)
-    pdf.drawString(left + 0.18 * inch, y - 0.28 * inch, "CUSTOMER")
-    pdf.drawString(left + card_width + card_gap + 0.18 * inch, y - 0.28 * inch, "PROJECT")
+    label("CUSTOMER", left + 0.16 * inch, y - 0.22 * inch)
+    label("PROJECT", left + small_card_w + gap + 0.16 * inch, y - 0.22 * inch)
 
-    set_fill(black)
-    pdf.setFont("Helvetica-Bold", 11)
-    pdf.drawString(left + 0.18 * inch, y - 0.56 * inch, estimate.job.customer.name[:38])
-
-    project_lines = wrap_text(estimate.job.title, 34)
-
+    fill(black)
     pdf.setFont("Helvetica-Bold", 10)
-    project_y = y - 0.54 * inch
+    pdf.drawString(left + 0.16 * inch, y - 0.47 * inch, estimate.job.customer.name[:34])
 
+    project_lines = wrap_text(estimate.job.title, 31)
+    project_y = y - 0.43 * inch
+
+    pdf.setFont("Helvetica-Bold", 9.5)
     for line in project_lines[:2]:
-        pdf.drawString(
-            left + card_width + card_gap + 0.18 * inch,
-            project_y,
-            line,
-        )
-        project_y -= 0.18 * inch
+        pdf.drawString(left + small_card_w + gap + 0.16 * inch, project_y, line)
+        project_y -= 0.15 * inch
 
-    set_fill(mid_gray)
-    pdf.setFont("Helvetica", 8)
-    pdf.drawString(left + 0.18 * inch, y - 0.92 * inch, f"Date: {estimate.created_at.strftime('%m/%d/%Y')}")
+    fill(mid_gray)
+    pdf.setFont("Helvetica", 7.5)
+    pdf.drawString(left + 0.16 * inch, y - 0.70 * inch, f"Date: {estimate.created_at.strftime('%m/%d/%Y')}")
     pdf.drawString(
-        left + card_width + card_gap + 0.18 * inch,
-        y - 0.92 * inch,
+        left + small_card_w + gap + 0.16 * inch,
+        y - 0.70 * inch,
         f"Status: {estimate.status.title()}",
     )
 
-    y -= card_height + 0.42 * inch
+    y -= small_card_h + 0.24 * inch
 
     # =====================================================
     # SCOPE CARD
     # =====================================================
 
     scope = estimate.scope_of_work or "Electrical work as discussed."
-
     scope_lines = wrap_text(scope, 88)
-    scope_height = max(
-        1.35 * inch,
-        0.72 * inch + (len(scope_lines) * 0.20 * inch),
-    )
 
-    y = check_page(y, scope_height + 1 * inch)
+    max_scope_lines = 4
+    visible_scope_lines = scope_lines[:max_scope_lines]
 
-    draw_card(left, y, page_width, scope_height, fill=(1, 1, 1))
+    scope_card_h = 1.35 * inch
 
-    set_fill(gold)
-    pdf.setFont("Helvetica-Bold", 9)
-    pdf.drawString(left + 0.22 * inch, y - 0.28 * inch, "SCOPE OF WORK")
+    card(left, y, page_width, scope_card_h, white)
 
-    set_fill(black)
-    pdf.setFont("Helvetica-Bold", 14)
-    pdf.drawString(left + 0.22 * inch, y - 0.55 * inch, "Project Overview")
+    label("SCOPE OF WORK", left + 0.18 * inch, y - 0.23 * inch)
 
-    set_fill(dark_gray)
-    pdf.setFont("Helvetica", 10)
+    fill(black)
+    pdf.setFont("Helvetica-Bold", 13)
+    pdf.drawString(left + 0.18 * inch, y - 0.47 * inch, "Project Overview")
 
-    text_y = y - 0.88 * inch
+    fill(dark_gray)
+    pdf.setFont("Helvetica", 9)
 
-    for line in scope_lines:
+    text_y = y - 0.72 * inch
+
+    for line in visible_scope_lines:
         pdf.drawString(left + 0.28 * inch, text_y, f"• {line}")
-        text_y -= 0.20 * inch
+        text_y -= 0.17 * inch
 
-    y -= scope_height + 0.34 * inch
+    y -= scope_card_h + 0.22 * inch
 
     # =====================================================
-    # PRICE CARD
+    # TOTAL CARD
     # =====================================================
 
-    price_height = 1.45 * inch
+    total_h = 1.18 * inch
 
-    y = check_page(y, price_height + 1 * inch)
-
-    set_fill(black)
+    fill(black)
     pdf.roundRect(
         left,
-        y - price_height,
+        y - total_h,
         page_width,
-        price_height,
+        total_h,
         14,
         stroke=0,
         fill=1,
     )
 
-    set_fill(gold)
+    fill(gold)
     pdf.setFont("Helvetica-Bold", 10)
-    pdf.drawCentredString(width / 2, y - 0.36 * inch, "PROJECT TOTAL")
+    pdf.drawCentredString(width / 2, y - 0.30 * inch, "PROJECT TOTAL")
 
-    set_fill((1, 1, 1))
-    pdf.setFont("Helvetica-Bold", 30)
-    pdf.drawCentredString(width / 2, y - 0.88 * inch, money(estimate.total))
+    fill(white)
+    pdf.setFont("Helvetica-Bold", 28)
+    pdf.drawCentredString(width / 2, y - 0.76 * inch, money(estimate.total))
 
-    set_fill((0.78, 0.78, 0.78))
-    pdf.setFont("Helvetica", 8)
+    fill((0.78, 0.78, 0.78))
+    pdf.setFont("Helvetica", 7.5)
     pdf.drawCentredString(
         width / 2,
-        y - 1.18 * inch,
+        y - 1.02 * inch,
         "Includes approved scope, standard labor, and listed project pricing.",
     )
 
-    y -= price_height + 0.36 * inch
+    y -= total_h + 0.24 * inch
 
     # =====================================================
     # TERMS CARD
@@ -361,77 +328,72 @@ def estimate_pdf(request, estimate_id):
         "material availability, permits, and field conditions discovered during work."
     )
 
-    terms_lines = wrap_text(terms, 94)
-    terms_height = max(
-        1.05 * inch,
-        0.60 * inch + (len(terms_lines) * 0.17 * inch),
-    )
+    terms_lines = wrap_text(terms, 92)[:3]
 
-    y = check_page(y, terms_height + 1 * inch)
+    terms_h = 0.95 * inch
 
-    draw_card(left, y, page_width, terms_height, fill=soft_gray)
+    card(left, y, page_width, terms_h, soft_gray)
 
-    set_fill(gold)
-    pdf.setFont("Helvetica-Bold", 9)
-    pdf.drawString(left + 0.22 * inch, y - 0.28 * inch, "TERMS")
+    label("TERMS", left + 0.18 * inch, y - 0.22 * inch)
 
-    set_fill(dark_gray)
-    pdf.setFont("Helvetica", 9)
+    fill(dark_gray)
+    pdf.setFont("Helvetica", 8.5)
 
-    terms_y = y - 0.58 * inch
+    terms_y = y - 0.45 * inch
 
     for line in terms_lines:
-        pdf.drawString(left + 0.22 * inch, terms_y, line)
-        terms_y -= 0.17 * inch
+        pdf.drawString(left + 0.18 * inch, terms_y, line)
+        terms_y -= 0.15 * inch
 
-    y -= terms_height + 0.44 * inch
+    y -= terms_h + 0.22 * inch
 
     # =====================================================
-    # ACCEPTANCE / SIGNATURE
+    # ACCEPTANCE CARD
     # =====================================================
 
-    signature_height = 1.15 * inch
+    accept_h = 0.98 * inch
 
-    y = check_page(y, signature_height + 1 * inch)
+    card(left, y, page_width, accept_h, white)
 
-    set_fill((1, 1, 1))
-    set_stroke(light_gray)
+    fill(black)
+    pdf.setFont("Helvetica-Bold", 10)
+    pdf.drawString(left + 0.18 * inch, y - 0.25 * inch, "Acceptance")
 
-    pdf.roundRect(
-        left,
-        y - signature_height,
-        page_width,
-        signature_height,
-        10,
-        stroke=1,
-        fill=0,
-    )
-
-    set_fill(black)
-    pdf.setFont("Helvetica-Bold", 11)
-    pdf.drawString(left + 0.22 * inch, y - 0.30 * inch, "Acceptance")
-
-    set_fill(mid_gray)
-    pdf.setFont("Helvetica", 8)
+    fill(mid_gray)
+    pdf.setFont("Helvetica", 7.5)
     pdf.drawString(
-        left + 0.22 * inch,
-        y - 0.52 * inch,
+        left + 0.18 * inch,
+        y - 0.43 * inch,
         "By signing below, customer authorizes JCV Power Solutions to proceed with the approved scope.",
     )
 
-    line_y = y - 0.87 * inch
+    line_y = y - 0.72 * inch
 
-    set_stroke(black)
+    stroke(black)
+    pdf.setLineWidth(0.8)
+    pdf.line(left + 0.18 * inch, line_y, left + 3.30 * inch, line_y)
+    pdf.line(right - 2.20 * inch, line_y, right - 0.18 * inch, line_y)
 
-    pdf.line(left + 0.22 * inch, line_y, left + 3.30 * inch, line_y)
-    pdf.line(right - 2.35 * inch, line_y, right - 0.22 * inch, line_y)
+    fill(mid_gray)
+    pdf.setFont("Helvetica", 7.5)
+    pdf.drawString(left + 0.18 * inch, line_y - 0.13 * inch, "Customer Signature")
+    pdf.drawString(right - 2.20 * inch, line_y - 0.13 * inch, "Date")
 
-    set_fill(mid_gray)
-    pdf.setFont("Helvetica", 8)
-    pdf.drawString(left + 0.22 * inch, line_y - 0.16 * inch, "Customer Signature")
-    pdf.drawString(right - 2.35 * inch, line_y - 0.16 * inch, "Date")
+    # =====================================================
+    # FOOTER
+    # =====================================================
 
-    draw_footer()
+    stroke(light_gray)
+    pdf.setLineWidth(0.7)
+    pdf.line(left, 0.55 * inch, right, 0.55 * inch)
+
+    fill(mid_gray)
+    pdf.setFont("Helvetica", 7.5)
+    pdf.drawCentredString(
+        width / 2,
+        0.36 * inch,
+        "JCV Power Solutions • Professional Electrical Services • jcvpowersolutions.com",
+    )
 
     pdf.save()
     buffer.seek(0)
