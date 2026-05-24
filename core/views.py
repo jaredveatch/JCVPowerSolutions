@@ -717,146 +717,133 @@ def estimate_pdf(request, estimate_id):
 
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=letter)
+
     width, height = letter
+    y = height - 0.85 * inch
 
-    y = height - 0.75 * inch
-
-    pdf.setFont("Helvetica-Bold", 22)
+    pdf.setFont("Helvetica-Bold", 24)
     pdf.drawString(0.75 * inch, y, "JCV Power Solutions")
 
-    y -= 0.30 * inch
+    y -= 0.28 * inch
     pdf.setFont("Helvetica", 11)
     pdf.drawString(0.75 * inch, y, "Professional Electrical Services")
 
-    y -= 0.55 * inch
-    pdf.setFont("Helvetica-Bold", 18)
+    y -= 0.60 * inch
+    pdf.setFont("Helvetica-Bold", 20)
     pdf.drawString(0.75 * inch, y, "Customer Estimate")
 
-    y -= 0.40 * inch
-    pdf.setFont("Helvetica", 10)
-    pdf.drawString(0.75 * inch, y, f"Estimate: {estimate.title}")
-
-    y -= 0.22 * inch
-    pdf.drawString(0.75 * inch, y, f"Customer: {estimate.job.customer.name}")
-
-    y -= 0.22 * inch
-    pdf.drawString(0.75 * inch, y, f"Job: {estimate.job.title}")
-
-    y -= 0.22 * inch
-    pdf.drawString(0.75 * inch, y, f"Status: {estimate.status}")
-
-    y -= 0.22 * inch
-    pdf.drawString(0.75 * inch, y, f"Created: {estimate.created_at.strftime('%m/%d/%Y')}")
-
     y -= 0.45 * inch
-    pdf.setFont("Helvetica-Bold", 13)
+
+    pdf.setFont("Helvetica-Bold", 11)
+    pdf.drawString(0.75 * inch, y, "Customer:")
+    pdf.setFont("Helvetica", 11)
+    pdf.drawString(1.75 * inch, y, estimate.job.customer.name)
+
+    y -= 0.24 * inch
+
+    pdf.setFont("Helvetica-Bold", 11)
+    pdf.drawString(0.75 * inch, y, "Project:")
+    pdf.setFont("Helvetica", 11)
+    pdf.drawString(1.75 * inch, y, estimate.job.title[:75])
+
+    y -= 0.24 * inch
+
+    pdf.setFont("Helvetica-Bold", 11)
+    pdf.drawString(0.75 * inch, y, "Date:")
+    pdf.setFont("Helvetica", 11)
+    pdf.drawString(1.75 * inch, y, estimate.created_at.strftime("%m/%d/%Y"))
+
+    y -= 0.50 * inch
+
+    pdf.setFont("Helvetica-Bold", 15)
     pdf.drawString(0.75 * inch, y, "Scope of Work")
 
-    y -= 0.28 * inch
-    pdf.setFont("Helvetica", 10)
+    y -= 0.30 * inch
+    pdf.setFont("Helvetica", 11)
 
     scope = estimate.scope_of_work or "Electrical work as discussed."
+
     for line in scope.splitlines():
-        pdf.drawString(0.75 * inch, y, line[:100])
-        y -= 0.18 * inch
-
-        if y < 1.40 * inch:
+        if y < 1.60 * inch:
             pdf.showPage()
-            y = height - 0.75 * inch
-            pdf.setFont("Helvetica", 10)
+            y = height - 0.85 * inch
+            pdf.setFont("Helvetica", 11)
 
-    y -= 0.30 * inch
-    pdf.setFont("Helvetica-Bold", 13)
-    pdf.drawString(0.75 * inch, y, "Estimate Line Items")
-
-    y -= 0.30 * inch
-    pdf.setFont("Helvetica-Bold", 9)
-
-    pdf.drawString(0.75 * inch, y, "Type")
-    pdf.drawString(1.55 * inch, y, "Description")
-    pdf.drawRightString(5.25 * inch, y, "Qty")
-    pdf.drawRightString(6.25 * inch, y, "Unit")
-    pdf.drawRightString(7.50 * inch, y, "Total")
-
-    y -= 0.15 * inch
-    pdf.line(0.75 * inch, y, 7.50 * inch, y)
-    y -= 0.22 * inch
-
-    pdf.setFont("Helvetica", 9)
-
-    for item in estimate.line_items.all().order_by(
-        "item_type",
-        "-total",
-        "description",
-    ):
-        if y < 1.40 * inch:
-            pdf.showPage()
-            y = height - 0.75 * inch
-            pdf.setFont("Helvetica", 9)
-
-        pdf.drawString(0.75 * inch, y, item.item_type.title())
-        pdf.drawString(1.55 * inch, y, item.description[:50])
-        pdf.drawRightString(5.25 * inch, y, str(item.quantity))
-        pdf.drawRightString(6.25 * inch, y, f"${item.unit_price:,.2f}")
-        pdf.drawRightString(7.50 * inch, y, f"${item.total:,.2f}")
-
+        pdf.drawString(0.90 * inch, y, line[:95])
         y -= 0.22 * inch
 
-    y -= 0.20 * inch
+    y -= 0.30 * inch
 
-    if y < 1.40 * inch:
+    if estimate.exclusions:
+        pdf.setFont("Helvetica-Bold", 15)
+        pdf.drawString(0.75 * inch, y, "Exclusions")
+
+        y -= 0.30 * inch
+        pdf.setFont("Helvetica", 10)
+
+        for line in estimate.exclusions.splitlines():
+            if y < 1.60 * inch:
+                pdf.showPage()
+                y = height - 0.85 * inch
+                pdf.setFont("Helvetica", 10)
+
+            pdf.drawString(0.90 * inch, y, line[:100])
+            y -= 0.20 * inch
+
+        y -= 0.30 * inch
+
+    if y < 3 * inch:
         pdf.showPage()
-        y = height - 0.75 * inch
+        y = height - 0.85 * inch
 
-    pdf.line(5.0 * inch, y, 7.5 * inch, y)
+    pdf.roundRect(
+        4.5 * inch,
+        y - 0.55 * inch,
+        2.25 * inch,
+        0.75 * inch,
+        8,
+        stroke=1,
+        fill=0,
+    )
 
-    y -= 0.25 * inch
-    pdf.setFont("Helvetica-Bold", 10)
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(4.75 * inch, y - 0.15 * inch, "Project Total")
 
-    pdf.drawRightString(6.25 * inch, y, "Subtotal:")
-    pdf.drawRightString(7.50 * inch, y, f"${estimate.subtotal:,.2f}")
+    pdf.setFont("Helvetica-Bold", 20)
+    pdf.drawString(4.75 * inch, y - 0.45 * inch, f"${estimate.total:,.2f}")
 
-    y -= 0.22 * inch
-    pdf.drawRightString(6.25 * inch, y, "Tax:")
-    pdf.drawRightString(7.50 * inch, y, f"${estimate.tax:,.2f}")
+    y -= 1.10 * inch
 
-    y -= 0.28 * inch
-    pdf.setFont("Helvetica-Bold", 14)
-    pdf.drawRightString(6.25 * inch, y, "Total:")
-    pdf.drawRightString(7.50 * inch, y, f"${estimate.total:,.2f}")
-
-    y -= 0.55 * inch
-
-    if y < 1.40 * inch:
-        pdf.showPage()
-        y = height - 0.75 * inch
-
-    pdf.setFont("Helvetica-Bold", 13)
+    pdf.setFont("Helvetica-Bold", 15)
     pdf.drawString(0.75 * inch, y, "Terms & Conditions")
 
-    y -= 0.28 * inch
+    y -= 0.30 * inch
     pdf.setFont("Helvetica", 9)
 
-    terms = estimate.terms or "Estimate valid for 30 days unless otherwise stated."
+    terms = estimate.terms or (
+        "Estimate valid for 30 days. Material pricing subject to availability "
+        "and utility requirements."
+    )
+
     for line in terms.splitlines():
-        if y < 1.40 * inch:
+        if y < 1.80 * inch:
             pdf.showPage()
-            y = height - 0.75 * inch
+            y = height - 0.85 * inch
             pdf.setFont("Helvetica", 9)
 
-        pdf.drawString(0.75 * inch, y, line[:105])
+        pdf.drawString(0.90 * inch, y, line[:110])
         y -= 0.18 * inch
 
-    y -= 0.45 * inch
+    y -= 0.60 * inch
 
-    if y < 1.20 * inch:
+    if y < 1.50 * inch:
         pdf.showPage()
-        y = height - 0.75 * inch
+        y = height - 0.85 * inch
 
     pdf.line(0.75 * inch, y, 3.50 * inch, y)
-    pdf.drawString(0.75 * inch, y - 0.18 * inch, "Customer Approval Signature")
+    pdf.drawString(0.75 * inch, y - 0.18 * inch, "Customer Signature")
 
-    pdf.line(4.50 * inch, y, 7.50 * inch, y)
+    pdf.line(4.50 * inch, y, 7.25 * inch, y)
     pdf.drawString(4.50 * inch, y - 0.18 * inch, "Date")
 
     pdf.save()
