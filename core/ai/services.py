@@ -1,28 +1,30 @@
 from core.ai.client import get_openai_client, get_openai_model
-from core.models import AISuggestion
+from core.models import AISuggestion, Job, QuoteRequest, ServiceTemplate, Estimate
 
 
 SYSTEM_INSTRUCTIONS = """
-You are the AI assistant for JCV Power Solutions and JCV Command Center.
+You are the AI backbone for JCV Power Solutions and JCV Command Center.
 
-You help with:
-- electrical estimating
-- material list suggestions
-- labor hour suggestions
-- scope of work writing
-- exclusions
-- service template ideas
-- pricing review
+You help Jared run an electrical contractor business.
+
+You can suggest:
+- estimate scopes
+- material lists
+- pricing improvements
+- service template improvements
+- website content
+- SEO pages
 - customer-facing wording
-- website and SEO content
+- internal checklists
+- business improvements
 
 Rules:
-- Do not make changes directly.
-- Only generate suggestions for Jared to approve.
+- Do not directly change production data.
+- Create clear suggestions for Jared to review.
 - Do not claim final NEC/code compliance.
-- Any NEC/code-related output must say it needs electrician verification.
-- Keep answers practical for residential and light commercial electrical work.
-- Be clear, specific, and useful.
+- Mention code/permit items must be verified by the electrician.
+- Keep output practical for residential and light commercial electrical work.
+- Be specific, organized, and action-oriented.
 """
 
 
@@ -68,10 +70,11 @@ Material notes: {job.material_notes}
 Estimated price: ${job.estimated_total_price}
 
 Include:
-- scope of work
-- assumptions
-- exclusions
-- permit/code verification note
+1. Scope of work
+2. Assumptions
+3. Exclusions
+4. Add-ons to consider
+5. Permit/code verification note
 """
 
     return generate_ai_suggestion(
@@ -90,16 +93,18 @@ Suggest a practical material package for this electrical service template.
 Service: {service_template.name}
 Category: {service_template.category}
 Labor hours: {service_template.default_labor_hours}
+Labor rate: ${service_template.labor_rate}
 Material cost estimate: ${service_template.estimated_material_cost}
+Material markup: {service_template.material_markup}
 Sell price: ${service_template.default_price}
 Notes: {service_template.notes}
 
 Return:
-- suggested materials
-- estimated quantities
-- add-ons to consider
-- pricing notes
-- code/permit reminders for electrician verification
+1. Suggested material list
+2. Estimated quantities
+3. Add-ons to consider
+4. Pricing risks
+5. Permit/code reminders for electrician verification
 """
 
     return generate_ai_suggestion(
@@ -125,10 +130,11 @@ Default sell price: ${service_template.default_price}
 Permit required: {service_template.permit_required}
 
 Give:
-- whether pricing looks too low, fair, or high
-- recommended pricing adjustment if needed
-- risk items
-- add-ons that should be separate
+1. Is this too low, fair, or high?
+2. Recommended sell price
+3. Missing add-ons
+4. Profitability risks
+5. Notes for a small electrical contractor
 """
 
     return generate_ai_suggestion(
@@ -136,4 +142,73 @@ Give:
         category="pricing",
         prompt=prompt,
         related_service_template=service_template,
+    )
+
+
+def generate_website_improvement_suggestion():
+    service_templates = ServiceTemplate.objects.filter(active=True)[:80]
+
+    services_text = "\n".join([
+        f"- {s.name} | {s.category} | ${s.default_price}"
+        for s in service_templates
+    ])
+
+    prompt = f"""
+Review JCV Power Solutions' website/service offering strategy based on the active service templates.
+
+Active services:
+{services_text}
+
+Suggest:
+1. Website sections to improve
+2. Missing service pages
+3. Better homepage wording
+4. SEO city/service page ideas
+5. FAQ ideas
+6. Calls-to-action
+7. Trust-building content
+8. Priority order for updates
+"""
+
+    return generate_ai_suggestion(
+        title="Website improvement review",
+        category="website",
+        prompt=prompt,
+    )
+
+
+def generate_business_review_suggestion():
+    recent_jobs = Job.objects.all()[:20]
+    recent_leads = QuoteRequest.objects.all()[:20]
+    recent_estimates = Estimate.objects.all()[:20]
+
+    jobs_text = "\n".join([f"- {j.title} | {j.status} | ${j.estimated_total_price}" for j in recent_jobs])
+    leads_text = "\n".join([f"- {l.name} | {l.service} | {l.status}" for l in recent_leads])
+    estimates_text = "\n".join([f"- {e.title} | {e.status} | ${e.total}" for e in recent_estimates])
+
+    prompt = f"""
+Create a business improvement review for JCV Power Solutions.
+
+Recent jobs:
+{jobs_text}
+
+Recent leads:
+{leads_text}
+
+Recent estimates:
+{estimates_text}
+
+Give:
+1. What needs attention
+2. Follow-up opportunities
+3. Pricing/template improvements
+4. Website/SEO opportunities
+5. Operational improvements
+6. Suggested next actions
+"""
+
+    return generate_ai_suggestion(
+        title="AI business review",
+        category="general",
+        prompt=prompt,
     )

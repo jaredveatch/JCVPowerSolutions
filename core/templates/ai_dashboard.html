@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+
+    <h1>🤖 JCV AI Command Center</h1>
+    <p class="text-muted">
+        AI suggestions for estimates, pricing, materials, website improvements, and business operations.
+        AI does not apply changes automatically. Review before using.
+    </p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <h3>Pending Suggestions</h3>
+            <p class="big-number">{{ pending_count }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Approved</h3>
+            <p class="big-number">{{ approved_count }}</p>
+        </div>
+
+        <div class="card">
+            <h3>Applied</h3>
+            <p class="big-number">{{ applied_count }}</p>
+        </div>
+    </div>
+
+    <hr>
+
+    <h2>AI System Actions</h2>
+
+    <div class="action-row">
+        <a class="btn btn-primary" href="{% url 'ai_generate_website_review' %}">
+            🌐 Review Website Improvements
+        </a>
+
+        <a class="btn btn-primary" href="{% url 'ai_generate_business_review' %}">
+            📊 Run Business Review
+        </a>
+
+        <a class="btn btn-secondary" href="/admin/core/aisuggestion/">
+            🧾 Open AI Suggestions Admin
+        </a>
+    </div>
+
+    <hr>
+
+    <h2>Generate Job Scope</h2>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Job</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Price</th>
+                <th>AI</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td>{{ job.title }}</td>
+                <td>{{ job.customer }}</td>
+                <td>{{ job.status }}</td>
+                <td>${{ job.estimated_total_price }}</td>
+                <td>
+                    <a class="btn btn-sm btn-primary" href="{% url 'ai_generate_job_scope' job.id %}">
+                        Generate Scope
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No jobs found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2>Service Template AI</h2>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Template</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>AI</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for template in service_templates %}
+            <tr>
+                <td>{{ template.icon }} {{ template.name }}</td>
+                <td>{{ template.category }}</td>
+                <td>${{ template.default_price }}</td>
+                <td>
+                    <a class="btn btn-sm btn-primary" href="{% url 'ai_generate_template_materials' template.id %}">
+                        Suggest Materials
+                    </a>
+                    <a class="btn btn-sm btn-secondary" href="{% url 'ai_review_template_pricing' template.id %}">
+                        Review Pricing
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No service templates found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2>Recent AI Suggestions</h2>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Admin</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for suggestion in suggestions %}
+            <tr>
+                <td>{{ suggestion.title }}</td>
+                <td>{{ suggestion.category }}</td>
+                <td>{{ suggestion.status }}</td>
+                <td>{{ suggestion.created_at }}</td>
+                <td>
+                    <a class="btn btn-sm btn-secondary" href="/admin/core/aisuggestion/{{ suggestion.id }}/change/">
+                        Open
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No AI suggestions yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock %}
