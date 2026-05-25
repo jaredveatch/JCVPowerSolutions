@@ -3,7 +3,6 @@ import os
 import subprocess
 import urllib.error
 import urllib.request
-
 from pathlib import Path
 
 from django.conf import settings
@@ -17,11 +16,15 @@ ALLOWED_PREFIXES = [
     "mysite/",
     "templates/",
     "static/",
+    "requirements.txt",
+    "runtime.txt",
+    "manage.py",
 ]
 
 BLOCKED_PARTS = [
     ".env",
     "db.sqlite3",
+    "project_structure.txt",
     "__pycache__",
     ".git/",
     "media/",
@@ -29,6 +32,9 @@ BLOCKED_PARTS = [
     "venv/",
     "env/",
     "staticfiles/",
+    "secrets/",
+    ".sqlite3",
+    ".pyc",
 ]
 
 
@@ -36,16 +42,26 @@ def get_project_root():
     return Path(settings.BASE_DIR).resolve()
 
 
+def normalize_path(file_path):
+    return file_path.replace("\\", "/").strip()
+
+
 def is_safe_path(file_path):
-    normalized = file_path.replace("\\", "/").strip()
+    normalized = normalize_path(file_path)
+
+    if not normalized:
+        return False
 
     if normalized.startswith("/") or ".." in normalized:
         return False
 
-    if any(part in normalized for part in BLOCKED_PARTS):
+    if any(blocked in normalized for blocked in BLOCKED_PARTS):
         return False
 
-    return any(normalized.startswith(prefix) for prefix in ALLOWED_PREFIXES)
+    return any(
+        normalized == prefix or normalized.startswith(prefix)
+        for prefix in ALLOWED_PREFIXES
+    )
 
 
 def run_command(command, cwd):
@@ -72,17 +88,18 @@ def call_openai_for_code(command):
         raise ValueError("OPENAI_API_KEY is not set.")
 
     system_prompt = """
-You are an expert Django developer for JCV Power Solutions.
+You are the AI developer for JCV Power Solutions and the JCV Command Center Django project.
+
 Return ONLY valid JSON.
 Do not use markdown.
 Do not explain outside JSON.
 
-Return this format:
+Return this exact format:
 {
-  "summary": "Short summary",
+  "summary": "Short summary of what changed",
   "files": [
     {
-      "file_path": "core/example.py",
+      "file_path": "core/templates/dashboard.html",
       "action": "create|replace|delete",
       "notes": "Why this file changes",
       "content": "Full file content here"
@@ -90,12 +107,66 @@ Return this format:
   ]
 }
 
-Rules:
-- Only generate files inside core/, mysite/, templates/, or static/.
-- Never touch .env, database files, media files, staticfiles, .venv, venv, env, or .git.
-- Always provide full replacement file content for create/replace.
-- Keep changes safe for production Django.
-- Preserve existing JCV Power Solutions branding unless explicitly asked otherwise.
+PROJECT STRUCTURE:
+- Root files include manage.py, requirements.txt, runtime.txt.
+- Main Django project folder is mysite/.
+- Main Django app is core/.
+- Core app has separate view files:
+  - core/views.py
+  - core/customer_views.py
+  - core/job_views.py
+  - core/estimate_views.py
+  - core/invoice_views.py
+  - core/task_views.py
+  - core/views_ai.py
+- URL files:
+  - mysite/urls.py
+  - core/urls.py
+- Templates are mainly in:
+  - core/templates/
+  - core/templates/admin/
+- Static files are mainly in:
+  - core/static/
+  - static/
+- AI code lives in:
+  - core/ai/
+  - core/services/
+
+ALLOWED FILE AREAS:
+You may generate files inside:
+- core/
+- mysite/
+- templates/
+- static/
+- requirements.txt
+- runtime.txt
+- manage.py
+
+DO NOT TOUCH:
+- .env
+- db.sqlite3
+- database files
+- project_structure.txt
+- media/
+- .git/
+- .venv/
+- venv/
+- env/
+- staticfiles/
+- __pycache__/
+- secrets/
+- compiled .pyc files
+
+RULES:
+- Always provide full replacement file content for create or replace actions.
+- Keep JCV Power Solutions branding unless explicitly asked otherwise.
+- Preserve existing routes and model behavior unless the user specifically asks to change them.
+- Do not create migrations unless absolutely required.
+- Prefer safe, production-ready Django code.
+- Avoid huge rewrites unless the prompt asks for a major rebuild.
+- If improving UI, prefer templates and CSS first.
+- If adding workflow features, update the correct core view file and core/urls.py if needed.
+- Do not invent unsafe file paths like views/dashboard.py.
 """
 
     user_prompt = f"""
@@ -152,7 +223,7 @@ def generate_code_changes(command_id):
         command.code_changes.all().delete()
 
         for file_data in result.get("files", []):
-            file_path = file_data.get("file_path", "").strip()
+            file_path = normalize_path(file_data.get("file_path", ""))
             action = file_data.get("action", "replace")
 
             if action not in ["create", "replace", "delete"]:
@@ -265,6 +336,8 @@ def git_commit_and_push(command_id):
         output.append(command_output)
 
         if returncode != 0:
+            command.log = "\n".join(output)
+            command.save()
             raise ValueError("\n".join(output))
 
     git_commands = [
@@ -284,6 +357,8 @@ def git_commit_and_push(command_id):
                 command.save()
                 return "Nothing to commit."
 
+            command.log = "\n".join(output)
+            command.save()
             raise ValueError("\n".join(output))
 
     push_command = [
@@ -297,6 +372,8 @@ def git_commit_and_push(command_id):
     output.append(push_output)
 
     if returncode != 0:
+        command.log = "\n".join(output)
+        command.save()
         raise ValueError("\n".join(output))
 
     command.status = "pushed"

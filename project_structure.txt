@@ -1,0 +1,162 @@
+Folder PATH listing for volume Windows
+Volume serial number is 000000B9 7CBB:1DEA
+C:.
+¦   .gitignore
+¦   db.sqlite3
+¦   manage.py
+¦   project_structure.txt
+¦   requirements.txt
+¦   runtime.txt
+¦   
++---core
+¦   ¦   admin.py
+¦   ¦   apps.py
+¦   ¦   customer_views.py
+¦   ¦   estimate_views.py
+¦   ¦   invoice_views.py
+¦   ¦   job_views.py
+¦   ¦   models.py
+¦   ¦   mysiteurls.py
+¦   ¦   signals.py
+¦   ¦   task_views.py
+¦   ¦   tests.py
+¦   ¦   urls.py
+¦   ¦   views.py
+¦   ¦   views_ai.py
+¦   ¦   __init__.py
+¦   ¦   
+¦   +---ai
+¦   ¦   ¦   apply_engine.py
+¦   ¦   ¦   client.py
+¦   ¦   ¦   prompts.py
+¦   ¦   ¦   services.py
+¦   ¦   ¦   __init__.py
+¦   ¦   ¦   
+¦   ¦   +---__pycache__
+¦   ¦           client.cpython-313.pyc
+¦   ¦           services.cpython-313.pyc
+¦   ¦           __init__.cpython-313.pyc
+¦   ¦           
+¦   +---management
+¦   ¦   ¦   __init__.py
+¦   ¦   ¦   
+¦   ¦   +---commands
+¦   ¦   ¦   ¦   seed_panel_upgrade_templates.py
+¦   ¦   ¦   ¦   seed_pricebook.py
+¦   ¦   ¦   ¦   seed_residential_materials.py
+¦   ¦   ¦   ¦   __init__.py
+¦   ¦   ¦   ¦   
+¦   ¦   ¦   +---__pycache__
+¦   ¦   ¦           seed_panel_upgrade_templates.cpython-313.pyc
+¦   ¦   ¦           seed_pricebook.cpython-313.pyc
+¦   ¦   ¦           seed_residential_materials.cpython-313.pyc
+¦   ¦   ¦           __init__.cpython-313.pyc
+¦   ¦   ¦           
+¦   ¦   +---__pycache__
+¦   ¦           __init__.cpython-313.pyc
+¦   ¦           
+¦   +---migrations
+¦   ¦   ¦   0001_initial.py
+¦   ¦   ¦   0002_customer_alter_careerapplication_experience_job_and_more.py
+¦   ¦   ¦   0003_servicetemplate_and_more.py
+¦   ¦   ¦   0004_customer_company_name_invoice_amount_paid_and_more.py
+¦   ¦   ¦   0005_materialcatalog_alter_careerapplication_email_and_more.py
+¦   ¦   ¦   0006_jobmaterial_labor_hours_jobmaterial_labor_rate_and_more.py
+¦   ¦   ¦   0007_alter_job_status.py
+¦   ¦   ¦   0008_alter_estimate_options_alter_invoice_options_and_more.py
+¦   ¦   ¦   0009_jobmaterial_material_markup_and_more.py
+¦   ¦   ¦   0010_aisuggestion.py
+¦   ¦   ¦   0011_aisuggestion_action_payload_aisuggestion_action_type.py
+¦   ¦   ¦   0012_aicommand_aicodechange.py
+¦   ¦   ¦   __init__.py
+¦   ¦   ¦   
+¦   ¦   +---__pycache__
+¦   ¦           0001_initial.cpython-313.pyc
+¦   ¦           0002_customer_alter_careerapplication_experience_job_and_more.cpython-313.pyc
+¦   ¦           0003_servicetemplate_and_more.cpython-313.pyc
+¦   ¦           0004_customer_company_name_invoice_amount_paid_and_more.cpython-313.pyc
+¦   ¦           0005_materialcatalog_alter_careerapplication_email_and_more.cpython-313.pyc
+¦   ¦           0006_jobmaterial_labor_hours_jobmaterial_labor_rate_and_more.cpython-313.pyc
+¦   ¦           0007_alter_job_status.cpython-313.pyc
+¦   ¦           0008_alter_estimate_options_alter_invoice_options_and_more.cpython-313.pyc
+¦   ¦           0009_jobmaterial_material_markup_and_more.cpython-313.pyc
+¦   ¦           0010_aisuggestion.cpython-313.pyc
+¦   ¦           0011_aisuggestion_action_payload_aisuggestion_action_type.cpython-313.pyc
+¦   ¦           0012_aicommand_aicodechange.cpython-313.pyc
+¦   ¦           __init__.cpython-313.pyc
+¦   ¦           
+¦   +---services
+¦   ¦   ¦   ai_apply_engine.py
+¦   ¦   ¦   ai_developer_engine.py
+¦   ¦   ¦   __init__.py
+¦   ¦   ¦   
+¦   ¦   +---__pycache__
+¦   ¦           ai_apply_engine.cpython-313.pyc
+¦   ¦           ai_developer_engine.cpython-313.pyc
+¦   ¦           __init__.cpython-313.pyc
+¦   ¦           
+¦   +---static
+¦   ¦   +---core
+¦   ¦       +---images
+¦   ¦               logo.png
+¦   ¦               project1.jpg
+¦   ¦               project2.jpg
+¦   ¦               project3.jpg
+¦   ¦               project4.jpg
+¦   ¦               
+¦   +---templates
+¦   ¦   ¦   add_catalog_material_to_job.html
+¦   ¦   ¦   ai_dashboard.html
+¦   ¦   ¦   base.html
+¦   ¦   ¦   create_job.html
+¦   ¦   ¦   create_task.html
+¦   ¦   ¦   customers.html
+¦   ¦   ¦   customer_detail.html
+¦   ¦   ¦   dashboard.html
+¦   ¦   ¦   edit_estimate.html
+¦   ¦   ¦   edit_invoice.html
+¦   ¦   ¦   edit_job.html
+¦   ¦   ¦   estimates.html
+¦   ¦   ¦   estimate_detail.html
+¦   ¦   ¦   home.html
+¦   ¦   ¦   invoices.html
+¦   ¦   ¦   invoice_detail.html
+¦   ¦   ¦   jobs.html
+¦   ¦   ¦   job_detail.html
+¦   ¦   ¦   leads.html
+¦   ¦   ¦   lead_detail.html
+¦   ¦   ¦   search_results.html
+¦   ¦   ¦   tasks.html
+¦   ¦   ¦   
+¦   ¦   +---admin
+¦   ¦           base_site.html
+¦   ¦           index.html
+¦   ¦           
+¦   +---__pycache__
+¦           admin.cpython-313.pyc
+¦           apps.cpython-313.pyc
+¦           customer_views.cpython-313.pyc
+¦           estimate_views.cpython-313.pyc
+¦           invoice_views.cpython-313.pyc
+¦           job_views.cpython-313.pyc
+¦           models.cpython-313.pyc
+¦           signals.cpython-313.pyc
+¦           task_views.cpython-313.pyc
+¦           urls.cpython-313.pyc
+¦           views.cpython-313.pyc
+¦           views_ai.cpython-313.pyc
+¦           __init__.cpython-313.pyc
+¦           
++---mysite
+    ¦   asgi.py
+    ¦   settings.py
+    ¦   urls.py
+    ¦   wsgi.py
+    ¦   __init__.py
+    ¦   
+    +---__pycache__
+            settings.cpython-313.pyc
+            urls.cpython-313.pyc
+            wsgi.cpython-313.pyc
+            __init__.cpython-313.pyc
+            
