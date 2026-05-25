@@ -1,48 +1,34 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
+/* Dashboard CSS */
+.dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
 }
-header {
-    background-color: #004B87;
-    color: white;
+.card {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
     padding: 20px;
     text-align: center;
+    transition: transform 0.2s;
 }
-nav ul {
-    list-style-type: none;
-    padding: 0;
+.card-link {
+    text-decoration: none;
+    color: #333;
 }
-nav ul li {
-    display: inline;
-    margin: 0 15px;
+.card-link:hover {
+    transform: scale(1.05);
 }
-main {
-    padding: 20px;
-}
-section {
-    margin-bottom: 20px;
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-.summary-card, .priorities-card, .jobs-card, .follow-up-card, .invoice-alerts-card, .actions-card, .ai-tools-card, .leads-card {
-    background-color: #f9f9f9;
+.mobile-navigation {
+    display: flex;
+    justify-content: space-around;
     padding: 10px;
-    margin: 10px 0;
-    border-radius: 5px;
+    background-color: #e9ecef;
 }
-footer {
-    background-color: #004B87;
-    color: white;
-    padding: 10px;
-    text-align: center;
+.nav-link {
+    text-decoration: none;
+    color: #007bff;
 }
-.mobile-navigation ul {
-    list-style-type: none;
-    padding: 0;
-}
-.mobile-navigation ul li {
-    display: inline;
-    margin: 0 10px;
+.nav-link:hover {
+    text-decoration: underline;
 }

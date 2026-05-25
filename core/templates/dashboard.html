@@ -1,83 +1,70 @@
-{% load static %}
+<!-- Dashboard Template -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JCV Command Center</title>
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <title>JCV Command Center - Dashboard</title>
 </head>
 <body>
     <header>
-        <h1>JCV Command Center</h1>
-        <nav>
-            <ul>
-                <li>Contractor CRM</li>
-                <li>Leads</li>
-                <li>Jobs</li>
-                <li>Estimates</li>
-                <li>Customers</li>
-            </ul>
-        </nav>
+        <h1>Welcome to JCV Command Center</h1>
     </header>
-
     <main>
-        <section class="live-operations">
-            <h2>LIVE OPERATIONS</h2>
-            <div class="operations-summary">
-                <div class="summary-card">New Leads</div>
-                <div class="summary-card">New Customers</div>
-                <div class="summary-card">New Jobs</div>
-                <div class="summary-card">New Estimates</div>
-                <div class="summary-card">New Invoices</div>
+        <section class="dashboard">
+            <div class="card">
+                <a href="{% url 'leads' %}" class="card-link">
+                    <h2>Leads</h2>
+                    <p>Manage your leads effectively.</p>
+                </a>
+            </div>
+            <div class="card">
+                <a href="{% url 'customers' %}" class="card-link">
+                    <h2>Customers</h2>
+                    <p>View and manage customers.</p>
+                </a>
+            </div>
+            <div class="card">
+                <a href="{% url 'jobs' %}" class="card-link">
+                    <h2>Jobs</h2>
+                    <p>Track your jobs.</p>
+                </a>
+            </div>
+            <div class="card">
+                <a href="{% url 'estimates' %}" class="card-link">
+                    <h2>Estimates</h2>
+                    <p>Create and manage estimates.</p>
+                </a>
+            </div>
+            <div class="card">
+                <a href="{% url 'invoices' %}" class="card-link">
+                    <h2>Invoices</h2>
+                    <p>Manage your invoices.</p>
+                </a>
+            </div>
+            <div class="card">
+                <a href="{% url 'tasks' %}" class="card-link">
+                    <h2>Tasks</h2>
+                    <p>Keep track of your tasks.</p>
+                </a>
+            </div>
+            <div class="card">
+                <a href="{% url 'ai_tools' %}" class="card-link">
+                    <h2>AI Tools</h2>
+                    <p>Utilize AI tools for better insights.</p>
+                </a>
             </div>
         </section>
-
-        <section class="priorities">
-            <h2>Today’s Priorities</h2>
-            <div class="priorities-card">Prioritized Tasks</div>
-        </section>
-
-        <section class="active-jobs">
-            <h2>Active Jobs Snapshot</h2>
-            <div class="jobs-card">Overview of Active Jobs</div>
-        </section>
-
-        <section class="estimate-follow-up">
-            <h2>Estimate Follow-Up</h2>
-            <div class="follow-up-card">Pending Follow-Ups</div>
-        </section>
-
-        <section class="unpaid-invoices">
-            <h2>Unpaid Invoice Alerts</h2>
-            <div class="invoice-alerts-card">List of Unpaid Invoices</div>
-        </section>
-
-        <section class="quick-actions">
-            <h2>Quick Actions</h2>
-            <div class="actions-card">Quick Action Buttons</div>
-        </section>
-
-        <section class="ai-tools">
-            <h2>AI Tools Shortcut</h2>
-            <div class="ai-tools-card">Access AI Tools</div>
-        </section>
-
-        <section class="recent-leads">
-            <h2>Recent Leads</h2>
-            <div class="leads-card">List of Recent Leads</div>
-        </section>
-    </main>
-
-    <footer>
         <nav class="mobile-navigation">
-            <ul>
-                <li>Lead Inbox</li>
-                <li>Customers</li>
-                <li>Jobs</li>
-                <li>Estimates</li>
-            </ul>
+            <a href="{% url 'leads' %}" class="nav-link">Leads</a>
+            <a href="{% url 'customers' %}" class="nav-link">Customers</a>
+            <a href="{% url 'jobs' %}" class="nav-link">Jobs</a>
+            <a href="{% url 'estimates' %}" class="nav-link">Estimates</a>
+            <a href="{% url 'invoices' %}" class="nav-link">Invoices</a>
+            <a href="{% url 'tasks' %}" class="nav-link">Tasks</a>
+            <a href="{% url 'ai_tools' %}" class="nav-link">AI Tools</a>
         </nav>
-    </footer>
+    </main>
 </body>
 </html>
