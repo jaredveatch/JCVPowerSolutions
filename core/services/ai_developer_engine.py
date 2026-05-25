@@ -25,6 +25,10 @@ BLOCKED_PARTS = [
     "__pycache__",
     ".git/",
     "media/",
+    ".venv/",
+    "venv/",
+    "env/",
+    "staticfiles/",
 ]
 
 
@@ -44,6 +48,23 @@ def is_safe_path(file_path):
     return any(normalized.startswith(prefix) for prefix in ALLOWED_PREFIXES)
 
 
+def run_command(command, cwd):
+    result = subprocess.run(
+        command,
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+    )
+
+    output = [
+        f"$ {' '.join(command)}",
+        result.stdout,
+        result.stderr,
+    ]
+
+    return result.returncode, "\n".join(output)
+
+
 def call_openai_for_code(command):
     api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -54,6 +75,7 @@ def call_openai_for_code(command):
 You are an expert Django developer for JCV Power Solutions.
 Return ONLY valid JSON.
 Do not use markdown.
+Do not explain outside JSON.
 
 Return this format:
 {
@@ -61,7 +83,7 @@ Return this format:
   "files": [
     {
       "file_path": "core/example.py",
-      "action": "create",
+      "action": "create|replace|delete",
       "notes": "Why this file changes",
       "content": "Full file content here"
     }
@@ -70,9 +92,10 @@ Return this format:
 
 Rules:
 - Only generate files inside core/, mysite/, templates/, or static/.
-- Never touch .env, database files, media files, or .git.
+- Never touch .env, database files, media files, staticfiles, .venv, venv, env, or .git.
 - Always provide full replacement file content for create/replace.
 - Keep changes safe for production Django.
+- Preserve existing JCV Power Solutions branding unless explicitly asked otherwise.
 """
 
     user_prompt = f"""
@@ -82,7 +105,7 @@ Build this requested code change for the JCV Command Center Django project:
 """
 
     payload = {
-        "model": os.environ.get("OPENAI_MODEL", "gpt-4.1-mini"),
+        "model": os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -107,7 +130,11 @@ Build this requested code change for the JCV Command Center Django project:
         raise ValueError(error.read().decode("utf-8"))
 
     content = data["choices"][0]["message"]["content"]
-    return json.loads(content)
+
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        raise ValueError(f"OpenAI did not return valid JSON. Response was: {content}")
 
 
 def generate_code_changes(command_id):
@@ -126,6 +153,10 @@ def generate_code_changes(command_id):
 
         for file_data in result.get("files", []):
             file_path = file_data.get("file_path", "").strip()
+            action = file_data.get("action", "replace")
+
+            if action not in ["create", "replace", "delete"]:
+                raise ValueError(f"Unsupported action: {action}")
 
             if not is_safe_path(file_path):
                 raise ValueError(f"Unsafe file path blocked: {file_path}")
@@ -133,7 +164,7 @@ def generate_code_changes(command_id):
             AICodeChange.objects.create(
                 command=command,
                 file_path=file_path,
-                action=file_data.get("action", "replace"),
+                action=action,
                 proposed_content=file_data.get("content", ""),
                 notes=file_data.get("notes", ""),
                 status="pending",
@@ -212,30 +243,61 @@ def git_commit_and_push(command_id):
     if os.environ.get("AI_DEVELOPER_ALLOW_GIT_PUSH") != "true":
         raise ValueError("AI_DEVELOPER_ALLOW_GIT_PUSH is not set to true.")
 
-    commit_message = f"AI Developer Mode: {command.title}"
+    remote_url = os.environ.get("GIT_REMOTE_URL")
 
-    commands = [
-        ["git", "add", "."],
-        ["git", "commit", "-m", commit_message],
-        ["git", "push"],
-    ]
+    if not remote_url:
+        raise ValueError("GIT_REMOTE_URL is not set.")
+
+    git_author_name = os.environ.get("GIT_AUTHOR_NAME", "Jared Veatch")
+    git_author_email = os.environ.get("GIT_AUTHOR_EMAIL", "jared.veatch1@gmail.com")
+
+    commit_message = f"AI Developer Mode: {command.title}"
 
     output = []
 
-    for cmd in commands:
-        result = subprocess.run(
-            cmd,
-            cwd=root,
-            capture_output=True,
-            text=True,
-        )
+    setup_commands = [
+        ["git", "config", "user.name", git_author_name],
+        ["git", "config", "user.email", git_author_email],
+    ]
 
-        output.append(f"$ {' '.join(cmd)}")
-        output.append(result.stdout)
-        output.append(result.stderr)
+    for cmd in setup_commands:
+        returncode, command_output = run_command(cmd, root)
+        output.append(command_output)
 
-        if result.returncode != 0 and "nothing to commit" not in result.stdout.lower():
+        if returncode != 0:
             raise ValueError("\n".join(output))
+
+    git_commands = [
+        ["git", "add", "."],
+        ["git", "commit", "-m", commit_message],
+    ]
+
+    for cmd in git_commands:
+        returncode, command_output = run_command(cmd, root)
+        output.append(command_output)
+
+        if returncode != 0:
+            lower_output = command_output.lower()
+
+            if "nothing to commit" in lower_output or "no changes added to commit" in lower_output:
+                command.log = "\n".join(output)
+                command.save()
+                return "Nothing to commit."
+
+            raise ValueError("\n".join(output))
+
+    push_command = [
+        "git",
+        "push",
+        remote_url,
+        "HEAD:main",
+    ]
+
+    returncode, push_output = run_command(push_command, root)
+    output.append(push_output)
+
+    if returncode != 0:
+        raise ValueError("\n".join(output))
 
     command.status = "pushed"
     command.pushed_at = timezone.now()
