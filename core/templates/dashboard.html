@@ -2,82 +2,695 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JCV Command Center</title>
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <style>
+
+        :root {
+            --bg: #f4f5f7;
+            --card: #ffffff;
+            --black: #0b0b0c;
+            --gold: #ffc400;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --green: #16a34a;
+            --blue: #2563eb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+
+            font-family:
+                Inter,
+                SF Pro Display,
+                -apple-system,
+                BlinkMacSystemFont,
+                sans-serif;
+
+            color: var(--text);
+        }
+
+        .topbar {
+
+            background: white;
+
+            border-bottom: 1px solid var(--border);
+
+            padding: 18px;
+
+            position: sticky;
+            top: 0;
+            z-index: 100;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: -.05em;
+        }
+
+        .brand p {
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .top-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .top-btn {
+
+            background: var(--black);
+            color: white;
+
+            text-decoration: none;
+
+            padding: 12px 16px;
+
+            border-radius: 16px;
+
+            font-weight: 900;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: auto;
+            padding: 18px;
+            padding-bottom: 100px;
+        }
+
+        .hero {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #0b0b0c 0%,
+                    #171717 100%
+                );
+
+            color: white;
+
+            border-radius: 32px;
+
+            padding: 28px;
+
+            margin-bottom: 20px;
+
+            box-shadow:
+                0 20px 50px rgba(0,0,0,.18);
+        }
+
+        .hero-badge {
+
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+
+            background: rgba(255,196,0,.14);
+
+            color: var(--gold);
+
+            padding: 8px 14px;
+
+            border-radius: 999px;
+
+            font-size: 12px;
+            font-weight: 950;
+
+            margin-bottom: 18px;
+        }
+
+        .hero h2 {
+            margin: 0;
+            font-size: 40px;
+            letter-spacing: -.06em;
+            line-height: 1;
+        }
+
+        .hero p {
+            margin: 12px 0 0;
+            color: #d1d5db;
+            max-width: 700px;
+            line-height: 1.6;
+        }
+
+        .stats {
+
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+
+            gap: 14px;
+
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+
+            background: white;
+
+            border: 1px solid var(--border);
+
+            border-radius: 26px;
+
+            padding: 22px;
+
+            box-shadow:
+                0 8px 24px rgba(0,0,0,.05);
+        }
+
+        .stat-label {
+
+            color: var(--muted);
+
+            font-size: 12px;
+            font-weight: 900;
+
+            text-transform: uppercase;
+
+            margin-bottom: 10px;
+        }
+
+        .stat-number {
+
+            font-size: 36px;
+            font-weight: 950;
+
+            letter-spacing: -.04em;
+        }
+
+        .quick-actions {
+
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+
+            gap: 14px;
+
+            margin-bottom: 20px;
+        }
+
+        .quick-card {
+
+            text-decoration: none;
+
+            color: var(--text);
+
+            background: white;
+
+            border: 1px solid var(--border);
+
+            border-radius: 28px;
+
+            padding: 22px;
+
+            transition: .2s;
+
+            box-shadow:
+                0 8px 24px rgba(0,0,0,.05);
+        }
+
+        .quick-card:hover {
+
+            transform: translateY(-3px);
+
+            box-shadow:
+                0 14px 34px rgba(0,0,0,.08);
+        }
+
+        .quick-icon {
+            font-size: 34px;
+            margin-bottom: 14px;
+        }
+
+        .quick-card h3 {
+            margin: 0 0 8px;
+            font-size: 20px;
+            letter-spacing: -.03em;
+        }
+
+        .quick-card p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .section {
+
+            background: white;
+
+            border: 1px solid var(--border);
+
+            border-radius: 30px;
+
+            padding: 24px;
+
+            margin-bottom: 20px;
+
+            box-shadow:
+                0 8px 24px rgba(0,0,0,.05);
+        }
+
+        .section-header {
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            margin-bottom: 18px;
+        }
+
+        .section-header h2 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: -.04em;
+        }
+
+        .section-link {
+
+            text-decoration: none;
+
+            color: var(--black);
+
+            font-weight: 900;
+        }
+
+        .list-card {
+
+            background: #fafafa;
+
+            border: 1px solid var(--border);
+
+            border-radius: 22px;
+
+            padding: 18px;
+
+            margin-bottom: 12px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            gap: 14px;
+        }
+
+        .list-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .list-left h3 {
+            margin: 0 0 5px;
+            font-size: 18px;
+        }
+
+        .list-left p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .open-btn {
+
+            background: var(--gold);
+            color: black;
+
+            text-decoration: none;
+
+            padding: 12px 16px;
+
+            border-radius: 16px;
+
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .bottom-nav {
+
+            position: fixed;
+
+            bottom: 0;
+            left: 0;
+            right: 0;
+
+            background: white;
+
+            border-top: 1px solid var(--border);
+
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+
+            padding: 8px;
+
+            z-index: 999;
+        }
+
+        .bottom-nav a {
+
+            text-align: center;
+
+            text-decoration: none;
+
+            color: var(--muted);
+
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .bottom-nav strong {
+
+            display: block;
+
+            color: var(--black);
+
+            font-size: 20px;
+
+            margin-bottom: 3px;
+        }
+
+        @media (max-width: 1100px) {
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 700px) {
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 14px;
+            }
+
+            .top-buttons {
+                width: 100%;
+            }
+
+            .top-btn {
+                flex: 1;
+                text-align: center;
+            }
+
+            .hero h2 {
+                font-size: 30px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .list-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .open-btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+    </style>
 </head>
+
 <body>
-    <header>
-        <h1>JCV Command Center</h1>
-        <nav>
-            <ul>
-                <li>Contractor CRM</li>
-                <li>Leads</li>
-                <li>Jobs</li>
-                <li>Estimates</li>
-                <li>Customers</li>
-            </ul>
-        </nav>
-    </header>
 
-    <main>
-        <section class="live-operations">
-            <h2>LIVE OPERATIONS</h2>
-            <div class="operations-summary">
-                <div class="summary-card">New Leads</div>
-                <div class="summary-card">New Customers</div>
-                <div class="summary-card">New Jobs</div>
-                <div class="summary-card">New Estimates</div>
-                <div class="summary-card">New Invoices</div>
+<div class="topbar">
+
+    <div class="brand">
+
+        <h1>
+            JCV Command Center
+        </h1>
+
+        <p>
+            Contractor CRM • Leads • Jobs • Estimates • Customers
+        </p>
+
+    </div>
+
+    <div class="top-buttons">
+
+        <a class="top-btn"
+           href="/leads/">
+            Leads
+        </a>
+
+        <a class="top-btn"
+           href="/customers/">
+            Customers
+        </a>
+
+    </div>
+
+</div>
+
+<div class="container">
+
+    <section class="hero">
+
+        <div class="hero-badge">
+            ⚡ LIVE OPERATIONS
+        </div>
+
+        <h2>
+            Run JCV Like A Real Contractor Platform
+        </h2>
+
+        <p>
+            Manage incoming leads, customer accounts,
+            walkthroughs, estimates, invoices,
+            and jobs from one sleek mobile-first system.
+        </p>
+
+    </section>
+
+    <section class="stats">
+
+        <div class="stat-card">
+            <div class="stat-label">
+                New Leads
             </div>
-        </section>
 
-        <section class="priorities">
-            <h2>Today’s Priorities</h2>
-            <div class="priorities-card">Prioritized Tasks</div>
-        </section>
+            <div class="stat-number">
+                {{ quotes_count }}
+            </div>
+        </div>
 
-        <section class="active-jobs">
-            <h2>Active Jobs Snapshot</h2>
-            <div class="jobs-card">Overview of Active Jobs</div>
-        </section>
+        <div class="stat-card">
+            <div class="stat-label">
+                Customers
+            </div>
 
-        <section class="estimate-follow-up">
-            <h2>Estimate Follow-Up</h2>
-            <div class="follow-up-card">Pending Follow-Ups</div>
-        </section>
+            <div class="stat-number">
+                {{ customers_count }}
+            </div>
+        </div>
 
-        <section class="unpaid-invoices">
-            <h2>Unpaid Invoice Alerts</h2>
-            <div class="invoice-alerts-card">List of Unpaid Invoices</div>
-        </section>
+        <div class="stat-card">
+            <div class="stat-label">
+                Jobs
+            </div>
 
-        <section class="quick-actions">
-            <h2>Quick Actions</h2>
-            <div class="actions-card">Quick Action Buttons</div>
-        </section>
+            <div class="stat-number">
+                {{ jobs_count }}
+            </div>
+        </div>
 
-        <section class="ai-tools">
-            <h2>AI Tools Shortcut</h2>
-            <div class="ai-tools-card">Access AI Tools</div>
-        </section>
+        <div class="stat-card">
+            <div class="stat-label">
+                Estimates
+            </div>
 
-        <section class="recent-leads">
-            <h2>Recent Leads</h2>
-            <div class="leads-card">List of Recent Leads</div>
-        </section>
-    </main>
+            <div class="stat-number">
+                {{ estimates_count }}
+            </div>
+        </div>
 
-    <footer>
-        <nav class="mobile-navigation">
-            <ul>
-                <li>Lead Inbox</li>
-                <li>Customers</li>
-                <li>Jobs</li>
-                <li>Estimates</li>
-            </ul>
-        </nav>
-    </footer>
+        <div class="stat-card">
+            <div class="stat-label">
+                Invoices
+            </div>
+
+            <div class="stat-number">
+                {{ invoices_count }}
+            </div>
+        </div>
+
+    </section>
+
+    <section class="quick-actions">
+
+        <a class="quick-card"
+           href="/leads/">
+
+            <div class="quick-icon">
+                📥
+            </div>
+
+            <h3>
+                Lead Inbox
+            </h3>
+
+            <p>
+                Review website quote requests
+                and convert them into customers.
+            </p>
+
+        </a>
+
+        <a class="quick-card"
+           href="/customers/">
+
+            <div class="quick-icon">
+                👤
+            </div>
+
+            <h3>
+                Customers
+            </h3>
+
+            <p>
+                View all customer accounts,
+                contact information, and records.
+            </p>
+
+        </a>
+
+        <a class="quick-card"
+           href="#">
+
+            <div class="quick-icon">
+                🛠
+            </div>
+
+            <h3>
+                Jobs
+            </h3>
+
+            <p>
+                Track walkthroughs,
+                active jobs, and field notes.
+            </p>
+
+        </a>
+
+        <a class="quick-card"
+           href="#">
+
+            <div class="quick-icon">
+                📋
+            </div>
+
+            <h3>
+                Estimates
+            </h3>
+
+            <p>
+                Build professional estimates
+                with labor and materials.
+            </p>
+
+        </a>
+
+    </section>
+
+    <section class="section">
+
+        <div class="section-header">
+
+            <h2>
+                Recent Leads
+            </h2>
+
+            <a class="section-link"
+               href="/leads/">
+                View All →
+            </a>
+
+        </div>
+
+        {% for lead in new_quotes %}
+
+            <div class="list-card">
+
+                <div class="list-left">
+
+                    <h3>
+                        {{ lead.name }}
+                    </h3>
+
+                    <p>
+                        {{ lead.service }}
+                    </p>
+
+                </div>
+
+                <a class="open-btn"
+                   href="/leads/{{ lead.id }}/">
+                    Open Lead
+                </a>
+
+            </div>
+
+        {% empty %}
+
+            <p>
+                No leads yet.
+            </p>
+
+        {% endfor %}
+
+    </section>
+
+</div>
+
+<nav class="bottom-nav">
+
+    <a href="/dashboard/">
+        <strong>⌂</strong>
+        Home
+    </a>
+
+    <a href="/leads/">
+        <strong>📥</strong>
+        Leads
+    </a>
+
+    <a href="/customers/">
+        <strong>👤</strong>
+        Customers
+    </a>
+
+    <a href="#">
+        <strong>🛠</strong>
+        Jobs
+    </a>
+
+</nav>
+
 </body>
 </html>
