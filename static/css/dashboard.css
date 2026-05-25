@@ -1,0 +1,51 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.dashboard {
+    padding: 20px;
+}
+
+header {
+    background-color: #003366;
+    color: white;
+    padding: 10px 20px;
+}
+
+h1, h2 {
+    margin: 10px 0;
+}
+
+section {
+    margin-bottom: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 15px;
+}
+
+.job-card, .estimate-card, .invoice-alert, .ai-card {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.mobile-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #003366;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+}
