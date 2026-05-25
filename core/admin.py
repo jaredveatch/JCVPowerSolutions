@@ -1,6 +1,12 @@
 from django.contrib import admin, messages
 
 from core.services.ai_apply_engine import apply_ai_suggestion
+from core.services.ai_developer_engine import (
+    generate_code_changes,
+    apply_command_code_changes,
+    apply_code_change,
+    git_commit_and_push,
+)
 
 from .models import (
     QuoteRequest,
@@ -19,6 +25,8 @@ from .models import (
     JobNote,
     Task,
     AISuggestion,
+    AICommand,
+    AICodeChange,
 )
 
 
@@ -90,6 +98,29 @@ class TaskInline(admin.TabularInline):
 class PaymentInline(admin.TabularInline):
     model = Payment
     extra = 0
+
+
+class AICodeChangeInline(admin.StackedInline):
+    model = AICodeChange
+    extra = 0
+    readonly_fields = (
+        "original_content",
+        "error",
+        "created_at",
+        "applied_at",
+    )
+
+    fields = (
+        "file_path",
+        "action",
+        "status",
+        "notes",
+        "proposed_content",
+        "original_content",
+        "error",
+        "created_at",
+        "applied_at",
+    )
 
 
 # =========================================================
@@ -904,6 +935,233 @@ class AISuggestionAdmin(admin.ModelAdmin):
         )
 
     apply_selected_ai_suggestions.short_description = "Apply selected AI suggestions"
+
+
+# =========================================================
+# AI DEVELOPER MODE
+# =========================================================
+
+@admin.register(AICommand)
+class AICommandAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "status",
+        "created_at",
+        "generated_at",
+        "applied_at",
+        "pushed_at",
+    )
+
+    list_filter = (
+        "status",
+        "created_at",
+        "generated_at",
+        "applied_at",
+        "pushed_at",
+    )
+
+    search_fields = (
+        "title",
+        "prompt",
+        "summary",
+        "log",
+    )
+
+    readonly_fields = (
+        "summary",
+        "log",
+        "created_at",
+        "generated_at",
+        "applied_at",
+        "pushed_at",
+    )
+
+    fieldsets = (
+        ("Command", {
+            "fields": (
+                "title",
+                "prompt",
+                "status",
+            )
+        }),
+        ("AI Output", {
+            "fields": (
+                "summary",
+                "log",
+            )
+        }),
+        ("Dates", {
+            "fields": (
+                "created_at",
+                "generated_at",
+                "applied_at",
+                "pushed_at",
+            )
+        }),
+    )
+
+    inlines = [AICodeChangeInline]
+
+    actions = (
+        "generate_selected_code_changes",
+        "apply_selected_commands",
+        "push_selected_commands",
+    )
+
+    def generate_selected_code_changes(self, request, queryset):
+        success_count = 0
+
+        for command in queryset:
+            try:
+                generate_code_changes(command.id)
+                success_count += 1
+            except Exception as error:
+                self.message_user(
+                    request,
+                    f"Could not generate code for '{command.title}': {error}",
+                    messages.ERROR,
+                )
+
+        self.message_user(
+            request,
+            f"Generated code for {success_count} command(s).",
+            messages.SUCCESS,
+        )
+
+    generate_selected_code_changes.short_description = "Generate code changes"
+
+    def apply_selected_commands(self, request, queryset):
+        success_count = 0
+
+        for command in queryset:
+            try:
+                apply_command_code_changes(command.id)
+                success_count += 1
+            except Exception as error:
+                self.message_user(
+                    request,
+                    f"Could not apply command '{command.title}': {error}",
+                    messages.ERROR,
+                )
+
+        self.message_user(
+            request,
+            f"Applied {success_count} command(s).",
+            messages.SUCCESS,
+        )
+
+    apply_selected_commands.short_description = "Apply generated code changes"
+
+    def push_selected_commands(self, request, queryset):
+        success_count = 0
+
+        for command in queryset:
+            try:
+                git_commit_and_push(command.id)
+                success_count += 1
+            except Exception as error:
+                self.message_user(
+                    request,
+                    f"Could not push command '{command.title}': {error}",
+                    messages.ERROR,
+                )
+
+        self.message_user(
+            request,
+            f"Pushed {success_count} command(s) to Git.",
+            messages.SUCCESS,
+        )
+
+    push_selected_commands.short_description = "Commit and push selected commands"
+
+
+@admin.register(AICodeChange)
+class AICodeChangeAdmin(admin.ModelAdmin):
+    list_display = (
+        "command",
+        "file_path",
+        "action",
+        "status",
+        "created_at",
+        "applied_at",
+    )
+
+    list_filter = (
+        "action",
+        "status",
+        "created_at",
+        "applied_at",
+    )
+
+    search_fields = (
+        "command__title",
+        "file_path",
+        "proposed_content",
+        "notes",
+        "error",
+    )
+
+    readonly_fields = (
+        "original_content",
+        "error",
+        "created_at",
+        "applied_at",
+    )
+
+    fieldsets = (
+        ("Code Change", {
+            "fields": (
+                "command",
+                "file_path",
+                "action",
+                "status",
+                "notes",
+            )
+        }),
+        ("Proposed File Content", {
+            "fields": (
+                "proposed_content",
+            )
+        }),
+        ("Original File Backup", {
+            "fields": (
+                "original_content",
+            )
+        }),
+        ("Errors / Dates", {
+            "fields": (
+                "error",
+                "created_at",
+                "applied_at",
+            )
+        }),
+    )
+
+    actions = (
+        "apply_selected_code_changes",
+    )
+
+    def apply_selected_code_changes(self, request, queryset):
+        success_count = 0
+
+        for change in queryset:
+            try:
+                apply_code_change(change.id)
+                success_count += 1
+            except Exception as error:
+                self.message_user(
+                    request,
+                    f"Could not apply '{change.file_path}': {error}",
+                    messages.ERROR,
+                )
+
+        self.message_user(
+            request,
+            f"Applied {success_count} code change(s).",
+            messages.SUCCESS,
+        )
+
+    apply_selected_code_changes.short_description = "Apply selected code changes"
 
 
 # =========================================================
