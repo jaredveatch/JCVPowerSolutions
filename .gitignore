@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Static build files
+staticfiles/
+
+# Media
+media/
+
+# Environment variables
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Render
+.render/
+
+# Python build
+build/
+dist/
+*.egg-info/
