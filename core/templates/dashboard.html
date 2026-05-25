@@ -1,17 +1,9 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< HEAD
-    <title>JCV Command Center</title>
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-</head>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-=======
->>>>>>> 49630a894d88a572a3ffabcb4f8b2f6508731dbd
     <title>JCV Command Center</title>
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 </head>
@@ -28,6 +20,7 @@
             </ul>
         </nav>
     </header>
+
     <main>
         <section class="live-operations">
             <h2>LIVE OPERATIONS</h2>
@@ -39,35 +32,43 @@
                 <div class="summary-card">New Invoices</div>
             </div>
         </section>
+
         <section class="priorities">
             <h2>Today’s Priorities</h2>
             <div class="priorities-card">Prioritized Tasks</div>
         </section>
+
         <section class="active-jobs">
             <h2>Active Jobs Snapshot</h2>
             <div class="jobs-card">Overview of Active Jobs</div>
         </section>
+
         <section class="estimate-follow-up">
             <h2>Estimate Follow-Up</h2>
             <div class="follow-up-card">Pending Follow-Ups</div>
         </section>
+
         <section class="unpaid-invoices">
             <h2>Unpaid Invoice Alerts</h2>
             <div class="invoice-alerts-card">List of Unpaid Invoices</div>
         </section>
+
         <section class="quick-actions">
             <h2>Quick Actions</h2>
             <div class="actions-card">Quick Action Buttons</div>
         </section>
+
         <section class="ai-tools">
             <h2>AI Tools Shortcut</h2>
             <div class="ai-tools-card">Access AI Tools</div>
         </section>
+
         <section class="recent-leads">
             <h2>Recent Leads</h2>
             <div class="leads-card">List of Recent Leads</div>
         </section>
     </main>
+
     <footer>
         <nav class="mobile-navigation">
             <ul>
