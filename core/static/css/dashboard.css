@@ -1,0 +1,48 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+header {
+    background-color: #004B87;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+nav ul li {
+    display: inline;
+    margin: 0 15px;
+}
+main {
+    padding: 20px;
+}
+section {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+.summary-card, .priorities-card, .jobs-card, .follow-up-card, .invoice-alerts-card, .actions-card, .ai-tools-card, .leads-card {
+    background-color: #f9f9f9;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+}
+footer {
+    background-color: #004B87;
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+.mobile-navigation ul {
+    list-style-type: none;
+    padding: 0;
+}
+.mobile-navigation ul li {
+    display: inline;
+    margin: 0 10px;
+}
