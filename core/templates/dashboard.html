@@ -1,77 +1,53 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JCV Command Center Dashboard</title>
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-    <title>JCV Command Center - Dashboard</title>
 </head>
 <body>
     <header>
-        <nav class="top-nav">
-            <ul>
-                <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li><a href="{% url 'leads' %}">Leads</a></li>
-                <li><a href="{% url 'customers' %}">Customers</a></li>
-                <li><a href="{% url 'jobs' %}">Jobs</a></li>
-                <li><a href="{% url 'estimates' %}">Estimates</a></li>
-                <li><a href="{% url 'invoices' %}">Invoices</a></li>
-                <li><a href="{% url 'tasks' %}">Tasks</a></li>
-                <li><a href="{% url 'ai_dashboard' %}">AI Tools</a></li>
-            </ul>
-        </nav>
+        <h1>Welcome to JCV Command Center</h1>
     </header>
+    <nav>
+        <ul>
+            <li><a href="{% url 'core:customer_list' %}">Customers</a></li>
+            <li><a href="{% url 'core:job_list' %}">Jobs</a></li>
+            <li><a href="{% url 'core:estimate_list' %}">Estimates</a></li>
+            <li><a href="{% url 'core:invoice_list' %}">Invoices</a></li>
+            <li><a href="{% url 'core:task_list' %}">Tasks</a></li>
+        </ul>
+    </nav>
     <main>
-        <section class="dashboard-section">
-            <h2>LIVE OPERATIONS</h2>
-            <div class="card"><a href="{% url 'jobs' %}">View Live Operations</a></div>
+        <section id="dashboard-overview">
+            <h2>Dashboard Overview</h2>
+            <div id="stats">
+                <div class="stat">
+                    <h3>Total Customers</h3>
+                    <p id="total-customers">0</p>
+                </div>
+                <div class="stat">
+                    <h3>Total Jobs</h3>
+                    <p id="total-jobs">0</p>
+                </div>
+                <div class="stat">
+                    <h3>Total Estimates</h3>
+                    <p id="total-estimates">0</p>
+                </div>
+                <div class="stat">
+                    <h3>Total Invoices</h3>
+                    <p id="total-invoices">0</p>
+                </div>
+            </div>
         </section>
-        <section class="dashboard-section">
-            <h2>Today’s Priorities</h2>
-            <div class="card"><a href="{% url 'tasks' %}">View Today's Tasks</a></div>
-        </section>
-        <section class="dashboard-section">
-            <h2>Active Jobs Snapshot</h2>
-            <div class="card"><a href="{% url 'jobs' %}">View Active Jobs</a></div>
-        </section>
-        <section class="dashboard-section">
-            <h2>Estimate Follow-Up</h2>
-            <div class="card"><a href="{% url 'estimates' %}">Follow Up on Estimates</a></div>
-        </section>
-        <section class="dashboard-section">
-            <h2>Unpaid Invoice Alerts</h2>
-            <div class="card"><a href="{% url 'invoices' %}">View Unpaid Invoices</a></div>
-        </section>
-        <section class="dashboard-section">
-            <h2>Quick Actions</h2>
-            <div class="card"><a href="{% url 'customers' %}">Add Customer</a></div>
-            <div class="card"><a href="{% url 'jobs' %}">Create Job</a></div>
-            <div class="card"><a href="{% url 'estimates' %}">Create Estimate</a></div>
-            <div class="card"><a href="{% url 'invoices' %}">Send Invoice</a></div>
-        </section>
-        <section class="dashboard-section">
-            <h2>AI Tools Shortcut</h2>
-            <div class="card"><a href="{% url 'ai_dashboard' %}">Access AI Tools</a></div>
-        </section>
-        <section class="dashboard-section">
-            <h2>Recent Leads</h2>
-            <div class="card"><a href="{% url 'leads' %}">View Recent Leads</a></div>
+        <section id="recent-activity">
+            <h2>Recent Activity</h2>
+            <ul id="activity-list">
+                <!-- Activity items will be dynamically inserted here -->
+            </ul>
         </section>
     </main>
-    <footer>
-        <nav class="bottom-nav">
-            <ul>
-                <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li><a href="{% url 'leads' %}">Leads</a></li>
-                <li><a href="{% url 'customers' %}">Customers</a></li>
-                <li><a href="{% url 'jobs' %}">Jobs</a></li>
-                <li><a href="{% url 'estimates' %}">Estimates</a></li>
-                <li><a href="{% url 'invoices' %}">Invoices</a></li>
-                <li><a href="{% url 'tasks' %}">Tasks</a></li>
-                <li><a href="{% url 'ai_dashboard' %}">AI Tools</a></li>
-            </ul>
-        </nav>
-    </footer>
+    <script src="{% static 'js/dashboard.js' %}"></script>
 </body>
 </html>

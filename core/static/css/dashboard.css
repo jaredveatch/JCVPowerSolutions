@@ -1,57 +1,35 @@
 body {
-    background-color: #1a1a1a;
-    color: #ffffff;
     font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
 header {
-    background-color: #333;
-    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    padding: 1rem;
+    text-align: center;
 }
 
-.top-nav ul, .bottom-nav ul {
+nav ul {
     list-style-type: none;
     padding: 0;
-    display: flex;
-    justify-content: space-around;
 }
 
-.top-nav a, .bottom-nav a {
-    color: #ffffff;
-    text-decoration: none;
-    padding: 10px;
+nav ul li {
+    display: inline;
+    margin-right: 15px;
 }
 
-.dashboard-section {
-    margin: 20px;
+main {
+    padding: 20px;
+}
+
+.stat {
+    display: inline-block;
+    width: 200px;
+    margin: 10px;
     padding: 15px;
-    background-color: #444;
-    border-radius: 8px;
-}
-
-.card {
-    background-color: #555;
-    margin: 10px 0;
-    padding: 15px;
+    border: 1px solid #ccc;
     border-radius: 5px;
-    transition: background-color 0.3s;
-}
-
-.card a {
-    color: #ffffff;
-    text-decoration: none;
-    display: block;
-}
-
-.card:hover {
-    background-color: #666;
-}
-
-@media (max-width: 600px) {
-    .top-nav ul, .bottom-nav ul {
-        flex-direction: column;
-    }
-    .dashboard-section {
-        margin: 10px;
-    }
 }
