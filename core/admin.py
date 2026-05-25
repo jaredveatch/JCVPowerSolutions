@@ -1,12 +1,4 @@
-from django.contrib import admin, messages
-
-from core.services.ai_apply_engine import apply_ai_suggestion
-from core.services.ai_developer_engine import (
-    generate_code_changes,
-    apply_command_code_changes,
-    apply_code_change,
-    git_commit_and_push,
-)
+from django.contrib import admin
 
 from .models import (
     QuoteRequest,
@@ -24,9 +16,6 @@ from .models import (
     Payment,
     JobNote,
     Task,
-    AISuggestion,
-    AICommand,
-    AICodeChange,
 )
 
 
@@ -37,39 +26,38 @@ from .models import (
 class ServiceTemplateMaterialInline(admin.TabularInline):
     model = ServiceTemplateMaterial
     extra = 1
-    readonly_fields = ("material_total", "labor_total")
-    fields = ("material", "quantity", "material_total", "labor_total")
 
 
 class JobMaterialInline(admin.TabularInline):
     model = JobMaterial
     extra = 1
+
     readonly_fields = (
         "material_total",
-        "material_sell_total",
         "labor_total",
         "total_cost",
-        "sell_total",
     )
+
     fields = (
         "material",
         "quantity",
         "unit_cost",
-        "material_markup",
         "labor_hours",
         "labor_rate",
         "material_total",
-        "material_sell_total",
         "labor_total",
         "total_cost",
-        "sell_total",
     )
 
 
 class EstimateLineItemInline(admin.TabularInline):
     model = EstimateLineItem
     extra = 1
-    readonly_fields = ("total",)
+
+    readonly_fields = (
+        "total",
+    )
+
     fields = (
         "item_type",
         "description",
@@ -100,29 +88,6 @@ class PaymentInline(admin.TabularInline):
     extra = 0
 
 
-class AICodeChangeInline(admin.StackedInline):
-    model = AICodeChange
-    extra = 0
-    readonly_fields = (
-        "original_content",
-        "error",
-        "created_at",
-        "applied_at",
-    )
-
-    fields = (
-        "file_path",
-        "action",
-        "status",
-        "notes",
-        "proposed_content",
-        "original_content",
-        "error",
-        "created_at",
-        "applied_at",
-    )
-
-
 # =========================================================
 # LEADS / QUOTES
 # =========================================================
@@ -138,8 +103,21 @@ class QuoteRequestAdmin(admin.ModelAdmin):
         "source",
         "created_at",
     )
-    list_filter = ("status", "service", "source", "created_at")
-    search_fields = ("name", "phone", "email", "service", "message")
+
+    list_filter = (
+        "status",
+        "service",
+        "source",
+        "created_at",
+    )
+
+    search_fields = (
+        "name",
+        "phone",
+        "email",
+        "service",
+        "message",
+    )
 
 
 # =========================================================
@@ -156,7 +134,12 @@ class CareerApplicationAdmin(admin.ModelAdmin):
         "experience",
         "created_at",
     )
-    list_filter = ("position", "created_at")
+
+    list_filter = (
+        "position",
+        "created_at",
+    )
+
     search_fields = (
         "name",
         "phone",
@@ -183,7 +166,14 @@ class CustomerAdmin(admin.ModelAdmin):
         "status",
         "created_at",
     )
-    list_filter = ("status", "customer_type", "city", "created_at")
+
+    list_filter = (
+        "status",
+        "customer_type",
+        "city",
+        "created_at",
+    )
+
     search_fields = (
         "name",
         "company_name",
@@ -206,14 +196,21 @@ class CustomerAdmin(admin.ModelAdmin):
             )
         }),
         ("Address", {
-            "fields": ("address", "city")
+            "fields": (
+                "address",
+                "city",
+            )
         }),
         ("Notes", {
-            "fields": ("notes",)
+            "fields": (
+                "notes",
+            )
         }),
     )
 
-    inlines = [TaskInline]
+    inlines = [
+        TaskInline,
+    ]
 
 
 # =========================================================
@@ -227,20 +224,12 @@ class ServiceTemplateAdmin(admin.ModelAdmin):
         "name",
         "category",
         "default_labor_hours",
-        "labor_rate",
-        "estimated_material_cost",
-        "material_markup",
-        "labor_total_display",
-        "material_sell_price_display",
-        "calculated_price_display",
         "default_price",
-        "permit_required",
         "active",
     )
 
     list_filter = (
         "category",
-        "permit_required",
         "active",
     )
 
@@ -249,85 +238,16 @@ class ServiceTemplateAdmin(admin.ModelAdmin):
         "category",
         "customer_description",
         "internal_checklist",
-        "notes",
     )
 
-    list_editable = (
-        "default_labor_hours",
-        "labor_rate",
-        "estimated_material_cost",
-        "material_markup",
-        "permit_required",
-        "active",
+    ordering = (
+        "category",
+        "name",
     )
 
-    readonly_fields = (
-        "labor_total_display",
-        "material_sell_price_display",
-        "calculated_price_display",
-        "default_price",
-        "created_at",
-    )
-
-    fieldsets = (
-        ("Service Info", {
-            "fields": (
-                "icon",
-                "name",
-                "category",
-                "active",
-                "permit_required",
-            )
-        }),
-        ("Customer / Internal Notes", {
-            "fields": (
-                "customer_description",
-                "internal_checklist",
-                "notes",
-            )
-        }),
-        ("Labor Pricing", {
-            "fields": (
-                "default_labor_hours",
-                "labor_rate",
-                "labor_total_display",
-            )
-        }),
-        ("Material Pricing", {
-            "fields": (
-                "estimated_material_cost",
-                "material_markup",
-                "material_sell_price_display",
-            )
-        }),
-        ("Calculated Sell Price", {
-            "fields": (
-                "calculated_price_display",
-                "default_price",
-            )
-        }),
-        ("System", {
-            "fields": ("created_at",)
-        }),
-    )
-
-    ordering = ("category", "name")
-    inlines = [ServiceTemplateMaterialInline]
-
-    def labor_total_display(self, obj):
-        return f"${obj.labor_total:,.2f}"
-
-    labor_total_display.short_description = "Labor Total"
-
-    def material_sell_price_display(self, obj):
-        return f"${obj.material_sell_price:,.2f}"
-
-    material_sell_price_display.short_description = "Material Sell Price"
-
-    def calculated_price_display(self, obj):
-        return f"${obj.calculated_price:,.2f}"
-
-    calculated_price_display.short_description = "Calculated Price"
+    inlines = [
+        ServiceTemplateMaterialInline,
+    ]
 
 
 # =========================================================
@@ -345,10 +265,22 @@ class MaterialCatalogAdmin(admin.ModelAdmin):
         "labor_hours",
         "active",
     )
-    list_filter = ("active", "manufacturer")
-    search_fields = ("name", "manufacturer", "part_number", "description")
-    list_editable = ("unit_cost", "labor_hours", "active")
-    ordering = ("name",)
+
+    list_filter = (
+        "active",
+        "manufacturer",
+    )
+
+    search_fields = (
+        "name",
+        "manufacturer",
+        "part_number",
+        "description",
+    )
+
+    ordering = (
+        "name",
+    )
 
 
 @admin.register(ServiceTemplateMaterial)
@@ -357,32 +289,23 @@ class ServiceTemplateMaterialAdmin(admin.ModelAdmin):
         "service_template",
         "material",
         "quantity",
-        "material_total_display",
-        "labor_total_display",
     )
+
     list_filter = (
         "service_template__category",
         "service_template",
     )
+
     search_fields = (
         "service_template__name",
         "material__name",
     )
+
     ordering = (
         "service_template__category",
         "service_template__name",
         "material__name",
     )
-
-    def material_total_display(self, obj):
-        return f"${obj.material_total:,.2f}"
-
-    material_total_display.short_description = "Material Cost"
-
-    def labor_total_display(self, obj):
-        return f"{obj.labor_total:,.2f} hrs"
-
-    labor_total_display.short_description = "Labor Hours"
 
 
 # =========================================================
@@ -399,9 +322,6 @@ class JobAdmin(admin.ModelAdmin):
         "priority",
         "assigned_to",
         "estimated_total_price",
-        "material_total_display",
-        "labor_total_display",
-        "installed_total_display",
         "scheduled_date",
         "created_at",
     )
@@ -423,12 +343,6 @@ class JobAdmin(admin.ModelAdmin):
         "description",
         "site_notes",
         "material_notes",
-    )
-
-    readonly_fields = (
-        "material_total_display",
-        "labor_total_display",
-        "installed_total_display",
     )
 
     fieldsets = (
@@ -453,9 +367,6 @@ class JobAdmin(admin.ModelAdmin):
         ("Money / Schedule", {
             "fields": (
                 "estimated_total_price",
-                "material_total_display",
-                "labor_total_display",
-                "installed_total_display",
                 "scheduled_date",
                 "completed_at",
             )
@@ -469,21 +380,6 @@ class JobAdmin(admin.ModelAdmin):
         TaskInline,
     ]
 
-    def material_total_display(self, obj):
-        return f"${obj.material_total():,.2f}"
-
-    material_total_display.short_description = "Material Cost"
-
-    def labor_total_display(self, obj):
-        return f"${obj.labor_total():,.2f}"
-
-    labor_total_display.short_description = "Labor Total"
-
-    def installed_total_display(self, obj):
-        return f"${obj.installed_total():,.2f}"
-
-    installed_total_display.short_description = "Installed Cost"
-
 
 # =========================================================
 # JOB MATERIALS
@@ -496,20 +392,16 @@ class JobMaterialAdmin(admin.ModelAdmin):
         "material",
         "quantity",
         "unit_cost",
-        "material_markup",
-        "material_total",
-        "material_sell_total",
         "labor_hours",
         "labor_rate",
+        "material_total",
         "labor_total",
         "total_cost",
-        "sell_total",
     )
 
     list_filter = (
         "material",
         "labor_rate",
-        "material_markup",
     )
 
     search_fields = (
@@ -520,10 +412,8 @@ class JobMaterialAdmin(admin.ModelAdmin):
 
     readonly_fields = (
         "material_total",
-        "material_sell_total",
         "labor_total",
         "total_cost",
-        "sell_total",
     )
 
     ordering = (
@@ -543,6 +433,7 @@ class JobPhotoAdmin(admin.ModelAdmin):
         "caption",
         "uploaded_at",
     )
+
     search_fields = (
         "job__title",
         "job__customer__name",
@@ -580,7 +471,9 @@ class EstimateAdmin(admin.ModelAdmin):
         "scope_of_work",
     )
 
-    readonly_fields = ("total",)
+    readonly_fields = (
+        "total",
+    )
 
     fieldsets = (
         ("Estimate Info", {
@@ -613,7 +506,9 @@ class EstimateAdmin(admin.ModelAdmin):
         }),
     )
 
-    inlines = [EstimateLineItemInline]
+    inlines = [
+        EstimateLineItemInline,
+    ]
 
 
 @admin.register(EstimateLineItem)
@@ -639,8 +534,14 @@ class EstimateLineItemAdmin(admin.ModelAdmin):
         "description",
     )
 
-    readonly_fields = ("total",)
-    ordering = ("estimate", "id")
+    readonly_fields = (
+        "total",
+    )
+
+    ordering = (
+        "estimate",
+        "id",
+    )
 
 
 # =========================================================
@@ -713,7 +614,9 @@ class InvoiceAdmin(admin.ModelAdmin):
         }),
     )
 
-    inlines = [PaymentInline]
+    inlines = [
+        PaymentInline,
+    ]
 
 
 # =========================================================
@@ -729,7 +632,12 @@ class PaymentAdmin(admin.ModelAdmin):
         "reference",
         "paid_at",
     )
-    list_filter = ("method", "paid_at")
+
+    list_filter = (
+        "method",
+        "paid_at",
+    )
+
     search_fields = (
         "invoice__invoice_number",
         "reference",
@@ -749,10 +657,12 @@ class JobNoteAdmin(admin.ModelAdmin):
         "internal",
         "created_at",
     )
+
     list_filter = (
         "internal",
         "created_at",
     )
+
     search_fields = (
         "job__title",
         "job__customer__name",
@@ -794,374 +704,6 @@ class TaskAdmin(admin.ModelAdmin):
         "assigned_to",
         "notes",
     )
-
-
-# =========================================================
-# AI SUGGESTIONS
-# =========================================================
-
-@admin.register(AISuggestion)
-class AISuggestionAdmin(admin.ModelAdmin):
-    list_display = (
-        "title",
-        "category",
-        "status",
-        "action_type",
-        "related_customer",
-        "related_job",
-        "related_estimate",
-        "related_service_template",
-        "created_at",
-    )
-
-    list_filter = (
-        "category",
-        "status",
-        "action_type",
-        "created_at",
-    )
-
-    search_fields = (
-        "title",
-        "prompt",
-        "suggestion",
-        "reason",
-        "action_type",
-        "related_customer__name",
-        "related_job__title",
-        "related_estimate__title",
-        "related_service_template__name",
-    )
-
-    readonly_fields = (
-        "created_at",
-        "reviewed_at",
-    )
-
-    fieldsets = (
-        ("Suggestion", {
-            "fields": (
-                "title",
-                "category",
-                "status",
-                "prompt",
-                "suggestion",
-                "reason",
-            )
-        }),
-        ("Apply Engine", {
-            "fields": (
-                "action_type",
-                "action_payload",
-            )
-        }),
-        ("Related Records", {
-            "fields": (
-                "related_customer",
-                "related_job",
-                "related_estimate",
-                "related_service_template",
-            )
-        }),
-        ("Review Dates", {
-            "fields": (
-                "created_at",
-                "reviewed_at",
-            )
-        }),
-    )
-
-    actions = (
-        "approve_suggestions",
-        "reject_suggestions",
-        "mark_suggestions_applied",
-        "apply_selected_ai_suggestions",
-    )
-
-    def approve_suggestions(self, request, queryset):
-        for suggestion in queryset:
-            suggestion.approve()
-
-        self.message_user(
-            request,
-            f"Approved {queryset.count()} AI suggestion(s).",
-            messages.SUCCESS,
-        )
-
-    approve_suggestions.short_description = "Approve selected AI suggestions"
-
-    def reject_suggestions(self, request, queryset):
-        for suggestion in queryset:
-            suggestion.reject()
-
-        self.message_user(
-            request,
-            f"Rejected {queryset.count()} AI suggestion(s).",
-            messages.SUCCESS,
-        )
-
-    reject_suggestions.short_description = "Reject selected AI suggestions"
-
-    def mark_suggestions_applied(self, request, queryset):
-        for suggestion in queryset:
-            suggestion.mark_applied()
-
-        self.message_user(
-            request,
-            f"Marked {queryset.count()} AI suggestion(s) as applied.",
-            messages.SUCCESS,
-        )
-
-    mark_suggestions_applied.short_description = "Mark selected AI suggestions as applied"
-
-    def apply_selected_ai_suggestions(self, request, queryset):
-        applied_count = 0
-
-        for suggestion in queryset:
-            try:
-                apply_ai_suggestion(suggestion.id)
-                applied_count += 1
-            except Exception as error:
-                self.message_user(
-                    request,
-                    f"Could not apply '{suggestion.title}': {error}",
-                    messages.ERROR,
-                )
-
-        self.message_user(
-            request,
-            f"Applied {applied_count} AI suggestion(s).",
-            messages.SUCCESS,
-        )
-
-    apply_selected_ai_suggestions.short_description = "Apply selected AI suggestions"
-
-
-# =========================================================
-# AI DEVELOPER MODE
-# =========================================================
-
-@admin.register(AICommand)
-class AICommandAdmin(admin.ModelAdmin):
-    list_display = (
-        "title",
-        "status",
-        "created_at",
-        "generated_at",
-        "applied_at",
-        "pushed_at",
-    )
-
-    list_filter = (
-        "status",
-        "created_at",
-        "generated_at",
-        "applied_at",
-        "pushed_at",
-    )
-
-    search_fields = (
-        "title",
-        "prompt",
-        "summary",
-        "log",
-    )
-
-    readonly_fields = (
-        "summary",
-        "log",
-        "created_at",
-        "generated_at",
-        "applied_at",
-        "pushed_at",
-    )
-
-    fieldsets = (
-        ("Command", {
-            "fields": (
-                "title",
-                "prompt",
-                "status",
-            )
-        }),
-        ("AI Output", {
-            "fields": (
-                "summary",
-                "log",
-            )
-        }),
-        ("Dates", {
-            "fields": (
-                "created_at",
-                "generated_at",
-                "applied_at",
-                "pushed_at",
-            )
-        }),
-    )
-
-    inlines = [AICodeChangeInline]
-
-    actions = (
-        "generate_selected_code_changes",
-        "apply_selected_commands",
-        "push_selected_commands",
-    )
-
-    def generate_selected_code_changes(self, request, queryset):
-        success_count = 0
-
-        for command in queryset:
-            try:
-                generate_code_changes(command.id)
-                success_count += 1
-            except Exception as error:
-                self.message_user(
-                    request,
-                    f"Could not generate code for '{command.title}': {error}",
-                    messages.ERROR,
-                )
-
-        self.message_user(
-            request,
-            f"Generated code for {success_count} command(s).",
-            messages.SUCCESS,
-        )
-
-    generate_selected_code_changes.short_description = "Generate code changes"
-
-    def apply_selected_commands(self, request, queryset):
-        success_count = 0
-
-        for command in queryset:
-            try:
-                apply_command_code_changes(command.id)
-                success_count += 1
-            except Exception as error:
-                self.message_user(
-                    request,
-                    f"Could not apply command '{command.title}': {error}",
-                    messages.ERROR,
-                )
-
-        self.message_user(
-            request,
-            f"Applied {success_count} command(s).",
-            messages.SUCCESS,
-        )
-
-    apply_selected_commands.short_description = "Apply generated code changes"
-
-    def push_selected_commands(self, request, queryset):
-        success_count = 0
-
-        for command in queryset:
-            try:
-                git_commit_and_push(command.id)
-                success_count += 1
-            except Exception as error:
-                self.message_user(
-                    request,
-                    f"Could not push command '{command.title}': {error}",
-                    messages.ERROR,
-                )
-
-        self.message_user(
-            request,
-            f"Pushed {success_count} command(s) to Git.",
-            messages.SUCCESS,
-        )
-
-    push_selected_commands.short_description = "Commit and push selected commands"
-
-
-@admin.register(AICodeChange)
-class AICodeChangeAdmin(admin.ModelAdmin):
-    list_display = (
-        "command",
-        "file_path",
-        "action",
-        "status",
-        "created_at",
-        "applied_at",
-    )
-
-    list_filter = (
-        "action",
-        "status",
-        "created_at",
-        "applied_at",
-    )
-
-    search_fields = (
-        "command__title",
-        "file_path",
-        "proposed_content",
-        "notes",
-        "error",
-    )
-
-    readonly_fields = (
-        "original_content",
-        "error",
-        "created_at",
-        "applied_at",
-    )
-
-    fieldsets = (
-        ("Code Change", {
-            "fields": (
-                "command",
-                "file_path",
-                "action",
-                "status",
-                "notes",
-            )
-        }),
-        ("Proposed File Content", {
-            "fields": (
-                "proposed_content",
-            )
-        }),
-        ("Original File Backup", {
-            "fields": (
-                "original_content",
-            )
-        }),
-        ("Errors / Dates", {
-            "fields": (
-                "error",
-                "created_at",
-                "applied_at",
-            )
-        }),
-    )
-
-    actions = (
-        "apply_selected_code_changes",
-    )
-
-    def apply_selected_code_changes(self, request, queryset):
-        success_count = 0
-
-        for change in queryset:
-            try:
-                apply_code_change(change.id)
-                success_count += 1
-            except Exception as error:
-                self.message_user(
-                    request,
-                    f"Could not apply '{change.file_path}': {error}",
-                    messages.ERROR,
-                )
-
-        self.message_user(
-            request,
-            f"Applied {success_count} code change(s).",
-            messages.SUCCESS,
-        )
-
-    apply_selected_code_changes.short_description = "Apply selected code changes"
 
 
 # =========================================================
