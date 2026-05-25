@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -31,11 +33,13 @@ def copy_template_materials_to_job(
     )
 
     for template_material in template_materials:
+        material = template_material.material
 
         JobMaterial.objects.create(
             job=instance,
-            material=template_material.material,
-            quantity=template_material.quantity,
-            unit_cost=template_material.material.unit_cost,
-            labor_hours=template_material.material.labor_hours,
+            material=material,
+            quantity=template_material.quantity or Decimal("1.00"),
+            unit_cost=material.unit_cost or Decimal("0.00"),
+            labor_hours=material.labor_hours or Decimal("0.00"),
+            material_markup=material.default_markup if hasattr(material, "default_markup") and material.default_markup is not None else Decimal("0.00"),
         )

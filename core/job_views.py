@@ -129,6 +129,7 @@ def create_job(request, customer_id):
                     existing_material.quantity = Decimal("1")
                     existing_material.unit_cost = material.unit_cost or Decimal("0.00")
                     existing_material.labor_hours = material.labor_hours or Decimal("0.00")
+                    existing_material.material_markup = Decimal("0.00")
                     existing_material.save()
                 else:
                     JobMaterial.objects.create(
@@ -137,6 +138,7 @@ def create_job(request, customer_id):
                         quantity=Decimal("1"),
                         unit_cost=material.unit_cost or Decimal("0.00"),
                         labor_hours=material.labor_hours or Decimal("0.00"),
+                        material_markup=Decimal("0.00"),
                     )
 
         return redirect("job_detail", job_id=job.id)
@@ -293,6 +295,7 @@ def add_catalog_material_to_job(request, job_id):
                 existing.quantity = Decimal(str(existing.quantity)) + Decimal(str(quantity))
                 existing.unit_cost = material.unit_cost or Decimal("0.00")
                 existing.labor_hours = material.labor_hours or Decimal("0.00")
+                existing.material_markup = existing.material_markup or Decimal("0.00")
                 existing.save()
             else:
                 JobMaterial.objects.create(
@@ -301,6 +304,7 @@ def add_catalog_material_to_job(request, job_id):
                     quantity=Decimal(str(quantity)),
                     unit_cost=material.unit_cost or Decimal("0.00"),
                     labor_hours=material.labor_hours or Decimal("0.00"),
+                    material_markup=Decimal("0.00"),
                 )
 
         return redirect("job_detail", job_id=job.id)
@@ -404,6 +408,7 @@ def update_job_material_quantity(request, material_id):
         })
 
     item.quantity = Decimal(str(new_quantity))
+    item.material_markup = item.material_markup or Decimal("0.00")
     item.save()
 
     return JsonResponse({
