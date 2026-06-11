@@ -16,6 +16,9 @@ from .models import (
     Payment,
     JobNote,
     Task,
+    AISuggestion,
+    AICommand,
+    AICodeChange,
 )
 
 
@@ -31,33 +34,32 @@ class ServiceTemplateMaterialInline(admin.TabularInline):
 class JobMaterialInline(admin.TabularInline):
     model = JobMaterial
     extra = 1
-
     readonly_fields = (
         "material_total",
+        "material_sell_total",
         "labor_total",
         "total_cost",
+        "sell_total",
     )
-
     fields = (
         "material",
         "quantity",
         "unit_cost",
+        "material_markup",
         "labor_hours",
         "labor_rate",
         "material_total",
+        "material_sell_total",
         "labor_total",
         "total_cost",
+        "sell_total",
     )
 
 
 class EstimateLineItemInline(admin.TabularInline):
     model = EstimateLineItem
     extra = 1
-
-    readonly_fields = (
-        "total",
-    )
-
+    readonly_fields = ("total",)
     fields = (
         "item_type",
         "description",
@@ -88,6 +90,30 @@ class PaymentInline(admin.TabularInline):
     extra = 0
 
 
+class AICodeChangeInline(admin.TabularInline):
+    model = AICodeChange
+    extra = 0
+    readonly_fields = (
+        "file_path",
+        "action",
+        "status",
+        "notes",
+        "error",
+        "created_at",
+        "applied_at",
+    )
+    fields = (
+        "file_path",
+        "action",
+        "status",
+        "notes",
+        "error",
+        "created_at",
+        "applied_at",
+    )
+    can_delete = False
+
+
 # =========================================================
 # LEADS / QUOTES
 # =========================================================
@@ -103,21 +129,9 @@ class QuoteRequestAdmin(admin.ModelAdmin):
         "source",
         "created_at",
     )
-
-    list_filter = (
-        "status",
-        "service",
-        "source",
-        "created_at",
-    )
-
-    search_fields = (
-        "name",
-        "phone",
-        "email",
-        "service",
-        "message",
-    )
+    list_filter = ("status", "service", "source", "created_at")
+    search_fields = ("name", "phone", "email", "service", "message")
+    ordering = ("-created_at",)
 
 
 # =========================================================
@@ -131,15 +145,9 @@ class CareerApplicationAdmin(admin.ModelAdmin):
         "phone",
         "email",
         "position",
-        "experience",
         "created_at",
     )
-
-    list_filter = (
-        "position",
-        "created_at",
-    )
-
+    list_filter = ("position", "created_at")
     search_fields = (
         "name",
         "phone",
@@ -149,6 +157,7 @@ class CareerApplicationAdmin(admin.ModelAdmin):
         "license_info",
         "message",
     )
+    ordering = ("-created_at",)
 
 
 # =========================================================
@@ -161,19 +170,13 @@ class CustomerAdmin(admin.ModelAdmin):
         "name",
         "company_name",
         "phone",
+        "email",
         "city",
         "customer_type",
         "status",
         "created_at",
     )
-
-    list_filter = (
-        "status",
-        "customer_type",
-        "city",
-        "created_at",
-    )
-
+    list_filter = ("status", "customer_type", "city", "created_at")
     search_fields = (
         "name",
         "company_name",
@@ -183,7 +186,6 @@ class CustomerAdmin(admin.ModelAdmin):
         "city",
         "notes",
     )
-
     fieldsets = (
         ("Customer Info", {
             "fields": (
@@ -202,15 +204,11 @@ class CustomerAdmin(admin.ModelAdmin):
             )
         }),
         ("Notes", {
-            "fields": (
-                "notes",
-            )
+            "fields": ("notes",)
         }),
     )
-
-    inlines = [
-        TaskInline,
-    ]
+    inlines = [TaskInline]
+    ordering = ("-created_at",)
 
 
 # =========================================================
@@ -224,30 +222,54 @@ class ServiceTemplateAdmin(admin.ModelAdmin):
         "name",
         "category",
         "default_labor_hours",
+        "labor_rate",
+        "estimated_material_cost",
+        "material_markup",
         "default_price",
+        "permit_required",
         "active",
     )
-
-    list_filter = (
-        "category",
-        "active",
-    )
-
+    list_filter = ("category", "active", "permit_required")
     search_fields = (
         "name",
         "category",
         "customer_description",
         "internal_checklist",
+        "notes",
     )
-
-    ordering = (
-        "category",
-        "name",
+    fieldsets = (
+        ("Template Info", {
+            "fields": (
+                "icon",
+                "name",
+                "category",
+                "active",
+            )
+        }),
+        ("Customer-Facing Details", {
+            "fields": (
+                "customer_description",
+            )
+        }),
+        ("Internal Details", {
+            "fields": (
+                "internal_checklist",
+                "notes",
+                "permit_required",
+            )
+        }),
+        ("Pricing", {
+            "fields": (
+                "default_labor_hours",
+                "labor_rate",
+                "estimated_material_cost",
+                "material_markup",
+                "default_price",
+            )
+        }),
     )
-
-    inlines = [
-        ServiceTemplateMaterialInline,
-    ]
+    inlines = [ServiceTemplateMaterialInline]
+    ordering = ("category", "name")
 
 
 # =========================================================
@@ -265,22 +287,9 @@ class MaterialCatalogAdmin(admin.ModelAdmin):
         "labor_hours",
         "active",
     )
-
-    list_filter = (
-        "active",
-        "manufacturer",
-    )
-
-    search_fields = (
-        "name",
-        "manufacturer",
-        "part_number",
-        "description",
-    )
-
-    ordering = (
-        "name",
-    )
+    list_filter = ("active", "manufacturer")
+    search_fields = ("name", "manufacturer", "part_number", "description")
+    ordering = ("name",)
 
 
 @admin.register(ServiceTemplateMaterial)
@@ -290,17 +299,8 @@ class ServiceTemplateMaterialAdmin(admin.ModelAdmin):
         "material",
         "quantity",
     )
-
-    list_filter = (
-        "service_template__category",
-        "service_template",
-    )
-
-    search_fields = (
-        "service_template__name",
-        "material__name",
-    )
-
+    list_filter = ("service_template__category", "service_template")
+    search_fields = ("service_template__name", "material__name")
     ordering = (
         "service_template__category",
         "service_template__name",
@@ -325,7 +325,6 @@ class JobAdmin(admin.ModelAdmin):
         "scheduled_date",
         "created_at",
     )
-
     list_filter = (
         "status",
         "priority",
@@ -334,7 +333,6 @@ class JobAdmin(admin.ModelAdmin):
         "scheduled_date",
         "created_at",
     )
-
     search_fields = (
         "title",
         "customer__name",
@@ -344,7 +342,6 @@ class JobAdmin(admin.ModelAdmin):
         "site_notes",
         "material_notes",
     )
-
     fieldsets = (
         ("Job Info", {
             "fields": (
@@ -372,13 +369,13 @@ class JobAdmin(admin.ModelAdmin):
             )
         }),
     )
-
     inlines = [
         JobMaterialInline,
         JobPhotoInline,
         JobNoteInline,
         TaskInline,
     ]
+    ordering = ("-created_at",)
 
 
 # =========================================================
@@ -392,34 +389,29 @@ class JobMaterialAdmin(admin.ModelAdmin):
         "material",
         "quantity",
         "unit_cost",
+        "material_markup",
         "labor_hours",
         "labor_rate",
         "material_total",
+        "material_sell_total",
         "labor_total",
         "total_cost",
+        "sell_total",
     )
-
-    list_filter = (
-        "material",
-        "labor_rate",
-    )
-
+    list_filter = ("material", "labor_rate", "material_markup")
     search_fields = (
         "job__title",
         "job__customer__name",
         "material__name",
     )
-
     readonly_fields = (
         "material_total",
+        "material_sell_total",
         "labor_total",
         "total_cost",
+        "sell_total",
     )
-
-    ordering = (
-        "job",
-        "material__name",
-    )
+    ordering = ("job", "material__name")
 
 
 # =========================================================
@@ -428,17 +420,9 @@ class JobMaterialAdmin(admin.ModelAdmin):
 
 @admin.register(JobPhoto)
 class JobPhotoAdmin(admin.ModelAdmin):
-    list_display = (
-        "job",
-        "caption",
-        "uploaded_at",
-    )
-
-    search_fields = (
-        "job__title",
-        "job__customer__name",
-        "caption",
-    )
+    list_display = ("job", "caption", "uploaded_at")
+    search_fields = ("job__title", "job__customer__name", "caption")
+    ordering = ("-uploaded_at",)
 
 
 # =========================================================
@@ -457,24 +441,14 @@ class EstimateAdmin(admin.ModelAdmin):
         "accepted_terms",
         "created_at",
     )
-
-    list_filter = (
-        "status",
-        "accepted_terms",
-        "created_at",
-    )
-
+    list_filter = ("status", "accepted_terms", "created_at")
     search_fields = (
         "title",
         "job__title",
         "job__customer__name",
         "scope_of_work",
     )
-
-    readonly_fields = (
-        "total",
-    )
-
+    readonly_fields = ("total",)
     fieldsets = (
         ("Estimate Info", {
             "fields": (
@@ -505,10 +479,8 @@ class EstimateAdmin(admin.ModelAdmin):
             )
         }),
     )
-
-    inlines = [
-        EstimateLineItemInline,
-    ]
+    inlines = [EstimateLineItemInline]
+    ordering = ("-created_at",)
 
 
 @admin.register(EstimateLineItem)
@@ -521,27 +493,15 @@ class EstimateLineItemAdmin(admin.ModelAdmin):
         "unit_price",
         "total",
     )
-
-    list_filter = (
-        "item_type",
-        "estimate__status",
-    )
-
+    list_filter = ("item_type", "estimate__status")
     search_fields = (
         "estimate__title",
         "estimate__job__title",
         "estimate__job__customer__name",
         "description",
     )
-
-    readonly_fields = (
-        "total",
-    )
-
-    ordering = (
-        "estimate",
-        "id",
-    )
+    readonly_fields = ("total",)
+    ordering = ("estimate", "id")
 
 
 # =========================================================
@@ -563,14 +523,7 @@ class InvoiceAdmin(admin.ModelAdmin):
         "due_date",
         "paid_date",
     )
-
-    list_filter = (
-        "status",
-        "due_date",
-        "paid_date",
-        "created_at",
-    )
-
+    list_filter = ("status", "due_date", "paid_date", "created_at")
     search_fields = (
         "invoice_number",
         "title",
@@ -580,12 +533,7 @@ class InvoiceAdmin(admin.ModelAdmin):
         "job__title",
         "job__customer__name",
     )
-
-    readonly_fields = (
-        "total",
-        "amount_due",
-    )
-
+    readonly_fields = ("total", "amount_due")
     fieldsets = (
         ("Invoice Info", {
             "fields": (
@@ -613,10 +561,8 @@ class InvoiceAdmin(admin.ModelAdmin):
             )
         }),
     )
-
-    inlines = [
-        PaymentInline,
-    ]
+    inlines = [PaymentInline]
+    ordering = ("-created_at",)
 
 
 # =========================================================
@@ -632,17 +578,9 @@ class PaymentAdmin(admin.ModelAdmin):
         "reference",
         "paid_at",
     )
-
-    list_filter = (
-        "method",
-        "paid_at",
-    )
-
-    search_fields = (
-        "invoice__invoice_number",
-        "reference",
-        "notes",
-    )
+    list_filter = ("method", "paid_at")
+    search_fields = ("invoice__invoice_number", "reference", "notes")
+    ordering = ("-paid_at",)
 
 
 # =========================================================
@@ -657,18 +595,9 @@ class JobNoteAdmin(admin.ModelAdmin):
         "internal",
         "created_at",
     )
-
-    list_filter = (
-        "internal",
-        "created_at",
-    )
-
-    search_fields = (
-        "job__title",
-        "job__customer__name",
-        "author",
-        "note",
-    )
+    list_filter = ("internal", "created_at")
+    search_fields = ("job__title", "job__customer__name", "author", "note")
+    ordering = ("-created_at",)
 
 
 # =========================================================
@@ -687,7 +616,6 @@ class TaskAdmin(admin.ModelAdmin):
         "due_date",
         "created_at",
     )
-
     list_filter = (
         "status",
         "priority",
@@ -695,7 +623,6 @@ class TaskAdmin(admin.ModelAdmin):
         "due_date",
         "created_at",
     )
-
     search_fields = (
         "title",
         "customer__name",
@@ -704,6 +631,200 @@ class TaskAdmin(admin.ModelAdmin):
         "assigned_to",
         "notes",
     )
+    ordering = ("status", "due_date", "-created_at")
+
+
+# =========================================================
+# AI SUGGESTIONS
+# =========================================================
+
+@admin.register(AISuggestion)
+class AISuggestionAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "category",
+        "status",
+        "related_customer",
+        "related_job",
+        "related_estimate",
+        "related_service_template",
+        "created_at",
+        "reviewed_at",
+        "applied_at",
+    )
+    list_filter = (
+        "category",
+        "status",
+        "created_at",
+        "reviewed_at",
+        "applied_at",
+    )
+    search_fields = (
+        "title",
+        "prompt",
+        "suggestion",
+        "reason",
+    )
+    readonly_fields = (
+        "created_at",
+    )
+    fieldsets = (
+        ("Suggestion", {
+            "fields": (
+                "title",
+                "category",
+                "status",
+                "reason",
+            )
+        }),
+        ("AI Content", {
+            "fields": (
+                "prompt",
+                "suggestion",
+            )
+        }),
+        ("Related Records", {
+            "fields": (
+                "related_customer",
+                "related_job",
+                "related_estimate",
+                "related_service_template",
+            )
+        }),
+        ("Action Payload", {
+            "fields": (
+                "action_type",
+                "action_payload",
+            )
+        }),
+        ("Dates", {
+            "fields": (
+                "created_at",
+                "reviewed_at",
+                "applied_at",
+            )
+        }),
+    )
+    ordering = ("-created_at",)
+
+
+# =========================================================
+# AI COMMANDS
+# =========================================================
+
+@admin.register(AICommand)
+class AICommandAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "status",
+        "created_at",
+        "generated_at",
+        "applied_at",
+        "pushed_at",
+    )
+    list_filter = (
+        "status",
+        "created_at",
+        "generated_at",
+        "applied_at",
+        "pushed_at",
+    )
+    search_fields = (
+        "title",
+        "prompt",
+        "summary",
+        "log",
+    )
+    readonly_fields = (
+        "created_at",
+        "generated_at",
+        "applied_at",
+        "pushed_at",
+    )
+    fieldsets = (
+        ("Command", {
+            "fields": (
+                "title",
+                "prompt",
+                "summary",
+                "status",
+            )
+        }),
+        ("Log", {
+            "fields": (
+                "log",
+            )
+        }),
+        ("Dates", {
+            "fields": (
+                "created_at",
+                "generated_at",
+                "applied_at",
+                "pushed_at",
+            )
+        }),
+    )
+    inlines = [AICodeChangeInline]
+    ordering = ("-created_at",)
+
+
+# =========================================================
+# AI CODE CHANGES
+# =========================================================
+
+@admin.register(AICodeChange)
+class AICodeChangeAdmin(admin.ModelAdmin):
+    list_display = (
+        "command",
+        "file_path",
+        "action",
+        "status",
+        "created_at",
+        "applied_at",
+    )
+    list_filter = (
+        "action",
+        "status",
+        "created_at",
+        "applied_at",
+    )
+    search_fields = (
+        "command__title",
+        "file_path",
+        "notes",
+        "original_content",
+        "proposed_content",
+        "error",
+    )
+    readonly_fields = (
+        "created_at",
+        "applied_at",
+    )
+    fieldsets = (
+        ("Code Change", {
+            "fields": (
+                "command",
+                "file_path",
+                "action",
+                "status",
+                "notes",
+            )
+        }),
+        ("Content", {
+            "fields": (
+                "original_content",
+                "proposed_content",
+            )
+        }),
+        ("Error / Dates", {
+            "fields": (
+                "error",
+                "created_at",
+                "applied_at",
+            )
+        }),
+    )
+    ordering = ("command", "file_path")
 
 
 # =========================================================
@@ -712,4 +833,4 @@ class TaskAdmin(admin.ModelAdmin):
 
 admin.site.site_header = "JCV Power Solutions"
 admin.site.site_title = "JCV Admin"
-admin.site.index_title = "Business Dashboard"
+admin.site.index_title = "JCV Command Center"
