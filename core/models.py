@@ -105,12 +105,34 @@ class ServiceTemplate(models.Model):
     category = models.CharField(max_length=255, blank=True, null=True)
     customer_description = models.TextField(blank=True, null=True)
     internal_checklist = models.TextField(blank=True, null=True)
+
     default_labor_hours = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     default_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    # Restored pricing fields
+    labor_rate = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("95.00"))
+    estimated_material_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    material_markup = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("30.00"))
+    permit_required = models.BooleanField(default=False)
+    notes = models.TextField(blank=True, null=True)
+
     active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["category", "name"]
+
+    @property
+    def calculated_price(self):
+        material_cost = Decimal(str(self.estimated_material_cost or 0))
+        markup = Decimal(str(self.material_markup or 0)) / Decimal("100")
+        labor_hours = Decimal(str(self.default_labor_hours or 0))
+        labor_rate = Decimal(str(self.labor_rate or 0))
+
+        material_sell = material_cost * (Decimal("1.00") + markup)
+        labor_sell = labor_hours * labor_rate
+
+        return material_sell + labor_sell
 
     def __str__(self):
         return self.name
@@ -198,12 +220,7 @@ class Job(models.Model):
         ("urgent", "Urgent"),
     ]
 
-    customer = models.ForeignKey(
-        Customer,
-        on_delete=models.CASCADE,
-        related_name="jobs",
-    )
-
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="jobs")
     template = models.ForeignKey(
         ServiceTemplate,
         on_delete=models.SET_NULL,
@@ -231,22 +248,16 @@ class Job(models.Model):
         ordering = ["-created_at"]
 
     def material_total(self):
-        return sum(
-            (item.material_total for item in self.job_materials.all()),
-            Decimal("0.00"),
-        )
+        return sum((item.material_total for item in self.job_materials.all()), Decimal("0.00"))
 
     def labor_total(self):
-        return sum(
-            (item.labor_total for item in self.job_materials.all()),
-            Decimal("0.00"),
-        )
+        return sum((item.labor_total for item in self.job_materials.all()), Decimal("0.00"))
 
     def installed_total(self):
-        return sum(
-            (item.total_cost for item in self.job_materials.all()),
-            Decimal("0.00"),
-        )
+        return sum((item.total_cost for item in self.job_materials.all()), Decimal("0.00"))
+
+    def sell_total(self):
+        return sum((item.sell_total for item in self.job_materials.all()), Decimal("0.00"))
 
     def __str__(self):
         return self.title
@@ -257,20 +268,16 @@ class Job(models.Model):
 # =========================================================
 
 class JobMaterial(models.Model):
-    job = models.ForeignKey(
-        Job,
-        on_delete=models.CASCADE,
-        related_name="job_materials",
-    )
-
-    material = models.ForeignKey(
-        MaterialCatalog,
-        on_delete=models.CASCADE,
-        related_name="job_materials",
-    )
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="job_materials")
+    material = models.ForeignKey(MaterialCatalog, on_delete=models.CASCADE, related_name="job_materials")
 
     quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1)
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    # Restored markup / sell fields
+    material_markup = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("30.00"))
+    material_sell_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    sell_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     labor_hours = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     labor_rate = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("95.00"))
@@ -291,10 +298,14 @@ class JobMaterial(models.Model):
         unit_cost = Decimal(str(self.unit_cost or 0))
         labor_hours = Decimal(str(self.labor_hours or 0))
         labor_rate = Decimal(str(self.labor_rate or 0))
+        markup = Decimal(str(self.material_markup or 0)) / Decimal("100")
 
         self.material_total = quantity * unit_cost
         self.labor_total = quantity * labor_hours * labor_rate
         self.total_cost = self.material_total + self.labor_total
+
+        self.material_sell_total = self.material_total * (Decimal("1.00") + markup)
+        self.sell_total = self.material_sell_total + self.labor_total
 
         super().save(*args, **kwargs)
 
@@ -307,12 +318,7 @@ class JobMaterial(models.Model):
 # =========================================================
 
 class JobPhoto(models.Model):
-    job = models.ForeignKey(
-        Job,
-        on_delete=models.CASCADE,
-        related_name="photos",
-    )
-
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="photos")
     image = models.ImageField(upload_to="job_photos/", blank=True, null=True)
     caption = models.CharField(max_length=255, blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -333,11 +339,7 @@ class Estimate(models.Model):
         ("rejected", "Rejected"),
     ]
 
-    job = models.ForeignKey(
-        Job,
-        on_delete=models.CASCADE,
-        related_name="estimates",
-    )
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="estimates")
 
     title = models.CharField(max_length=255)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="draft")
@@ -359,22 +361,13 @@ class Estimate(models.Model):
         ordering = ["-created_at"]
 
     def recalculate_totals(self):
-        line_subtotal = sum(
-            (line.total for line in self.line_items.all()),
-            Decimal("0.00"),
-        )
-
-        if line_subtotal > 0:
-            self.subtotal = line_subtotal
-
+        self.subtotal = sum((line.total for line in self.line_items.all()), Decimal("0.00"))
         self.total = Decimal(str(self.subtotal or 0)) + Decimal(str(self.tax or 0))
 
     def save(self, *args, **kwargs):
         subtotal = Decimal(str(self.subtotal or 0))
         tax = Decimal(str(self.tax or 0))
-
         self.total = subtotal + tax
-
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -394,17 +387,8 @@ class EstimateLineItem(models.Model):
         ("discount", "Discount"),
     ]
 
-    estimate = models.ForeignKey(
-        Estimate,
-        on_delete=models.CASCADE,
-        related_name="line_items",
-    )
-
-    item_type = models.CharField(
-        max_length=50,
-        choices=ITEM_TYPE_CHOICES,
-        default="material",
-    )
+    estimate = models.ForeignKey(Estimate, on_delete=models.CASCADE, related_name="line_items")
+    item_type = models.CharField(max_length=50, choices=ITEM_TYPE_CHOICES, default="material")
 
     description = models.CharField(max_length=255)
     quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1)
@@ -429,16 +413,12 @@ class EstimateLineItem(models.Model):
     def save(self, *args, **kwargs):
         quantity = Decimal(str(self.quantity or 0))
         unit_price = Decimal(str(self.unit_price or 0))
-
         self.total = quantity * unit_price
 
         super().save(*args, **kwargs)
 
         estimate = self.estimate
-        estimate.subtotal = sum(
-            (line.total for line in estimate.line_items.all()),
-            Decimal("0.00"),
-        )
+        estimate.subtotal = sum((line.total for line in estimate.line_items.all()), Decimal("0.00"))
         estimate.total = estimate.subtotal + Decimal(str(estimate.tax or 0))
         Estimate.objects.filter(id=estimate.id).update(
             subtotal=estimate.subtotal,
@@ -528,11 +508,7 @@ class Payment(models.Model):
         ("other", "Other"),
     ]
 
-    invoice = models.ForeignKey(
-        Invoice,
-        on_delete=models.CASCADE,
-        related_name="payments",
-    )
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="payments")
 
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     method = models.CharField(max_length=50, choices=METHOD_CHOICES, default="cash")
@@ -544,12 +520,7 @@ class Payment(models.Model):
         super().save(*args, **kwargs)
 
         invoice = self.invoice
-
-        invoice.amount_paid = sum(
-            (payment.amount for payment in invoice.payments.all()),
-            Decimal("0.00"),
-        )
-
+        invoice.amount_paid = sum((payment.amount for payment in invoice.payments.all()), Decimal("0.00"))
         invoice.amount_due = invoice.total - invoice.amount_paid
 
         if invoice.amount_due <= 0:
@@ -569,12 +540,7 @@ class Payment(models.Model):
 # =========================================================
 
 class JobNote(models.Model):
-    job = models.ForeignKey(
-        Job,
-        on_delete=models.CASCADE,
-        related_name="notes",
-    )
-
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="notes")
     author = models.CharField(max_length=255, blank=True, null=True)
     note = models.TextField()
     internal = models.BooleanField(default=True)
@@ -637,3 +603,120 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
+
+
+# =========================================================
+# AI SUGGESTIONS
+# =========================================================
+
+class AISuggestion(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+        ("applied", "Applied"),
+    ]
+
+    title = models.CharField(max_length=255)
+    category = models.CharField(max_length=100, default="general")
+    prompt = models.TextField(blank=True, null=True)
+    suggestion = models.TextField()
+
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="pending")
+    reason = models.TextField(blank=True, null=True)
+
+    related_customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, blank=True, null=True)
+    related_job = models.ForeignKey(Job, on_delete=models.SET_NULL, blank=True, null=True)
+    related_estimate = models.ForeignKey(Estimate, on_delete=models.SET_NULL, blank=True, null=True)
+    related_service_template = models.ForeignKey(ServiceTemplate, on_delete=models.SET_NULL, blank=True, null=True)
+
+    action_type = models.CharField(max_length=100, blank=True, null=True)
+    action_payload = models.JSONField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(blank=True, null=True)
+    applied_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.title
+
+
+# =========================================================
+# AI COMMANDS
+# =========================================================
+
+class AICommand(models.Model):
+    STATUS_CHOICES = [
+        ("draft", "Draft"),
+        ("generated", "Generated"),
+        ("failed", "Failed"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+        ("applied", "Applied"),
+        ("pushed", "Pushed"),
+    ]
+
+    title = models.CharField(max_length=255)
+    prompt = models.TextField()
+    summary = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="draft")
+    log = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    generated_at = models.DateTimeField(blank=True, null=True)
+    applied_at = models.DateTimeField(blank=True, null=True)
+    pushed_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.title
+
+
+# =========================================================
+# AI CODE CHANGES
+# =========================================================
+
+class AICodeChange(models.Model):
+    ACTION_CHOICES = [
+        ("create", "Create"),
+        ("replace", "Replace"),
+        ("delete", "Delete"),
+    ]
+
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+        ("applied", "Applied"),
+        ("failed", "Failed"),
+    ]
+
+    command = models.ForeignKey(
+        AICommand,
+        on_delete=models.CASCADE,
+        related_name="code_changes",
+    )
+
+    file_path = models.CharField(max_length=500)
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES, default="replace")
+    notes = models.TextField(blank=True, null=True)
+
+    original_content = models.TextField(blank=True, null=True)
+    proposed_content = models.TextField(blank=True, null=True)
+
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="pending")
+    error = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    applied_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["command", "file_path"]
+
+    def __str__(self):
+        return f"{self.command} - {self.file_path}"
