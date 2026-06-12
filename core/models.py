@@ -152,6 +152,22 @@ class MaterialCatalog(models.Model):
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     labor_hours = models.DecimalField(max_digits=8, decimal_places=2, default=0)
 
+    material_markup = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("35.00"),
+    )
+
+    sell_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
+    supplier = models.CharField(max_length=255, blank=True, null=True)
+    supplier_url = models.URLField(blank=True, null=True)
+    last_price_update = models.DateTimeField(blank=True, null=True)
+
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -160,9 +176,19 @@ class MaterialCatalog(models.Model):
         verbose_name_plural = "Materials"
         ordering = ["name"]
 
+    def save(self, *args, **kwargs):
+        unit_cost = Decimal(str(self.unit_cost or 0))
+        markup = Decimal(str(self.material_markup or 0)) / Decimal("100")
+
+        if unit_cost > 0:
+            self.sell_price = unit_cost * (Decimal("1.00") + markup)
+        else:
+            self.sell_price = Decimal("0.00")
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
-
 
 # =========================================================
 # SERVICE TEMPLATE MATERIALS

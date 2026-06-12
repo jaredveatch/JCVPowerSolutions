@@ -284,13 +284,62 @@ class MaterialCatalogAdmin(admin.ModelAdmin):
         "part_number",
         "unit",
         "unit_cost",
-        "labor_hours",
+        "material_markup",
+        "sell_price",
+        "supplier",
         "active",
+        "last_price_update",
     )
-    list_filter = ("active", "manufacturer")
-    search_fields = ("name", "manufacturer", "part_number", "description")
-    ordering = ("name",)
 
+    list_filter = (
+        "active",
+        "manufacturer",
+        "supplier",
+    )
+
+    search_fields = (
+        "name",
+        "manufacturer",
+        "part_number",
+        "description",
+        "supplier",
+    )
+
+    fieldsets = (
+        ("Material Information", {
+            "fields": (
+                "name",
+                "manufacturer",
+                "part_number",
+                "description",
+                "unit",
+                "active",
+            )
+        }),
+
+        ("Pricing", {
+            "fields": (
+                "unit_cost",
+                "material_markup",
+                "sell_price",
+                "labor_hours",
+            )
+        }),
+
+        ("Supplier Information", {
+            "fields": (
+                "supplier",
+                "supplier_url",
+                "last_price_update",
+            )
+        }),
+    )
+
+    readonly_fields = (
+        "sell_price",
+    )
+
+    ordering = ("name",)
 
 @admin.register(ServiceTemplateMaterial)
 class ServiceTemplateMaterialAdmin(admin.ModelAdmin):
