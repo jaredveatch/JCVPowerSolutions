@@ -53,46 +53,99 @@ urlpatterns = [
     path("jobs/<int:job_id>/delete/", job_views.delete_job, name="delete_job"),
     path("jobs/<int:job_id>/update-status/", job_views.update_job_status, name="update_job_status"),
     path("jobs/<int:job_id>/add-note/", job_views.add_job_note, name="add_job_note"),
+
+    # =====================================================
+    # NEW JARVIS PIPELINE
+    # =====================================================
+
     path(
-    "jobs/<int:job_id>/jarvis/material-review/",
-    job_views.run_jarvis_material_review,
-    name="run_jarvis_material_review",
-),
+        "jobs/<int:job_id>/jarvis/build/",
+        views.jarvis_build_job_package,
+        name="jarvis_build_job_package",
+    ),
 
-path(
-    "jarvis/reviews/<int:review_id>/apply/",
-    job_views.apply_jarvis_review_actions,
-    name="apply_jarvis_review_actions",
-),
+    path(
+        "jarvis/reviews/<int:review_id>/apply-materials/",
+        views.jarvis_apply_materials,
+        name="jarvis_apply_materials",
+    ),
 
-path(
-    "jarvis/reviews/<int:review_id>/ignore/",
-    job_views.ignore_jarvis_review,
-    name="ignore_jarvis_review",
-),
+    path(
+        "jarvis/reviews/<int:review_id>/create-estimate/",
+        views.jarvis_create_estimate,
+        name="jarvis_create_estimate",
+    ),
 
-path(
-    "jobs/<int:job_id>/create-estimate/",
-    estimate_views.create_estimate_from_job,
-    name="create_estimate_from_job",
-),
-    path("jobs/<int:job_id>/create-invoice/", invoice_views.create_invoice_from_job, name="create_invoice_from_job"),
+    # =====================================================
+    # LEGACY JARVIS (KEEP FOR NOW)
+    # =====================================================
+
+    path(
+        "jobs/<int:job_id>/jarvis/material-review/",
+        job_views.run_jarvis_material_review,
+        name="run_jarvis_material_review",
+    ),
+
+    path(
+        "jarvis/reviews/<int:review_id>/apply/",
+        job_views.apply_jarvis_review_actions,
+        name="apply_jarvis_review_actions",
+    ),
+
+    path(
+        "jarvis/reviews/<int:review_id>/ignore/",
+        job_views.ignore_jarvis_review,
+        name="ignore_jarvis_review",
+    ),
 
     # =====================================================
     # JOB MATERIALS
     # =====================================================
 
-    path("jobs/<int:job_id>/materials/", job_views.job_material_list, name="job_material_list"),
-    path("jobs/<int:job_id>/materials/add/", job_views.add_catalog_material_to_job, name="add_catalog_material_to_job"),
-    path("jobs/<int:job_id>/materials/auto-populate/", job_views.auto_populate_job_materials, name="auto_populate_job_materials"),
-    path("jobs/materials/<int:material_id>/increase/", job_views.increase_job_material, name="increase_job_material"),
-    path("jobs/materials/<int:material_id>/decrease/", job_views.decrease_job_material, name="decrease_job_material"),
-    path("jobs/materials/<int:material_id>/delete/", job_views.delete_job_material, name="delete_job_material"),
-    path("jobs/materials/<int:material_id>/update-quantity/", job_views.update_job_material_quantity, name="update_job_material_quantity"),
+    path(
+        "jobs/<int:job_id>/materials/",
+        job_views.job_material_list,
+        name="job_material_list",
+    ),
+
+    path(
+        "jobs/<int:job_id>/materials/add/",
+        job_views.add_catalog_material_to_job,
+        name="add_catalog_material_to_job",
+    ),
+
+    path(
+        "jobs/<int:job_id>/materials/auto-populate/",
+        job_views.auto_populate_job_materials,
+        name="auto_populate_job_materials",
+    ),
+
+    path(
+        "jobs/materials/<int:material_id>/increase/",
+        job_views.increase_job_material,
+        name="increase_job_material",
+    ),
+
+    path(
+        "jobs/materials/<int:material_id>/decrease/",
+        job_views.decrease_job_material,
+        name="decrease_job_material",
+    ),
+
+    path(
+        "jobs/materials/<int:material_id>/delete/",
+        job_views.delete_job_material,
+        name="delete_job_material",
+    ),
+
+    path(
+        "jobs/materials/<int:material_id>/update-quantity/",
+        job_views.update_job_material_quantity,
+        name="update_job_material_quantity",
+    ),
 
     # =====================================================
     # ESTIMATES
-    # IMPORTANT: public route must come before estimates/<int:estimate_id>/
     # =====================================================
 
     path("estimates/", estimate_views.estimates, name="estimates"),
@@ -103,27 +156,87 @@ path(
         name="public_estimate_detail",
     ),
 
-    path("estimates/<int:estimate_id>/", estimate_views.estimate_detail, name="estimate_detail"),
-    path("estimates/<int:estimate_id>/edit/", estimate_views.edit_estimate, name="edit_estimate"),
-    path("estimates/<int:estimate_id>/approve/", estimate_views.approve_estimate, name="approve_estimate"),
-    path("estimates/<int:estimate_id>/delete/", estimate_views.delete_estimate, name="delete_estimate"),
-    path("estimates/<int:estimate_id>/pdf/", estimate_views.estimate_pdf, name="estimate_pdf"),
+    path(
+        "estimates/<int:estimate_id>/",
+        estimate_views.estimate_detail,
+        name="estimate_detail",
+    ),
+
+    path(
+        "estimates/<int:estimate_id>/edit/",
+        estimate_views.edit_estimate,
+        name="edit_estimate",
+    ),
+
+    path(
+        "estimates/<int:estimate_id>/approve/",
+        estimate_views.approve_estimate,
+        name="approve_estimate",
+    ),
+
+    path(
+        "estimates/<int:estimate_id>/delete/",
+        estimate_views.delete_estimate,
+        name="delete_estimate",
+    ),
+
+    path(
+        "estimates/<int:estimate_id>/pdf/",
+        estimate_views.estimate_pdf,
+        name="estimate_pdf",
+    ),
+
+    path(
+        "jobs/<int:job_id>/create-estimate/",
+        estimate_views.create_estimate_from_job,
+        name="create_estimate_from_job",
+    ),
 
     # =====================================================
     # INVOICES
     # =====================================================
 
     path("invoices/", invoice_views.invoices, name="invoices"),
-    path("invoices/<int:invoice_id>/", invoice_views.invoice_detail, name="invoice_detail"),
-    path("invoices/<int:invoice_id>/edit/", invoice_views.edit_invoice, name="edit_invoice"),
-    path("invoices/<int:invoice_id>/add-payment/", invoice_views.add_payment, name="add_payment"),
+
+    path(
+        "invoices/<int:invoice_id>/",
+        invoice_views.invoice_detail,
+        name="invoice_detail",
+    ),
+
+    path(
+        "invoices/<int:invoice_id>/edit/",
+        invoice_views.edit_invoice,
+        name="edit_invoice",
+    ),
+
+    path(
+        "invoices/<int:invoice_id>/add-payment/",
+        invoice_views.add_payment,
+        name="add_payment",
+    ),
+
+    path(
+        "jobs/<int:job_id>/create-invoice/",
+        invoice_views.create_invoice_from_job,
+        name="create_invoice_from_job",
+    ),
 
     # =====================================================
     # TASKS
     # =====================================================
 
     path("tasks/", task_views.tasks, name="tasks"),
-    path("tasks/create/", task_views.create_task, name="create_task"),
-    path("tasks/<int:task_id>/complete/", task_views.complete_task, name="complete_task"),
 
+    path(
+        "tasks/create/",
+        task_views.create_task,
+        name="create_task",
+    ),
+
+    path(
+        "tasks/<int:task_id>/complete/",
+        task_views.complete_task,
+        name="complete_task",
+    ),
 ]

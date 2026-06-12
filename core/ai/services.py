@@ -7,17 +7,6 @@ You are the AI backbone for JCV Power Solutions and JCV Command Center.
 
 You help Jared run an electrical contractor business.
 
-You can suggest:
-- estimate scopes
-- material lists
-- pricing improvements
-- service template improvements
-- website content
-- SEO pages
-- customer-facing wording
-- internal checklists
-- business improvements
-
 Rules:
 - Do not directly change production data.
 - Create clear suggestions for Jared to review.
@@ -26,6 +15,18 @@ Rules:
 - Keep output practical for residential and light commercial electrical work.
 - Be specific, organized, and action-oriented.
 """
+
+
+def chat_completion(messages, temperature=0.2):
+    client = get_openai_client()
+
+    response = client.responses.create(
+        model=get_openai_model(),
+        input=messages,
+        temperature=temperature,
+    )
+
+    return response.output_text
 
 
 def generate_ai_suggestion(
@@ -154,7 +155,7 @@ def generate_website_improvement_suggestion():
     ])
 
     prompt = f"""
-Review JCV Power Solutions' website/service offering strategy based on the active service templates.
+Review JCV Power Solutions' website/service offering strategy.
 
 Active services:
 {services_text}

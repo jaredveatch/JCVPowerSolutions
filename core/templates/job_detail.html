@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div class="card" style="background:linear-gradient(135deg, #0b0b0c 0%, #1c1c1c 100%); color:white;">
+<div class="card" style="background:linear-gradient(135deg,#050505 0%,#111827 55%,#1f2937 100%); color:white; border-radius:22px;">
     <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap;">
         <div>
             <div class="badge" style="background:rgba(255,196,0,.14); color:var(--gold); margin-bottom:18px;">
@@ -19,19 +19,186 @@
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <a class="btn btn-gold" href="/jobs/{{ job.id }}/create-estimate/">📋 Create Estimate</a>
-            <a class="btn" href="/jobs/{{ job.id }}/create-invoice/">💵 Create Invoice</a>
-            <a class="btn" href="/jobs/{{ job.id }}/edit/">Edit Job</a>
+            <a class="btn btn-gold" href="/jobs/{{ job.id }}/create-estimate/">📋 Estimate</a>
+            <a class="btn" href="/jobs/{{ job.id }}/create-invoice/">💵 Invoice</a>
+            <a class="btn" href="/jobs/{{ job.id }}/edit/">Edit</a>
 
             <button class="btn"
                     type="button"
                     style="background:#7c3aed; color:white;"
                     onclick="alert('JARVIS Load Calculator UI coming next.')">
-                ⚡ Run Load Calculation
+                ⚡ Load Calc
             </button>
         </div>
     </div>
 </div>
+
+
+<div class="card"
+     style="background:linear-gradient(135deg,#0f172a,#1e293b); color:white; border:2px solid #2563eb; border-radius:22px; box-shadow:0 25px 80px rgba(37,99,235,.22);">
+
+    <div style="text-align:center; margin-bottom:24px;">
+        <div class="badge" style="background:#2563eb; color:white; padding:8px 18px;">
+            🤖 JARVIS
+        </div>
+
+        <h1 style="margin:20px 0 10px; color:white;">
+            What are we doing today?
+        </h1>
+
+        <p style="color:#cbd5e1; margin:0;">
+            Describe the job. JARVIS will build the checklist, materials, labor, and estimate path.
+        </p>
+    </div>
+
+    <form method="post" action="{% url 'jarvis_build_job_package' job.id %}">
+        {% csrf_token %}
+
+        <textarea
+            name="jarvis_prompt"
+            rows="5"
+            placeholder="Example: Install 6 recessed lights in living room with dimmer and attic access..."
+            style="width:100%; border:none; border-radius:16px; padding:18px; font-size:16px; margin-bottom:18px;"
+            required></textarea>
+
+        <div style="display:flex; justify-content:center;">
+            <button class="btn btn-gold" type="submit" style="padding:16px 32px; font-size:16px;">
+                ⚡ Build Job With JARVIS
+            </button>
+        </div>
+    </form>
+</div>
+
+
+{% if latest_jarvis_review %}
+<div class="card" style="border:2px solid rgba(37,99,235,.35); border-radius:20px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap;">
+        <div>
+            <div class="badge">JARVIS PACKAGE</div>
+            <h2 style="margin:12px 0 6px;">{{ latest_jarvis_review.summary }}</h2>
+            <p style="color:var(--muted); margin:0;">
+                {{ latest_jarvis_review.prompt }}
+            </p>
+        </div>
+
+        <span class="badge">{{ latest_jarvis_review.status }}</span>
+    </div>
+
+    <div class="grid grid-4" style="margin-top:20px;">
+        <div class="list-card">
+            <div class="badge">Materials</div>
+            <h2 style="margin-bottom:0;">{{ latest_jarvis_review.recommendations.materials|length }}</h2>
+        </div>
+
+        <div class="list-card">
+            <div class="badge">Questions</div>
+            <h2 style="margin-bottom:0;">{{ latest_jarvis_review.recommendations.questions|length }}</h2>
+        </div>
+
+        <div class="list-card">
+            <div class="badge">Steps</div>
+            <h2 style="margin-bottom:0;">{{ latest_jarvis_review.recommendations.steps|length }}</h2>
+        </div>
+
+        <div class="list-card">
+            <div class="badge">Labor</div>
+            <h2 style="margin-bottom:0;">
+                {{ latest_jarvis_review.recommendations.labor_hours_min }}–{{ latest_jarvis_review.recommendations.labor_hours_max }} hrs
+            </h2>
+        </div>
+    </div>
+
+    <details style="margin-top:20px;">
+        <summary style="cursor:pointer; font-weight:900; font-size:18px;">
+            Review JARVIS Package
+        </summary>
+
+        <div class="grid grid-3" style="margin-top:18px;">
+            <div class="card" style="background:#f8fafc;">
+                <h3 style="margin-top:0;">Materials</h3>
+                {% if latest_jarvis_review.recommendations.materials %}
+                    <ul>
+                        {% for material in latest_jarvis_review.recommendations.materials %}
+                            <li>
+                                <strong>{{ material.name }}</strong>
+                                {% if material.qty %} x {{ material.qty }}{% endif %}
+                                {% if material.unit %} {{ material.unit }}{% endif %}
+                                <br>
+                                <small style="color:var(--muted);">{{ material.reason }}</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No materials listed.</p>
+                {% endif %}
+            </div>
+
+            <div class="card" style="background:#f8fafc;">
+                <h3 style="margin-top:0;">Install Steps</h3>
+                {% if latest_jarvis_review.recommendations.steps %}
+                    <ol>
+                        {% for step in latest_jarvis_review.recommendations.steps %}
+                            <li>{{ step }}</li>
+                        {% endfor %}
+                    </ol>
+                {% else %}
+                    <p>No steps listed.</p>
+                {% endif %}
+            </div>
+
+            <div class="card" style="background:#f8fafc;">
+                <h3 style="margin-top:0;">Questions</h3>
+                {% if latest_jarvis_review.recommendations.questions %}
+                    <ul>
+                        {% for question in latest_jarvis_review.recommendations.questions %}
+                            <li>{{ question }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No questions listed.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if latest_jarvis_review.recommendations.customer_scope %}
+            <div class="card" style="background:#fff7ed; margin-top:18px;">
+                <h3 style="margin-top:0;">Customer Scope</h3>
+                <p>{{ latest_jarvis_review.recommendations.customer_scope }}</p>
+            </div>
+        {% endif %}
+
+        {% if latest_jarvis_review.recommendations.internal_notes %}
+            <div class="card" style="background:#fef2f2; margin-top:18px;">
+                <h3 style="margin-top:0;">Internal Notes</h3>
+                <p>{{ latest_jarvis_review.recommendations.internal_notes }}</p>
+            </div>
+        {% endif %}
+    </details>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:22px;">
+        <form method="post" action="{% url 'jarvis_apply_materials' latest_jarvis_review.id %}">
+            {% csrf_token %}
+            <button class="btn btn-gold" type="submit">
+                Apply Materials
+            </button>
+        </form>
+
+        <form method="post" action="{% url 'jarvis_create_estimate' latest_jarvis_review.id %}">
+            {% csrf_token %}
+            <button class="btn" type="submit">
+                Generate Estimate
+            </button>
+        </form>
+
+        <form method="post" action="{% url 'ignore_jarvis_review' latest_jarvis_review.id %}">
+            {% csrf_token %}
+            <button class="btn" type="submit">
+                Ignore
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
 
 
 <div class="grid grid-4">
@@ -57,217 +224,15 @@
 </div>
 
 
-<div class="grid grid-2">
-    <div class="card">
-        <h2 style="margin-top:0;">Job Details</h2>
-
-        <table>
-            <tr>
-                <th>Customer</th>
-                <td><a href="/customers/{{ job.customer.id }}/">{{ job.customer.name }}</a></td>
-            </tr>
-            <tr>
-                <th>Address</th>
-                <td>{{ job.job_address }}</td>
-            </tr>
-            <tr>
-                <th>Scheduled</th>
-                <td>{{ job.scheduled_date }}</td>
-            </tr>
-            <tr>
-                <th>Created</th>
-                <td>{{ job.created_at }}</td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="card">
-        <h2 style="margin-top:0;">Update Status</h2>
-
-        <form method="post" action="/jobs/{{ job.id }}/update-status/">
-            {% csrf_token %}
-
-            <select name="status">
-                <option value="new">New</option>
-                <option value="site_visit">Site Visit</option>
-                <option value="estimate_needed">Estimate Needed</option>
-                <option value="estimate_sent">Estimate Sent</option>
-                <option value="approved">Approved</option>
-                <option value="scheduled">Scheduled</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-                <option value="invoiced">Invoiced</option>
-                <option value="paid">Paid</option>
-                <option value="cancelled">Cancelled</option>
-            </select>
-
-            <button class="btn btn-gold" type="submit">Update Status</button>
-        </form>
-    </div>
-</div>
-
-
-<div class="card">
-    <h2 style="margin-top:0;">Scope / Description</h2>
-
-    {% if job.description %}
-        <p style="line-height:1.8;">{{ job.description|linebreaks }}</p>
-    {% else %}
-        <p>No description entered.</p>
-    {% endif %}
-</div>
-
-
-<div class="grid grid-2">
-    <div class="card">
-        <h2 style="margin-top:0;">Site Notes</h2>
-
-        {% if job.site_notes %}
-            <p style="line-height:1.8;">{{ job.site_notes|linebreaks }}</p>
-        {% else %}
-            <p>No site notes.</p>
-        {% endif %}
-    </div>
-
-    <div class="card">
-        <h2 style="margin-top:0;">Material Notes</h2>
-
-        {% if job.material_notes %}
-            <p style="line-height:1.8;">{{ job.material_notes|linebreaks }}</p>
-        {% else %}
-            <p>No material notes.</p>
-        {% endif %}
-    </div>
-</div>
-
-
-<div class="card" style="border:2px solid #2563eb;">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap;">
-        <div>
-            <h2 style="margin-top:0;">🤖 JARVIS Job Builder</h2>
-            <p style="color:var(--muted); margin-top:0;">
-                Describe what you are adding, removing, changing, or trying to estimate. JARVIS will recommend materials, removals, quantity changes, and checks.
-            </p>
-        </div>
-
-        {% if latest_jarvis_review %}
-            <span class="badge">{{ latest_jarvis_review.status }}</span>
-        {% endif %}
-    </div>
-
-    <form method="post" action="{% url 'run_jarvis_material_review' job.id %}">
-        {% csrf_token %}
-
-        <label style="font-weight:900;">Describe the work for JARVIS</label>
-
-        <textarea name="jarvis_prompt"
-                  rows="5"
-                  placeholder="Example: 200A overhead panel replacement. Existing meter can stays. Install generator interlock. Customer wants future EV charger. Panel is on brick exterior."
-                  style="margin-top:10px; width:100%;"></textarea>
-
-        <button class="btn btn-gold" type="submit">
-            🤖 Analyze With JARVIS
-        </button>
-    </form>
-
-    {% if latest_jarvis_review %}
-        <hr>
-
-        <h3 style="margin-bottom:10px;">{{ latest_jarvis_review.summary }}</h3>
-
-        <div style="color:var(--muted); margin-bottom:15px;">
-            <strong>Prompt:</strong> {{ latest_jarvis_review.prompt }}
-        </div>
-
-        {% if latest_jarvis_review.recommendations.notes %}
-            <div class="card" style="background:#f8fafc;">
-                <h4 style="margin-top:0;">JARVIS Checks</h4>
-                <ul>
-                    {% for note in latest_jarvis_review.recommendations.notes %}
-                        <li>{{ note }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endif %}
-
-        {% if latest_jarvis_review.recommendations.actions %}
-            <form method="post" action="{% url 'apply_jarvis_review_actions' latest_jarvis_review.id %}">
-                {% csrf_token %}
-
-                <h4>Recommended Actions</h4>
-
-                {% for action in latest_jarvis_review.recommendations.actions %}
-                    <div class="list-card">
-                        <label style="display:flex; gap:12px; align-items:flex-start; cursor:pointer;">
-                            <input type="checkbox"
-                                   name="selected_actions"
-                                   value="{{ forloop.counter0 }}"
-                                   style="margin-top:5px;">
-
-                            <span>
-                                <strong>
-                                    {% if action.action == "add_material" %}
-                                        ADD
-                                    {% elif action.action == "remove_material" %}
-                                        REMOVE
-                                    {% elif action.action == "update_quantity" %}
-                                        UPDATE
-                                    {% else %}
-                                        REVIEW
-                                    {% endif %}
-                                    {{ action.material_name }}
-                                </strong>
-
-                                {% if action.quantity %}
-                                    x {{ action.quantity }}
-                                {% endif %}
-
-                                {% if action.current_quantity and action.suggested_quantity %}
-                                    from {{ action.current_quantity }} to {{ action.suggested_quantity }}
-                                {% elif action.suggested_quantity %}
-                                    to {{ action.suggested_quantity }}
-                                {% endif %}
-
-                                {% if action.priority %}
-                                    <span class="badge">{{ action.priority }}</span>
-                                {% endif %}
-
-                                <br>
-                                <small style="color:var(--muted);">{{ action.reason }}</small>
-                            </span>
-                        </label>
-                    </div>
-                {% endfor %}
-
-                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:15px;">
-                    <button class="btn btn-gold" type="submit">
-                        Apply Selected
-                    </button>
-                </div>
-            </form>
-
-            <form method="post"
-                  action="{% url 'ignore_jarvis_review' latest_jarvis_review.id %}"
-                  style="margin-top:10px;">
-                {% csrf_token %}
-
-                <button class="btn" type="submit">
-                    Ignore JARVIS Review
-                </button>
-            </form>
-        {% else %}
-            <p>No material changes recommended.</p>
-        {% endif %}
-    {% endif %}
-</div>
-
-
 <div class="card" id="materials-card">
     <div style="display:flex; justify-content:space-between; align-items:center; gap:20px; flex-wrap:wrap; margin-bottom:20px;">
-        <h2 style="margin:0;">Job Materials</h2>
+        <div>
+            <div class="badge">JOB MATERIALS</div>
+            <h2 style="margin:10px 0 0;">Material List</h2>
+        </div>
 
         <button type="button" class="btn btn-gold" onclick="openMaterialModal()">
-            + Add From Catalog
+            + Add Material
         </button>
     </div>
 
@@ -368,6 +333,101 @@
 </div>
 
 
+<details class="card">
+    <summary style="cursor:pointer; font-weight:900; font-size:20px;">
+        Job Details / Status
+    </summary>
+
+    <div class="grid grid-2" style="margin-top:20px;">
+        <div>
+            <h2 style="margin-top:0;">Job Details</h2>
+
+            <table>
+                <tr>
+                    <th>Customer</th>
+                    <td><a href="/customers/{{ job.customer.id }}/">{{ job.customer.name }}</a></td>
+                </tr>
+                <tr>
+                    <th>Address</th>
+                    <td>{{ job.job_address }}</td>
+                </tr>
+                <tr>
+                    <th>Scheduled</th>
+                    <td>{{ job.scheduled_date }}</td>
+                </tr>
+                <tr>
+                    <th>Created</th>
+                    <td>{{ job.created_at }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div>
+            <h2 style="margin-top:0;">Update Status</h2>
+
+            <form method="post" action="/jobs/{{ job.id }}/update-status/">
+                {% csrf_token %}
+
+                <select name="status">
+                    <option value="new">New</option>
+                    <option value="site_visit">Site Visit</option>
+                    <option value="estimate_needed">Estimate Needed</option>
+                    <option value="estimate_sent">Estimate Sent</option>
+                    <option value="approved">Approved</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="invoiced">Invoiced</option>
+                    <option value="paid">Paid</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+
+                <button class="btn btn-gold" type="submit">Update Status</button>
+            </form>
+        </div>
+    </div>
+</details>
+
+
+<details class="card">
+    <summary style="cursor:pointer; font-weight:900; font-size:20px;">
+        Scope / Site Notes / Material Notes
+    </summary>
+
+    <div style="margin-top:20px;">
+        <h2>Scope / Description</h2>
+
+        {% if job.description %}
+            <p style="line-height:1.8;">{{ job.description|linebreaks }}</p>
+        {% else %}
+            <p>No description entered.</p>
+        {% endif %}
+
+        <div class="grid grid-2">
+            <div>
+                <h2>Site Notes</h2>
+
+                {% if job.site_notes %}
+                    <p style="line-height:1.8;">{{ job.site_notes|linebreaks }}</p>
+                {% else %}
+                    <p>No site notes.</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <h2>Material Notes</h2>
+
+                {% if job.material_notes %}
+                    <p style="line-height:1.8;">{{ job.material_notes|linebreaks }}</p>
+                {% else %}
+                    <p>No material notes.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</details>
+
+
 <div id="materialModal"
      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:9999; align-items:center; justify-content:center; padding:20px;">
 
@@ -432,51 +492,63 @@
 
 
 <div class="grid grid-2">
-    <div class="card">
-        <h2 style="margin-top:0;">Estimates</h2>
+    <details class="card">
+        <summary style="cursor:pointer; font-weight:900; font-size:20px;">
+            Estimates
+        </summary>
 
-        {% for estimate in estimates %}
-            <div class="list-card">
-                <h3>{{ estimate.title }}</h3>
-                <p><strong>Status:</strong> {{ estimate.status }}</p>
-                <p><strong>Total:</strong> ${{ estimate.total }}</p>
-                <a class="btn" href="/estimates/{{ estimate.id }}/">Open Estimate</a>
-            </div>
-        {% empty %}
-            <div class="list-card">No estimates yet.</div>
-        {% endfor %}
-    </div>
-
-    <div class="card">
-        <h2 style="margin-top:0;">Invoices</h2>
-
-        {% for invoice in invoices %}
-            <div class="list-card">
-                <h3>{{ invoice.invoice_number }}</h3>
-                <p><strong>Status:</strong> {{ invoice.status }}</p>
-                <p><strong>Due:</strong> ${{ invoice.amount_due }}</p>
-                <a class="btn" href="/invoices/{{ invoice.id }}/">Open Invoice</a>
-            </div>
-        {% empty %}
-            <div class="list-card">No invoices yet.</div>
-        {% endfor %}
-    </div>
-</div>
-
-
-<div class="card">
-    <h2 style="margin-top:0;">Job Activity Notes</h2>
-
-    {% for note in notes %}
-        <div class="list-card">
-            <h3>{{ note.author|default:"JCV" }}</h3>
-            <p>{{ note.note|linebreaks }}</p>
-            <span class="badge">{{ note.created_at }}</span>
+        <div style="margin-top:20px;">
+            {% for estimate in estimates %}
+                <div class="list-card">
+                    <h3>{{ estimate.title }}</h3>
+                    <p><strong>Status:</strong> {{ estimate.status }}</p>
+                    <p><strong>Total:</strong> ${{ estimate.total }}</p>
+                    <a class="btn" href="/estimates/{{ estimate.id }}/">Open Estimate</a>
+                </div>
+            {% empty %}
+                <div class="list-card">No estimates yet.</div>
+            {% endfor %}
         </div>
-    {% empty %}
-        <div class="list-card">No job notes yet.</div>
-    {% endfor %}
+    </details>
+
+    <details class="card">
+        <summary style="cursor:pointer; font-weight:900; font-size:20px;">
+            Invoices
+        </summary>
+
+        <div style="margin-top:20px;">
+            {% for invoice in invoices %}
+                <div class="list-card">
+                    <h3>{{ invoice.invoice_number }}</h3>
+                    <p><strong>Status:</strong> {{ invoice.status }}</p>
+                    <p><strong>Due:</strong> ${{ invoice.amount_due }}</p>
+                    <a class="btn" href="/invoices/{{ invoice.id }}/">Open Invoice</a>
+                </div>
+            {% empty %}
+                <div class="list-card">No invoices yet.</div>
+            {% endfor %}
+        </div>
+    </details>
 </div>
+
+
+<details class="card">
+    <summary style="cursor:pointer; font-weight:900; font-size:20px;">
+        Job Activity Notes
+    </summary>
+
+    <div style="margin-top:20px;">
+        {% for note in notes %}
+            <div class="list-card">
+                <h3>{{ note.author|default:"JCV" }}</h3>
+                <p>{{ note.note|linebreaks }}</p>
+                <span class="badge">{{ note.created_at }}</span>
+            </div>
+        {% empty %}
+            <div class="list-card">No job notes yet.</div>
+        {% endfor %}
+    </div>
+</details>
 
 
 <script>
