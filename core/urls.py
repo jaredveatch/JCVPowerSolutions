@@ -53,6 +53,7 @@ urlpatterns = [
     path("jobs/<int:job_id>/delete/", job_views.delete_job, name="delete_job"),
     path("jobs/<int:job_id>/update-status/", job_views.update_job_status, name="update_job_status"),
     path("jobs/<int:job_id>/add-note/", job_views.add_job_note, name="add_job_note"),
+    path("jobs/<int:job_id>/jarvis/material-review/", job_views.run_jarvis_material_review, name="run_jarvis_material_review"),
     path("jobs/<int:job_id>/create-estimate/", estimate_views.create_estimate_from_job, name="create_estimate_from_job"),
     path("jobs/<int:job_id>/create-invoice/", invoice_views.create_invoice_from_job, name="create_invoice_from_job"),
 
@@ -62,6 +63,7 @@ urlpatterns = [
 
     path("jobs/<int:job_id>/materials/", job_views.job_material_list, name="job_material_list"),
     path("jobs/<int:job_id>/materials/add/", job_views.add_catalog_material_to_job, name="add_catalog_material_to_job"),
+    path("jobs/<int:job_id>/materials/auto-populate/", job_views.auto_populate_job_materials, name="auto_populate_job_materials"),
     path("jobs/materials/<int:material_id>/increase/", job_views.increase_job_material, name="increase_job_material"),
     path("jobs/materials/<int:material_id>/decrease/", job_views.decrease_job_material, name="decrease_job_material"),
     path("jobs/materials/<int:material_id>/delete/", job_views.delete_job_material, name="delete_job_material"),

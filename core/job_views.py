@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
@@ -19,6 +20,8 @@ from .models import (
     JobNote,
 )
 
+from core.services.jarvis_material_advisor import create_jarvis_material_suggestion
+
 
 def get_material_markup_percent(material):
     unit_cost = Decimal(str(material.unit_cost or 0))
@@ -33,13 +36,12 @@ def get_material_markup_percent(material):
 def create_or_update_job_material_from_template(job, template_material):
     material = template_material.material
     quantity = Decimal(str(template_material.quantity or 1))
+    material_markup = get_material_markup_percent(material)
 
     existing_material = JobMaterial.objects.filter(
         job=job,
         material=material,
     ).first()
-
-    material_markup = get_material_markup_percent(material)
 
     if existing_material:
         existing_material.quantity = quantity
@@ -203,6 +205,23 @@ def job_detail(request, job_id):
 
 
 @staff_member_required
+def run_jarvis_material_review(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+
+    if request.method != "POST":
+        return redirect("job_detail", job_id=job.id)
+
+    suggestion = create_jarvis_material_suggestion(job)
+
+    messages.success(
+        request,
+        f"JARVIS material review created: {suggestion.title}"
+    )
+
+    return redirect("job_detail", job_id=job.id)
+
+
+@staff_member_required
 def edit_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
@@ -348,6 +367,7 @@ def auto_populate_job_materials(request, job_id):
         return redirect("job_detail", job_id=job.id)
 
     if not job.template:
+        messages.error(request, "This job does not have a service template selected.")
         return redirect("job_detail", job_id=job.id)
 
     template_materials = (
@@ -356,8 +376,21 @@ def auto_populate_job_materials(request, job_id):
         .select_related("material")
     )
 
+    created = 0
+    updated = 0
+
     for template_material in template_materials:
-        create_or_update_job_material_from_template(job, template_material)
+        _, was_created = create_or_update_job_material_from_template(job, template_material)
+
+        if was_created:
+            created += 1
+        else:
+            updated += 1
+
+    messages.success(
+        request,
+        f"Imported {created} new materials and updated {updated} existing materials from {job.template.name}."
+    )
 
     return redirect("job_detail", job_id=job.id)
 

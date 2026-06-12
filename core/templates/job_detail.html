@@ -19,10 +19,37 @@
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <a class="btn btn-gold" href="/jobs/{{ job.id }}/create-estimate/">📋 Create Estimate</a>
-            <a class="btn" href="/jobs/{{ job.id }}/create-invoice/">💵 Create Invoice</a>
-            <a class="btn" href="/jobs/{{ job.id }}/edit/">Edit Job</a>
-        </div>
+    <a class="btn btn-gold" href="/jobs/{{ job.id }}/create-estimate/">
+        📋 Create Estimate
+    </a>
+
+    <a class="btn" href="/jobs/{{ job.id }}/create-invoice/">
+        💵 Create Invoice
+    </a>
+
+    <a class="btn" href="/jobs/{{ job.id }}/edit/">
+        Edit Job
+    </a>
+
+    <form method="post"
+          action="{% url 'run_jarvis_material_review' job.id %}"
+          style="display:inline;">
+        {% csrf_token %}
+
+        <button class="btn"
+                type="submit"
+                style="background:#2563eb; color:white;">
+            🤖 Run JARVIS Review
+        </button>
+    </form>
+
+    <button class="btn"
+            type="button"
+            style="background:#7c3aed; color:white;"
+            onclick="alert('JARVIS Load Calculator UI coming next.')">
+        ⚡ Run Load Calculation
+    </button>
+</div>
     </div>
 </div>
 
