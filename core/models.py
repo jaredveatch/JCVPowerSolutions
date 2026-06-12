@@ -147,7 +147,7 @@ class MaterialCatalog(models.Model):
     manufacturer = models.CharField(max_length=255, blank=True, null=True)
     part_number = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-
+    category = models.CharField(max_length=100, blank=True, default="")
     unit = models.CharField(max_length=50, default="each")
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     labor_hours = models.DecimalField(max_digits=8, decimal_places=2, default=0)
