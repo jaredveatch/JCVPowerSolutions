@@ -668,7 +668,51 @@ class AISuggestion(models.Model):
 
     def __str__(self):
         return self.title
+# =========================================================
+# JARVIS JOB REVIEWS
+# =========================================================
 
+class JarvisJobReview(models.Model):
+    STATUS_CHOICES = [
+        ("draft", "Draft"),
+        ("reviewed", "Reviewed"),
+        ("partially_applied", "Partially Applied"),
+        ("applied", "Applied"),
+        ("ignored", "Ignored"),
+    ]
+
+    job = models.ForeignKey(
+        Job,
+        on_delete=models.CASCADE,
+        related_name="jarvis_reviews",
+    )
+
+    prompt = models.TextField(
+        help_text="What the user asked JARVIS to analyze or build."
+    )
+
+    summary = models.TextField(blank=True, null=True)
+
+    recommendations = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="JARVIS recommended add/remove/update material actions.",
+    )
+
+    status = models.CharField(
+        max_length=50,
+        choices=STATUS_CHOICES,
+        default="reviewed",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    applied_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"JARVIS Review - {self.job.title}"
 
 # =========================================================
 # AI COMMANDS

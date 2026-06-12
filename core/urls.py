@@ -53,8 +53,29 @@ urlpatterns = [
     path("jobs/<int:job_id>/delete/", job_views.delete_job, name="delete_job"),
     path("jobs/<int:job_id>/update-status/", job_views.update_job_status, name="update_job_status"),
     path("jobs/<int:job_id>/add-note/", job_views.add_job_note, name="add_job_note"),
-    path("jobs/<int:job_id>/jarvis/material-review/", job_views.run_jarvis_material_review, name="run_jarvis_material_review"),
-    path("jobs/<int:job_id>/create-estimate/", estimate_views.create_estimate_from_job, name="create_estimate_from_job"),
+    path(
+    "jobs/<int:job_id>/jarvis/material-review/",
+    job_views.run_jarvis_material_review,
+    name="run_jarvis_material_review",
+),
+
+path(
+    "jarvis/reviews/<int:review_id>/apply/",
+    job_views.apply_jarvis_review_actions,
+    name="apply_jarvis_review_actions",
+),
+
+path(
+    "jarvis/reviews/<int:review_id>/ignore/",
+    job_views.ignore_jarvis_review,
+    name="ignore_jarvis_review",
+),
+
+path(
+    "jobs/<int:job_id>/create-estimate/",
+    estimate_views.create_estimate_from_job,
+    name="create_estimate_from_job",
+),
     path("jobs/<int:job_id>/create-invoice/", invoice_views.create_invoice_from_job, name="create_invoice_from_job"),
 
     # =====================================================

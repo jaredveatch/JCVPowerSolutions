@@ -19,37 +19,17 @@
         </div>
 
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-    <a class="btn btn-gold" href="/jobs/{{ job.id }}/create-estimate/">
-        📋 Create Estimate
-    </a>
+            <a class="btn btn-gold" href="/jobs/{{ job.id }}/create-estimate/">📋 Create Estimate</a>
+            <a class="btn" href="/jobs/{{ job.id }}/create-invoice/">💵 Create Invoice</a>
+            <a class="btn" href="/jobs/{{ job.id }}/edit/">Edit Job</a>
 
-    <a class="btn" href="/jobs/{{ job.id }}/create-invoice/">
-        💵 Create Invoice
-    </a>
-
-    <a class="btn" href="/jobs/{{ job.id }}/edit/">
-        Edit Job
-    </a>
-
-    <form method="post"
-          action="{% url 'run_jarvis_material_review' job.id %}"
-          style="display:inline;">
-        {% csrf_token %}
-
-        <button class="btn"
-                type="submit"
-                style="background:#2563eb; color:white;">
-            🤖 Run JARVIS Review
-        </button>
-    </form>
-
-    <button class="btn"
-            type="button"
-            style="background:#7c3aed; color:white;"
-            onclick="alert('JARVIS Load Calculator UI coming next.')">
-        ⚡ Run Load Calculation
-    </button>
-</div>
+            <button class="btn"
+                    type="button"
+                    style="background:#7c3aed; color:white;"
+                    onclick="alert('JARVIS Load Calculator UI coming next.')">
+                ⚡ Run Load Calculation
+            </button>
+        </div>
     </div>
 </div>
 
@@ -158,6 +138,127 @@
             <p>No material notes.</p>
         {% endif %}
     </div>
+</div>
+
+
+<div class="card" style="border:2px solid #2563eb;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap;">
+        <div>
+            <h2 style="margin-top:0;">🤖 JARVIS Job Builder</h2>
+            <p style="color:var(--muted); margin-top:0;">
+                Describe what you are adding, removing, changing, or trying to estimate. JARVIS will recommend materials, removals, quantity changes, and checks.
+            </p>
+        </div>
+
+        {% if latest_jarvis_review %}
+            <span class="badge">{{ latest_jarvis_review.status }}</span>
+        {% endif %}
+    </div>
+
+    <form method="post" action="{% url 'run_jarvis_material_review' job.id %}">
+        {% csrf_token %}
+
+        <label style="font-weight:900;">Describe the work for JARVIS</label>
+
+        <textarea name="jarvis_prompt"
+                  rows="5"
+                  placeholder="Example: 200A overhead panel replacement. Existing meter can stays. Install generator interlock. Customer wants future EV charger. Panel is on brick exterior."
+                  style="margin-top:10px; width:100%;"></textarea>
+
+        <button class="btn btn-gold" type="submit">
+            🤖 Analyze With JARVIS
+        </button>
+    </form>
+
+    {% if latest_jarvis_review %}
+        <hr>
+
+        <h3 style="margin-bottom:10px;">{{ latest_jarvis_review.summary }}</h3>
+
+        <div style="color:var(--muted); margin-bottom:15px;">
+            <strong>Prompt:</strong> {{ latest_jarvis_review.prompt }}
+        </div>
+
+        {% if latest_jarvis_review.recommendations.notes %}
+            <div class="card" style="background:#f8fafc;">
+                <h4 style="margin-top:0;">JARVIS Checks</h4>
+                <ul>
+                    {% for note in latest_jarvis_review.recommendations.notes %}
+                        <li>{{ note }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        {% if latest_jarvis_review.recommendations.actions %}
+            <form method="post" action="{% url 'apply_jarvis_review_actions' latest_jarvis_review.id %}">
+                {% csrf_token %}
+
+                <h4>Recommended Actions</h4>
+
+                {% for action in latest_jarvis_review.recommendations.actions %}
+                    <div class="list-card">
+                        <label style="display:flex; gap:12px; align-items:flex-start; cursor:pointer;">
+                            <input type="checkbox"
+                                   name="selected_actions"
+                                   value="{{ forloop.counter0 }}"
+                                   style="margin-top:5px;">
+
+                            <span>
+                                <strong>
+                                    {% if action.action == "add_material" %}
+                                        ADD
+                                    {% elif action.action == "remove_material" %}
+                                        REMOVE
+                                    {% elif action.action == "update_quantity" %}
+                                        UPDATE
+                                    {% else %}
+                                        REVIEW
+                                    {% endif %}
+                                    {{ action.material_name }}
+                                </strong>
+
+                                {% if action.quantity %}
+                                    x {{ action.quantity }}
+                                {% endif %}
+
+                                {% if action.current_quantity and action.suggested_quantity %}
+                                    from {{ action.current_quantity }} to {{ action.suggested_quantity }}
+                                {% elif action.suggested_quantity %}
+                                    to {{ action.suggested_quantity }}
+                                {% endif %}
+
+                                {% if action.priority %}
+                                    <span class="badge">{{ action.priority }}</span>
+                                {% endif %}
+
+                                <br>
+                                <small style="color:var(--muted);">{{ action.reason }}</small>
+                            </span>
+                        </label>
+                    </div>
+                {% endfor %}
+
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:15px;">
+                    <button class="btn btn-gold" type="submit">
+                        Apply Selected
+                    </button>
+                </div>
+            </form>
+
+            <form method="post"
+                  action="{% url 'ignore_jarvis_review' latest_jarvis_review.id %}"
+                  style="margin-top:10px;">
+                {% csrf_token %}
+
+                <button class="btn" type="submit">
+                    Ignore JARVIS Review
+                </button>
+            </form>
+        {% else %}
+            <p>No material changes recommended.</p>
+        {% endif %}
+    {% endif %}
 </div>
 
 

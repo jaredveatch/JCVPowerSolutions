@@ -18,9 +18,10 @@ from .models import (
     Estimate,
     Invoice,
     JobNote,
+    JarvisJobReview,
 )
 
-from core.services.jarvis_material_advisor import create_jarvis_material_suggestion
+from core.services.jarvis.dashboard_advisor import create_dashboard_jarvis_review
 
 
 def get_material_markup_percent(material):
@@ -46,7 +47,7 @@ def create_or_update_job_material_from_template(job, template_material):
     if existing_material:
         existing_material.quantity = quantity
         existing_material.unit_cost = material.unit_cost or Decimal("0.00")
-        existing_material.labor_hours = material.labor_hours or Decimal("0.00")
+        existing_material.labor_hours = Decimal("0.00")
         existing_material.material_markup = material_markup
         existing_material.save()
         return existing_material, False
@@ -56,7 +57,36 @@ def create_or_update_job_material_from_template(job, template_material):
         material=material,
         quantity=quantity,
         unit_cost=material.unit_cost or Decimal("0.00"),
-        labor_hours=material.labor_hours or Decimal("0.00"),
+        labor_hours=Decimal("0.00"),
+        material_markup=material_markup,
+    )
+
+    return item, True
+
+
+def create_or_update_job_material(job, material, quantity):
+    quantity = Decimal(str(quantity or 1))
+    material_markup = get_material_markup_percent(material)
+
+    existing = JobMaterial.objects.filter(
+        job=job,
+        material=material,
+    ).first()
+
+    if existing:
+        existing.quantity = quantity
+        existing.unit_cost = material.unit_cost or Decimal("0.00")
+        existing.labor_hours = Decimal("0.00")
+        existing.material_markup = material_markup
+        existing.save()
+        return existing, False
+
+    item = JobMaterial.objects.create(
+        job=job,
+        material=material,
+        quantity=quantity,
+        unit_cost=material.unit_cost or Decimal("0.00"),
+        labor_hours=Decimal("0.00"),
         material_markup=material_markup,
     )
 
@@ -189,6 +219,13 @@ def job_detail(request, job_id):
         "material__name",
     )
 
+    latest_jarvis_review = (
+        job.jarvis_reviews
+        .all()
+        .order_by("-created_at")
+        .first()
+    )
+
     return render(request, "job_detail.html", {
         "job": job,
         "estimates": Estimate.objects.filter(job=job).order_by("-created_at"),
@@ -201,6 +238,7 @@ def job_detail(request, job_id):
         "labor_total": job.labor_total(),
         "installed_total": job.installed_total(),
         "sell_total": job.sell_total(),
+        "latest_jarvis_review": latest_jarvis_review,
     })
 
 
@@ -211,12 +249,156 @@ def run_jarvis_material_review(request, job_id):
     if request.method != "POST":
         return redirect("job_detail", job_id=job.id)
 
-    suggestion = create_jarvis_material_suggestion(job)
+    prompt = request.POST.get("jarvis_prompt", "").strip()
+
+    if not prompt:
+        prompt = (
+            "Review this job, current materials, template, description, site notes, "
+            "and material notes. Recommend add/remove/update material actions."
+        )
+
+    review = create_dashboard_jarvis_review(job=job, prompt=prompt)
 
     messages.success(
         request,
-        f"JARVIS material review created: {suggestion.title}"
+        f"JARVIS reviewed this job and created {len(review.recommendations.get('actions', []))} recommendation(s)."
     )
+
+    return redirect("job_detail", job_id=job.id)
+
+
+@staff_member_required
+def apply_jarvis_review_actions(request, review_id):
+    review = get_object_or_404(JarvisJobReview, id=review_id)
+    job = review.job
+
+    if request.method != "POST":
+        return redirect("job_detail", job_id=job.id)
+
+    selected_indexes = request.POST.getlist("selected_actions")
+
+    if not selected_indexes:
+        messages.warning(request, "No JARVIS recommendations were selected.")
+        return redirect("job_detail", job_id=job.id)
+
+    actions = review.recommendations.get("actions", [])
+
+    added = 0
+    removed = 0
+    updated = 0
+    skipped = 0
+
+    applied_actions = []
+
+    for index_raw in selected_indexes:
+        try:
+            index = int(index_raw)
+        except ValueError:
+            skipped += 1
+            continue
+
+        if index < 0 or index >= len(actions):
+            skipped += 1
+            continue
+
+        action = actions[index]
+        action_type = action.get("action")
+
+        if action_type == "add_material":
+            material_name = action.get("material_name")
+            quantity = Decimal(str(action.get("quantity") or 1))
+
+            material = MaterialCatalog.objects.filter(
+                name=material_name,
+                active=True,
+            ).first()
+
+            if not material:
+                skipped += 1
+                continue
+
+            create_or_update_job_material(
+                job=job,
+                material=material,
+                quantity=quantity,
+            )
+
+            added += 1
+            applied_actions.append(action)
+
+        elif action_type == "remove_material":
+            job_material_id = action.get("job_material_id")
+
+            item = JobMaterial.objects.filter(
+                id=job_material_id,
+                job=job,
+            ).first()
+
+            if not item:
+                skipped += 1
+                continue
+
+            item.delete()
+            removed += 1
+            applied_actions.append(action)
+
+        elif action_type == "update_quantity":
+            job_material_id = action.get("job_material_id")
+            suggested_quantity = Decimal(str(action.get("suggested_quantity") or 1))
+
+            item = JobMaterial.objects.filter(
+                id=job_material_id,
+                job=job,
+            ).first()
+
+            if not item:
+                skipped += 1
+                continue
+
+            item.quantity = suggested_quantity
+            item.save()
+
+            updated += 1
+            applied_actions.append(action)
+
+        else:
+            skipped += 1
+
+    review.status = "applied" if len(applied_actions) == len(selected_indexes) else "partially_applied"
+    review.applied_at = timezone.now()
+
+    review.recommendations["applied_actions"] = applied_actions
+    review.save()
+
+    JobNote.objects.create(
+        job=job,
+        author=request.user.username,
+        note=(
+            "JARVIS applied selected recommendations.\n\n"
+            f"Added: {added}\n"
+            f"Removed: {removed}\n"
+            f"Updated: {updated}\n"
+            f"Skipped: {skipped}"
+        ),
+    )
+
+    messages.success(
+        request,
+        f"JARVIS applied {added} add, {removed} remove, and {updated} update action(s)."
+    )
+
+    return redirect("job_detail", job_id=job.id)
+
+
+@staff_member_required
+def ignore_jarvis_review(request, review_id):
+    review = get_object_or_404(JarvisJobReview, id=review_id)
+    job = review.job
+
+    if request.method == "POST":
+        review.status = "ignored"
+        review.save()
+        messages.info(request, "JARVIS review ignored.")
 
     return redirect("job_detail", job_id=job.id)
 
@@ -338,7 +520,7 @@ def add_catalog_material_to_job(request, job_id):
             if existing:
                 existing.quantity = Decimal(str(existing.quantity or 0)) + quantity
                 existing.unit_cost = material.unit_cost or Decimal("0.00")
-                existing.labor_hours = material.labor_hours or Decimal("0.00")
+                existing.labor_hours = Decimal("0.00")
                 existing.material_markup = material_markup
                 existing.save()
             else:
@@ -347,7 +529,7 @@ def add_catalog_material_to_job(request, job_id):
                     material=material,
                     quantity=quantity,
                     unit_cost=material.unit_cost or Decimal("0.00"),
-                    labor_hours=material.labor_hours or Decimal("0.00"),
+                    labor_hours=Decimal("0.00"),
                     material_markup=material_markup,
                 )
 
