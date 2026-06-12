@@ -20,6 +20,47 @@ from .models import (
 )
 
 
+def get_material_markup_percent(material):
+    unit_cost = Decimal(str(material.unit_cost or 0))
+    sell_price = Decimal(str(material.sell_price or 0))
+
+    if unit_cost > 0 and sell_price > 0:
+        return ((sell_price / unit_cost) - Decimal("1.00")) * Decimal("100.00")
+
+    return Decimal(str(material.material_markup or 0))
+
+
+def create_or_update_job_material_from_template(job, template_material):
+    material = template_material.material
+    quantity = Decimal(str(template_material.quantity or 1))
+
+    existing_material = JobMaterial.objects.filter(
+        job=job,
+        material=material,
+    ).first()
+
+    material_markup = get_material_markup_percent(material)
+
+    if existing_material:
+        existing_material.quantity = quantity
+        existing_material.unit_cost = material.unit_cost or Decimal("0.00")
+        existing_material.labor_hours = material.labor_hours or Decimal("0.00")
+        existing_material.material_markup = material_markup
+        existing_material.save()
+        return existing_material, False
+
+    item = JobMaterial.objects.create(
+        job=job,
+        material=material,
+        quantity=quantity,
+        unit_cost=material.unit_cost or Decimal("0.00"),
+        labor_hours=material.labor_hours or Decimal("0.00"),
+        material_markup=material_markup,
+    )
+
+    return item, True
+
+
 @staff_member_required
 def create_job(request, customer_id):
     customer = get_object_or_404(Customer, id=customer_id)
@@ -118,28 +159,7 @@ def create_job(request, customer_id):
             )
 
             for template_material in template_materials:
-                material = template_material.material
-
-                existing_material = JobMaterial.objects.filter(
-                    job=job,
-                    material=material,
-                ).first()
-
-                if existing_material:
-                    existing_material.quantity = Decimal("1")
-                    existing_material.unit_cost = material.unit_cost or Decimal("0.00")
-                    existing_material.labor_hours = material.labor_hours or Decimal("0.00")
-                    existing_material.material_markup = Decimal("0.00")
-                    existing_material.save()
-                else:
-                    JobMaterial.objects.create(
-                        job=job,
-                        material=material,
-                        quantity=Decimal("1"),
-                        unit_cost=material.unit_cost or Decimal("0.00"),
-                        labor_hours=material.labor_hours or Decimal("0.00"),
-                        material_markup=Decimal("0.00"),
-                    )
+                create_or_update_job_material_from_template(job, template_material)
 
         return redirect("job_detail", job_id=job.id)
 
@@ -178,6 +198,7 @@ def job_detail(request, job_id):
         "material_total": job.material_total(),
         "labor_total": job.labor_total(),
         "installed_total": job.installed_total(),
+        "sell_total": job.sell_total(),
     })
 
 
@@ -282,29 +303,33 @@ def add_catalog_material_to_job(request, job_id):
             material = get_object_or_404(MaterialCatalog, id=material_id)
 
             try:
-                quantity = max(int(float(quantity_raw)), 1)
+                quantity = Decimal(str(float(quantity_raw)))
+                if quantity <= 0:
+                    quantity = Decimal("1")
             except ValueError:
-                quantity = 1
+                quantity = Decimal("1")
 
             existing = JobMaterial.objects.filter(
                 job=job,
                 material=material,
             ).first()
 
+            material_markup = get_material_markup_percent(material)
+
             if existing:
-                existing.quantity = Decimal(str(existing.quantity)) + Decimal(str(quantity))
+                existing.quantity = Decimal(str(existing.quantity or 0)) + quantity
                 existing.unit_cost = material.unit_cost or Decimal("0.00")
                 existing.labor_hours = material.labor_hours or Decimal("0.00")
-                existing.material_markup = existing.material_markup or Decimal("0.00")
+                existing.material_markup = material_markup
                 existing.save()
             else:
                 JobMaterial.objects.create(
                     job=job,
                     material=material,
-                    quantity=Decimal(str(quantity)),
+                    quantity=quantity,
                     unit_cost=material.unit_cost or Decimal("0.00"),
                     labor_hours=material.labor_hours or Decimal("0.00"),
-                    material_markup=Decimal("0.00"),
+                    material_markup=material_markup,
                 )
 
         return redirect("job_detail", job_id=job.id)
@@ -316,12 +341,34 @@ def add_catalog_material_to_job(request, job_id):
 
 
 @staff_member_required
+def auto_populate_job_materials(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+
+    if request.method != "POST":
+        return redirect("job_detail", job_id=job.id)
+
+    if not job.template:
+        return redirect("job_detail", job_id=job.id)
+
+    template_materials = (
+        ServiceTemplateMaterial.objects
+        .filter(service_template=job.template)
+        .select_related("material")
+    )
+
+    for template_material in template_materials:
+        create_or_update_job_material_from_template(job, template_material)
+
+    return redirect("job_detail", job_id=job.id)
+
+
+@staff_member_required
 def increase_job_material(request, material_id):
     if request.method != "POST":
         return redirect("/jobs/")
 
     item = get_object_or_404(JobMaterial, id=material_id)
-    item.quantity = Decimal(str(item.quantity)) + Decimal("1")
+    item.quantity = Decimal(str(item.quantity or 0)) + Decimal("1")
     item.save()
 
     return redirect("job_detail", job_id=item.job.id)
@@ -335,7 +382,7 @@ def decrease_job_material(request, material_id):
     item = get_object_or_404(JobMaterial, id=material_id)
     job_id = item.job.id
 
-    if Decimal(str(item.quantity)) > Decimal("1"):
+    if Decimal(str(item.quantity or 0)) > Decimal("1"):
         item.quantity = Decimal(str(item.quantity)) - Decimal("1")
         item.save()
     else:
@@ -372,17 +419,17 @@ def update_job_material_quantity(request, material_id):
     quantity_raw = request.POST.get("quantity", "0")
 
     try:
-        current_quantity = int(item.quantity)
-    except ValueError:
-        current_quantity = 1
+        current_quantity = Decimal(str(item.quantity or 1))
+    except Exception:
+        current_quantity = Decimal("1")
 
     if action == "plus":
-        new_quantity = current_quantity + 1
+        new_quantity = current_quantity + Decimal("1")
     elif action == "minus":
-        new_quantity = current_quantity - 1
+        new_quantity = current_quantity - Decimal("1")
     elif action == "set":
         try:
-            new_quantity = int(float(quantity_raw))
+            new_quantity = Decimal(str(float(quantity_raw)))
         except ValueError:
             return JsonResponse({
                 "success": False,
@@ -405,21 +452,23 @@ def update_job_material_quantity(request, material_id):
             "job_material_total": f"${job.material_total():,.2f}",
             "job_labor_total": f"${job.labor_total():,.2f}",
             "job_installed_total": f"${job.installed_total():,.2f}",
+            "job_sell_total": f"${job.sell_total():,.2f}",
         })
 
-    item.quantity = Decimal(str(new_quantity))
-    item.material_markup = item.material_markup or Decimal("0.00")
+    item.quantity = new_quantity
     item.save()
 
     return JsonResponse({
         "success": True,
         "deleted": False,
         "material_id": item.id,
-        "quantity": int(item.quantity),
+        "quantity": str(item.quantity),
         "material_total": f"${item.material_total:,.2f}",
         "labor_total": f"${item.labor_total:,.2f}",
         "installed_total": f"${item.total_cost:,.2f}",
+        "sell_total": f"${item.sell_total:,.2f}",
         "job_material_total": f"${job.material_total():,.2f}",
         "job_labor_total": f"${job.labor_total():,.2f}",
         "job_installed_total": f"${job.installed_total():,.2f}",
+        "job_sell_total": f"${job.sell_total():,.2f}",
     })
