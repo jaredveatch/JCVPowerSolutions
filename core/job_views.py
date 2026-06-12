@@ -8,6 +8,8 @@ from django.db.models import Q
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
+from core.ai.jarvis_builder import build_job_package
+
 from .models import (
     Customer,
     ServiceTemplate,
@@ -97,49 +99,11 @@ def create_or_update_job_material(job, material, quantity):
 def create_job(request, customer_id):
     customer = get_object_or_404(Customer, id=customer_id)
 
-    template_groups = []
-
-    template_categories = (
-        ServiceTemplate.objects
-        .filter(active=True)
-        .exclude(category__isnull=True)
-        .exclude(category="")
-        .values_list("category", flat=True)
-        .distinct()
-        .order_by("category")
-    )
-
-    for category in template_categories:
-        templates = (
-            ServiceTemplate.objects
-            .filter(active=True, category=category)
-            .order_by("name")
-        )
-
-        template_groups.append({
-            "category": category,
-            "templates": templates,
-        })
-
-    uncategorized_templates = (
-        ServiceTemplate.objects
-        .filter(active=True)
-        .filter(Q(category__isnull=True) | Q(category=""))
-        .order_by("name")
-    )
-
-    if uncategorized_templates.exists():
-        template_groups.append({
-            "category": "Uncategorized",
-            "templates": uncategorized_templates,
-        })
-
     if request.method == "POST":
-        template_id = request.POST.get("template")
-        template = ServiceTemplate.objects.filter(id=template_id).first() if template_id else None
+        jarvis_prompt = request.POST.get("jarvis_prompt", "").strip()
 
         title = request.POST.get("title", "").strip()
-        status = request.POST.get("status") or "new"
+        status = request.POST.get("status") or "site_visit"
         priority = request.POST.get("priority") or "normal"
         assigned_to = request.POST.get("assigned_to", "").strip()
         job_address = request.POST.get("job_address", "").strip()
@@ -151,26 +115,34 @@ def create_job(request, customer_id):
         scheduled_date = parse_datetime(scheduled_date_raw) if scheduled_date_raw else None
 
         price_raw = request.POST.get("estimated_total_price", "").strip()
+        estimated_total_price = Decimal(price_raw) if price_raw else Decimal("0.00")
 
-        if price_raw:
-            estimated_total_price = Decimal(price_raw)
-        elif template:
-            estimated_total_price = template.default_price or Decimal("0.00")
-        else:
-            estimated_total_price = Decimal("0.00")
+        package = None
 
-        if not title and template:
-            title = template.name
+        if jarvis_prompt:
+            package = build_job_package(jarvis_prompt)
 
-        if not description and template:
-            description = template.customer_description or ""
+            if not title:
+                title = package.get("scenario") or "JARVIS Job"
 
-        if not material_notes and template:
-            material_notes = template.internal_checklist or ""
+            if not description:
+                description = package.get("customer_scope") or jarvis_prompt
+
+            if not site_notes:
+                questions = package.get("questions", [])
+                steps = package.get("steps", [])
+
+                site_notes = "JARVIS Questions:\n"
+                site_notes += "\n".join([f"- {q}" for q in questions]) if questions else "- No questions generated."
+                site_notes += "\n\nJARVIS Install / Diagnostic Steps:\n"
+                site_notes += "\n".join([f"{i + 1}. {step}" for i, step in enumerate(steps)]) if steps else "No steps generated."
+
+            if not material_notes:
+                material_notes = package.get("internal_notes") or ""
 
         job = Job.objects.create(
             customer=customer,
-            template=template,
+            template=None,
             title=title or "New Job",
             status=status,
             priority=priority,
@@ -183,21 +155,37 @@ def create_job(request, customer_id):
             scheduled_date=scheduled_date,
         )
 
-        if template:
-            template_materials = (
-                ServiceTemplateMaterial.objects
-                .filter(service_template=template)
-                .select_related("material")
+        if package:
+            JarvisJobReview.objects.create(
+                job=job,
+                prompt=jarvis_prompt,
+                summary=package.get("scenario", "JARVIS Job Package"),
+                recommendations=package,
+                status="reviewed",
             )
 
-            for template_material in template_materials:
-                create_or_update_job_material_from_template(job, template_material)
+            JobNote.objects.create(
+                job=job,
+                author="JARVIS",
+                note=(
+                    "JARVIS created a job package at job creation.\n\n"
+                    f"Scenario: {package.get('scenario')}\n"
+                    f"Labor: {package.get('labor_hours_min')}–{package.get('labor_hours_max')} hrs\n\n"
+                    f"Customer Scope:\n{package.get('customer_scope')}\n\n"
+                    f"Internal Notes:\n{package.get('internal_notes')}"
+                ),
+                internal=True,
+            )
+
+            messages.success(request, "Job created and JARVIS package generated.")
+        else:
+            messages.success(request, "Job created.")
 
         return redirect("job_detail", job_id=job.id)
 
     return render(request, "create_job.html", {
         "customer": customer,
-        "template_groups": template_groups,
+        "template_groups": [],
     })
 
 

@@ -4,75 +4,36 @@
 
 <div class="card"
      style="
-        background:linear-gradient(
-            135deg,
-            #0b0b0c 0%,
-            #1c1c1c 100%
-        );
+        background:linear-gradient(135deg,#050505 0%,#111827 55%,#1f2937 100%);
         color:white;
+        border-radius:22px;
      ">
 
-    <div style="
-        display:flex;
-        justify-content:space-between;
-        align-items:flex-start;
-        gap:20px;
-        flex-wrap:wrap;
-    ">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap;">
 
         <div>
-
             <div class="badge"
-                 style="
-                    background:rgba(255,196,0,.14);
-                    color:var(--gold);
-                    margin-bottom:18px;
-                 ">
-
+                 style="background:rgba(255,196,0,.14); color:var(--gold); margin-bottom:18px;">
                 NEW JOB WORK ORDER
-
             </div>
 
-            <h1 class="section-title"
-                style="
-                    color:white;
-                    margin-bottom:12px;
-                ">
-
+            <h1 class="section-title" style="color:white; margin-bottom:12px;">
                 Create Job
-
             </h1>
 
-            <p style="
-                color:#d1d5db;
-                margin:0;
-                line-height:1.7;
-                max-width:700px;
-            ">
-
-                Start a walkthrough, estimate request,
-                troubleshooting visit, panel install,
-                dedicated circuit install, lighting project,
-                or active residential electrical job
-                for {{ customer.name }}.
-
+            <p style="color:#d1d5db; margin:0; line-height:1.7; max-width:760px;">
+                Tell JARVIS what the customer needs. JARVIS will build the job package on the next screen:
+                questions, step-by-step plan, materials, labor, and estimate path.
             </p>
-
         </div>
 
         <div>
-
-            <a class="btn"
-               href="/customers/{{ customer.id }}/">
-
+            <a class="btn" href="/customers/{{ customer.id }}/">
                 ← Back to Customer
-
             </a>
-
         </div>
 
     </div>
-
 </div>
 
 
@@ -80,133 +41,105 @@
 
     {% csrf_token %}
 
+    <div class="card"
+         style="
+            background:linear-gradient(135deg,#0f172a,#1e293b);
+            color:white;
+            border:2px solid #2563eb;
+            border-radius:22px;
+            box-shadow:0 25px 80px rgba(37,99,235,.22);
+         ">
+
+        <div style="text-align:center; margin-bottom:24px;">
+            <div class="badge" style="background:#2563eb; color:white; padding:8px 18px;">
+                🤖 JARVIS
+            </div>
+
+            <h1 style="margin:20px 0 10px; color:white;">
+                What is the job?
+            </h1>
+
+            <p style="color:#cbd5e1; margin:0;">
+                Type it like the customer told you. JARVIS will handle the first draft.
+            </p>
+        </div>
+
+        <textarea
+            name="jarvis_prompt"
+            rows="6"
+            placeholder="Example: Install 6 recessed lights in living room with dimmer and attic access..."
+            style="
+                width:100%;
+                border:none;
+                border-radius:16px;
+                padding:18px;
+                font-size:16px;
+                margin-bottom:18px;
+            "
+            required></textarea>
+
+        <div class="grid grid-4">
+            <div class="list-card" style="background:rgba(255,255,255,.08); color:white;">
+                <strong>Examples</strong>
+                <p style="color:#cbd5e1; margin-bottom:0;">Install 6 recessed lights with dimmer</p>
+            </div>
+
+            <div class="list-card" style="background:rgba(255,255,255,.08); color:white;">
+                <strong>Troubleshooting</strong>
+                <p style="color:#cbd5e1; margin-bottom:0;">Kitchen outlets keep tripping</p>
+            </div>
+
+            <div class="list-card" style="background:rgba(255,255,255,.08); color:white;">
+                <strong>Dedicated Circuit</strong>
+                <p style="color:#cbd5e1; margin-bottom:0;">Add freezer circuit in garage</p>
+            </div>
+
+            <div class="list-card" style="background:rgba(255,255,255,.08); color:white;">
+                <strong>Install</strong>
+                <p style="color:#cbd5e1; margin-bottom:0;">Replace ceiling fan in bedroom</p>
+            </div>
+        </div>
+
+    </div>
+
+
     <div class="grid grid-2">
 
-        <!-- LEFT COLUMN -->
         <div class="card">
-
             <h2 style="margin-top:0;">
-                Basic Job Information
+                Job Basics
             </h2>
 
-            <!-- SEARCH -->
-            <label>
-                Search Templates
-            </label>
-
-            <input
-                type="text"
-                id="templateSearch"
-                placeholder="Search templates..."
-                onkeyup="filterTemplates()"
-            >
-
-            <!-- TEMPLATE -->
-            <label>
-                Service Template
-            </label>
-
-            <select name="template"
-                    id="templateSelect">
-
-                <option value="">
-                    No template / custom job
-                </option>
-
-                {% for group in template_groups %}
-
-                    <optgroup label="{{ group.category }}">
-
-                        {% for template in group.templates %}
-
-                            <option value="{{ template.id }}">
-
-                                {{ template.icon }}
-                                {{ template.name }}
-
-                            </option>
-
-                        {% endfor %}
-
-                    </optgroup>
-
-                {% endfor %}
-
-            </select>
-
-            <small style="
-                color:#9ca3af;
-                display:block;
-                margin-top:8px;
-                margin-bottom:22px;
-            ">
-
-                Selecting a template automatically
-                loads recommended starter materials.
-
-            </small>
-
-            <!-- TITLE -->
             <label>
                 Job Title
             </label>
 
             <input type="text"
                    name="title"
-                   placeholder="Example: 200A Panel Upgrade">
+                   placeholder="Leave blank and JARVIS will name it">
 
-            <!-- STATUS -->
             <label>
                 Status
             </label>
 
             <select name="status">
-
-                <option value="site_visit">
-                    Site Visit
-                </option>
-
-                <option value="estimate_needed">
-                    Estimate Needed
-                </option>
-
-                <option value="scheduled">
-                    Scheduled
-                </option>
-
-                <option value="in_progress">
-                    In Progress
-                </option>
-
+                <option value="site_visit" selected>Site Visit</option>
+                <option value="estimate_needed">Estimate Needed</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="in_progress">In Progress</option>
             </select>
 
-            <!-- PRIORITY -->
             <label>
                 Priority
             </label>
 
             <select name="priority">
-
-                <option value="low">
-                    Low
-                </option>
-
-                <option value="normal"
-                        selected>
-                    Normal
-                </option>
-
-                <option value="high">
-                    High
-                </option>
-
-                <option value="urgent">
-                    Urgent
-                </option>
-
+                <option value="low">Low</option>
+                <option value="normal" selected>Normal</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
             </select>
 
-            <!-- ASSIGNED -->
             <label>
                 Assigned Technician
             </label>
@@ -215,7 +148,6 @@
                    name="assigned_to"
                    placeholder="Technician / Crew">
 
-            <!-- ADDRESS -->
             <label>
                 Job Address
             </label>
@@ -224,7 +156,6 @@
                    name="job_address"
                    value="{{ customer.address }}">
 
-            <!-- DATE -->
             <label>
                 Scheduled Date
             </label>
@@ -232,7 +163,6 @@
             <input type="datetime-local"
                    name="scheduled_date">
 
-            <!-- PRICE -->
             <label>
                 Estimated Total Price
             </label>
@@ -240,113 +170,68 @@
             <input type="number"
                    step="0.01"
                    name="estimated_total_price"
-                   placeholder="Example: 4850.00">
-
+                   placeholder="Optional — JARVIS estimate comes later">
         </div>
 
 
-        <!-- RIGHT COLUMN -->
         <div class="card">
-
             <h2 style="margin-top:0;">
-                Scope & Field Notes
+                Optional Field Notes
             </h2>
 
-            <!-- DESCRIPTION -->
             <label>
                 Customer-Facing Description
             </label>
 
             <textarea name="description"
-                      rows="6"
-                      placeholder="Describe the work for the customer..."></textarea>
+                      rows="5"
+                      placeholder="Optional. JARVIS can create this from your prompt."></textarea>
 
-            <!-- SITE NOTES -->
             <label>
                 Site Visit Notes
             </label>
 
             <textarea name="site_notes"
-                      rows="6"
-                      placeholder="Panel location, attic access, grounding, utility notes, troubleshooting findings, measurements..."></textarea>
+                      rows="5"
+                      placeholder="Optional details: attic access, panel location, measurements, customer notes..."></textarea>
 
-            <!-- MATERIAL NOTES -->
             <label>
                 Material Notes
             </label>
 
             <textarea name="material_notes"
-                      rows="6"
-                      placeholder="Wire, conduit, fittings, permits, breaker sizes, grounding, material reminders, NEC notes..."></textarea>
-
+                      rows="5"
+                      placeholder="Optional material reminders, code notes, permit notes, breaker sizes..."></textarea>
         </div>
 
     </div>
 
 
-    <!-- BUTTONS -->
     <div class="card">
 
-        <div style="
-            display:flex;
-            justify-content:flex-end;
-            gap:12px;
-            flex-wrap:wrap;
-        ">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
 
-            <a class="btn"
-               href="/customers/{{ customer.id }}/">
+            <div>
+                <div class="badge">NEXT STEP</div>
+                <h2 style="margin:10px 0 0;">
+                    Create job and let JARVIS build the package
+                </h2>
+            </div>
 
-                Cancel
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <a class="btn" href="/customers/{{ customer.id }}/">
+                    Cancel
+                </a>
 
-            </a>
-
-            <button class="btn btn-gold"
-                    type="submit">
-
-                🛠 Create Job
-
-            </button>
+                <button class="btn btn-gold" type="submit">
+                    ⚡ Create Job With JARVIS
+                </button>
+            </div>
 
         </div>
 
     </div>
 
 </form>
-
-
-<!-- TEMPLATE SEARCH FILTER -->
-<script>
-
-function filterTemplates() {
-
-    const search = document
-        .getElementById("templateSearch")
-        .value
-        .toLowerCase();
-
-    const select = document.getElementById("templateSelect");
-
-    const options = select.querySelectorAll("option");
-
-    options.forEach(option => {
-
-        const text = option.textContent.toLowerCase();
-
-        if (option.value === "") {
-
-            option.hidden = false;
-
-        } else {
-
-            option.hidden = !text.includes(search);
-
-        }
-
-    });
-
-}
-
-</script>
 
 {% endblock %}
