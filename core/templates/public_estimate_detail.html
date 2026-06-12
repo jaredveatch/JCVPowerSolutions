@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{{ estimate.title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f5f7;
+            color: #111827;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,.08);
+        }
+
+        .header {
+            background: #111827;
+            color: white;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #ffc400;
+        }
+
+        .header h2 {
+            margin-top: 10px;
+        }
+
+        .meta {
+            color: #d1d5db;
+            line-height: 1.7;
+        }
+
+        .project-total {
+            background: #111827;
+            color: white;
+            text-align: center;
+        }
+
+        .project-total h3 {
+            color: #ffc400;
+            margin-bottom: 10px;
+        }
+
+        .project-total .amount {
+            font-size: 48px;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            background: #f3f4f6;
+            padding: 14px;
+            font-size: 13px;
+            text-transform: uppercase;
+            color: #6b7280;
+        }
+
+        td {
+            padding: 16px 14px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 16px;
+        }
+
+        td:last-child,
+        th:last-child {
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .summary-row strong {
+            font-size: 17px;
+        }
+
+        .muted {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .approve-box {
+            border: 2px solid #ffc400;
+        }
+
+        input[type=text] {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            margin-top: 8px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        .checkbox {
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: #ffc400;
+            color: black;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+        }
+
+        .btn:hover {
+            opacity: .9;
+        }
+
+        .signed {
+            background: #ecfdf5;
+            border: 2px solid #16a34a;
+        }
+
+        .error {
+            color: #dc2626;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .success {
+            color: #16a34a;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        @media (max-width: 650px) {
+            body {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 22px;
+                border-radius: 16px;
+            }
+
+            .project-total .amount {
+                font-size: 38px;
+            }
+
+            td,
+            th {
+                font-size: 14px;
+                padding: 12px 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card header">
+        <h1>JCV Power Solutions</h1>
+
+        <h2>{{ estimate.title }}</h2>
+
+        <p class="meta">
+            Estimate #{{ estimate.id }}
+            <br>
+            Customer: {{ estimate.job.customer.name }}
+            <br>
+            Project: {{ estimate.job.title }}
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>Scope of Work</h2>
+        <p>{{ estimate.scope_of_work|linebreaks }}</p>
+    </div>
+
+    <div class="card">
+        <h2>Project Breakdown</h2>
+
+        <p class="muted">
+            This estimate summarizes the major cost categories for the project.
+            Detailed internal material counts are used by JCV Power Solutions for planning and installation.
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr class="summary-row">
+                    <td>
+                        <strong>Materials & Equipment</strong>
+                        <div class="muted">
+                            Electrical materials, devices, equipment, connectors, and installation supplies.
+                        </div>
+                    </td>
+                    <td>
+                        ${{ material_total|default:"0.00" }}
+                    </td>
+                </tr>
+
+                <tr class="summary-row">
+                    <td>
+                        <strong>Labor & Installation</strong>
+                        <div class="muted">
+                            Professional installation, setup, coordination, testing, and job completion.
+                        </div>
+                    </td>
+                    <td>
+                        ${{ labor_total|default:"0.00" }}
+                    </td>
+                </tr>
+
+                {% if estimate.tax %}
+                <tr class="summary-row">
+                    <td>
+                        <strong>Tax / Fees</strong>
+                    </td>
+                    <td>
+                        ${{ estimate.tax }}
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if estimate.exclusions %}
+    <div class="card">
+        <h2>Exclusions</h2>
+        <p>{{ estimate.exclusions|linebreaks }}</p>
+    </div>
+    {% endif %}
+
+    <div class="card project-total">
+        <h3>PROJECT TOTAL</h3>
+
+        <div class="amount">
+            ${{ estimate.total }}
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Terms & Conditions</h2>
+
+        <p>
+            {{ estimate.terms|default:"Estimate valid for 30 days. Pricing subject to permits, utility requirements, material availability, and field conditions discovered during work."|linebreaks }}
+        </p>
+    </div>
+
+    {% if estimate.accepted_terms %}
+
+        <div class="card signed">
+
+            <h2>✅ Estimate Approved</h2>
+
+            <p>
+                This estimate was electronically approved.
+            </p>
+
+            <ul>
+                <li><strong>Signed By:</strong> {{ estimate.customer_signature_name }}</li>
+                <li><strong>Signed Date:</strong> {{ estimate.signed_date }}</li>
+            </ul>
+
+        </div>
+
+    {% else %}
+
+        <div class="card approve-box">
+
+            <h2>Approve This Estimate</h2>
+
+            <p>
+                To approve this estimate, enter your full name and agree to the terms below.
+            </p>
+
+            {% if error %}
+                <div class="error">
+                    {{ error }}
+                </div>
+            {% endif %}
+
+            {% if request.GET.signed %}
+                <div class="success">
+                    Estimate approved successfully.
+                </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <label>Full Name</label>
+
+                <input
+                    type="text"
+                    name="customer_signature_name"
+                    required
+                >
+
+                <div class="checkbox">
+                    <label>
+                        <input
+                            type="checkbox"
+                            name="accepted_terms"
+                            required
+                        >
+
+                        I approve this estimate and agree to the terms and conditions above.
+                    </label>
+                </div>
+
+                <button type="submit" class="btn">
+                    Approve & Sign Estimate
+                </button>
+            </form>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>

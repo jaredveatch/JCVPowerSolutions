@@ -1,21 +1,85 @@
 from decimal import Decimal
 from io import BytesIO
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import FileResponse
 from django.contrib.admin.views.decorators import staff_member_required
+from django.core import signing
+from django.http import FileResponse, Http404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
 
-from .models import (
-    Job,
-    Estimate,
-    EstimateLineItem,
-    Invoice,
-)
+from .models import Job, Estimate, EstimateLineItem, Invoice
+
+
+def money(value):
+    return f"${Decimal(str(value or 0)):,.2f}"
+
+
+def get_estimate_public_token(estimate):
+    return signing.dumps(
+        {"estimate_id": estimate.id},
+        salt="jcv-estimate-approval",
+    )
+
+
+def get_estimate_from_token(token):
+    try:
+        data = signing.loads(
+            token,
+            salt="jcv-estimate-approval",
+            max_age=60 * 60 * 24 * 60,
+        )
+        return Estimate.objects.get(id=data["estimate_id"])
+    except Exception:
+        raise Http404("Invalid or expired estimate link.")
+
+
+def build_absolute_url(request, path):
+    return request.build_absolute_uri(path)
+
+
+def estimate_summary_totals(estimate):
+    line_items = estimate.line_items.all()
+
+    material_total = sum(
+        (line.total for line in line_items if line.item_type == "material"),
+        Decimal("0.00"),
+    )
+
+    labor_total = sum(
+        (line.total for line in line_items if line.item_type == "labor"),
+        Decimal("0.00"),
+    )
+
+    service_total = sum(
+        (
+            line.total
+            for line in line_items
+            if line.item_type in ["service", "fee"]
+        ),
+        Decimal("0.00"),
+    )
+
+    discount_total = sum(
+        (line.total for line in line_items if line.item_type == "discount"),
+        Decimal("0.00"),
+    )
+
+    # Fallback: if old estimates only have labor lines, keep the total honest.
+    grouped_total = material_total + labor_total + service_total + discount_total
+
+    if grouped_total <= 0 and estimate.subtotal:
+        service_total = Decimal(str(estimate.subtotal or 0))
+
+    return {
+        "material_total": material_total,
+        "labor_total": labor_total,
+        "service_total": service_total,
+        "discount_total": discount_total,
+    }
 
 
 @staff_member_required
@@ -29,51 +93,49 @@ def estimates(request):
 def create_estimate_from_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
 
-    scope = job.description or "Electrical work as discussed during walkthrough."
-
     estimate = Estimate.objects.create(
         job=job,
         title=f"Estimate - {job.title}",
-        scope_of_work=scope,
+        scope_of_work=job.description or "Electrical work as discussed during walkthrough.",
         subtotal=Decimal("0.00"),
         tax=Decimal("0.00"),
         total=Decimal("0.00"),
         status="draft",
+        terms=(
+            "Estimate valid for 30 days. Pricing subject to utility requirements, "
+            "material availability, permits, and field conditions discovered during work."
+        ),
     )
 
-    for item in job.job_materials.all().order_by(
-        "-total_cost",
-        "-labor_total",
-        "-material_total",
-        "material__name",
-    ):
-        material_name = item.material.name if item.material else "Material"
+    material_total = Decimal("0.00")
+    labor_total = Decimal("0.00")
 
-        if item.material_total and item.material_total > 0:
-            EstimateLineItem.objects.create(
-                estimate=estimate,
-                item_type="material",
-                description=material_name,
-                quantity=item.quantity,
-                unit_price=item.unit_cost,
-                source_job_material=item,
-            )
+    for item in job.job_materials.all():
+        material_total += Decimal(str(item.material_sell_total or item.material_total or 0))
+        labor_total += Decimal(str(item.labor_total or 0))
 
-        if item.labor_total and item.labor_total > 0:
-            EstimateLineItem.objects.create(
-                estimate=estimate,
-                item_type="labor",
-                description=f"Labor - {material_name}",
-                quantity=Decimal("1"),
-                unit_price=item.labor_total,
-                source_job_material=item,
-            )
+    if material_total > 0:
+        EstimateLineItem.objects.create(
+            estimate=estimate,
+            item_type="material",
+            description="Materials & Equipment",
+            quantity=Decimal("1"),
+            unit_price=material_total,
+        )
+
+    if labor_total > 0:
+        EstimateLineItem.objects.create(
+            estimate=estimate,
+            item_type="labor",
+            description="Labor & Installation",
+            quantity=Decimal("1"),
+            unit_price=labor_total,
+        )
 
     estimate.subtotal = sum(
         (line.total for line in estimate.line_items.all()),
         Decimal("0.00"),
     )
-
     estimate.total = estimate.subtotal + estimate.tax
     estimate.save()
 
@@ -86,20 +148,70 @@ def create_estimate_from_job(request, job_id):
 @staff_member_required
 def estimate_detail(request, estimate_id):
     estimate = get_object_or_404(Estimate, id=estimate_id)
+    token = get_estimate_public_token(estimate)
 
     return render(request, "estimate_detail.html", {
         "estimate": estimate,
-        "line_items": estimate.line_items.all().order_by(
-            "item_type",
-            "-total",
-            "description",
-        ),
+        "line_items": estimate.line_items.all().order_by("item_type", "-total", "description"),
+        "public_estimate_url": build_absolute_url(request, f"/estimates/public/{token}/"),
+        "public_token": token,
+        **estimate_summary_totals(estimate),
+    })
+
+
+def public_estimate_detail(request, token):
+    estimate = get_estimate_from_token(token)
+    summary = estimate_summary_totals(estimate)
+
+    if request.method == "POST":
+        customer_signature_name = request.POST.get("customer_signature_name", "").strip()
+        accepted_terms = request.POST.get("accepted_terms")
+
+        if customer_signature_name and accepted_terms:
+            estimate.customer_signature_name = customer_signature_name
+            estimate.accepted_terms = True
+            estimate.signed_date = timezone.now()
+            estimate.status = "approved"
+            estimate.save()
+
+            job = estimate.job
+            job.status = "approved"
+            job.save()
+
+            Invoice.objects.get_or_create(
+                estimate=estimate,
+                defaults={
+                    "job": job,
+                    "title": f"Invoice - {job.title}",
+                    "description": estimate.scope_of_work,
+                    "subtotal": estimate.subtotal,
+                    "tax": estimate.tax,
+                    "total": estimate.total,
+                    "amount_due": estimate.total,
+                    "amount_paid": Decimal("0.00"),
+                    "status": "draft",
+                    "due_date": timezone.now().date(),
+                },
+            )
+
+            return redirect(f"/estimates/public/{token}/?signed=1")
+
+        return render(request, "public_estimate_detail.html", {
+            "estimate": estimate,
+            "error": "Please enter your full name and agree to the terms.",
+            **summary,
+        })
+
+    return render(request, "public_estimate_detail.html", {
+        "estimate": estimate,
+        **summary,
     })
 
 
 @staff_member_required
 def estimate_pdf(request, estimate_id):
     estimate = get_object_or_404(Estimate, id=estimate_id)
+    summary = estimate_summary_totals(estimate)
 
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=letter)
@@ -116,9 +228,6 @@ def estimate_pdf(request, estimate_id):
 
     y = top
 
-    def money(value):
-        return f"${Decimal(str(value or 0)):,.2f}"
-
     def wrapped_lines(text, limit=92):
         words = str(text or "").split()
         lines = []
@@ -132,7 +241,6 @@ def estimate_pdf(request, estimate_id):
             else:
                 if current:
                     lines.append(current)
-
                 current = word
 
         if current:
@@ -147,19 +255,12 @@ def estimate_pdf(request, estimate_id):
     def check_page(current_y, needed=1.5 * inch):
         if current_y < needed:
             return new_page()
-
         return current_y
 
     def section_header(title, current_y):
         pdf.setStrokeColorRGB(*gold)
         pdf.setLineWidth(2)
-
-        pdf.line(
-            left,
-            current_y - 0.08 * inch,
-            right,
-            current_y - 0.08 * inch,
-        )
+        pdf.line(left, current_y - 0.08 * inch, right, current_y - 0.08 * inch)
 
         pdf.setFillColorRGB(*dark)
         pdf.setFont("Helvetica-Bold", 14)
@@ -167,20 +268,9 @@ def estimate_pdf(request, estimate_id):
 
         return current_y - 0.35 * inch
 
-    # =====================================================
-    # HEADER
-    # =====================================================
-
+    # Header
     pdf.setFillColorRGB(*dark)
-
-    pdf.rect(
-        0,
-        height - 1.55 * inch,
-        width,
-        1.55 * inch,
-        stroke=0,
-        fill=1,
-    )
+    pdf.rect(0, height - 1.55 * inch, width, 1.55 * inch, stroke=0, fill=1)
 
     pdf.setFillColorRGB(*gold)
     pdf.setFont("Helvetica-Bold", 26)
@@ -198,23 +288,10 @@ def estimate_pdf(request, estimate_id):
 
     y = height - 1.95 * inch
 
-    # =====================================================
-    # CUSTOMER / PROJECT BOX
-    # =====================================================
-
+    # Customer/project box
     info_height = 1.45 * inch
-
     pdf.setStrokeColorRGB(*light_gray)
-
-    pdf.roundRect(
-        left,
-        y - info_height,
-        right - left,
-        info_height,
-        10,
-        stroke=1,
-        fill=0,
-    )
+    pdf.roundRect(left, y - info_height, right - left, info_height, 10, stroke=1, fill=0)
 
     pdf.setFillColorRGB(*gray)
     pdf.setFont("Helvetica-Bold", 10)
@@ -238,11 +315,7 @@ def estimate_pdf(request, estimate_id):
 
     pdf.setFillColorRGB(*dark)
     pdf.setFont("Helvetica", 10)
-    pdf.drawString(
-        left + 0.90 * inch,
-        y - 1.00 * inch,
-        estimate.created_at.strftime("%m/%d/%Y"),
-    )
+    pdf.drawString(left + 0.90 * inch, y - 1.00 * inch, estimate.created_at.strftime("%m/%d/%Y"))
 
     pdf.setFillColorRGB(*gray)
     pdf.setFont("Helvetica-Bold", 10)
@@ -254,33 +327,53 @@ def estimate_pdf(request, estimate_id):
 
     y -= info_height + 0.45 * inch
 
-    # =====================================================
-    # SCOPE
-    # =====================================================
-
+    # Scope
     y = section_header("Scope of Work", y)
-
     pdf.setFillColorRGB(*dark)
     pdf.setFont("Helvetica", 10)
 
-    scope = estimate.scope_of_work or "Electrical work as discussed."
-
-    for line in wrapped_lines(scope, 96):
+    for line in wrapped_lines(estimate.scope_of_work or "Electrical work as discussed.", 96):
         y = check_page(y)
-
-        pdf.drawString(
-            left + 0.10 * inch,
-            y,
-            line,
-        )
-
+        pdf.drawString(left + 0.10 * inch, y, line)
         y -= 0.22 * inch
 
     y -= 0.15 * inch
 
-    # =====================================================
-    # EXCLUSIONS
-    # =====================================================
+    # Simplified project breakdown
+    y = check_page(y, 2.4 * inch)
+    y = section_header("Project Breakdown", y)
+
+    pdf.setFillColorRGB(*gray)
+    pdf.setFont("Helvetica-Bold", 9)
+    pdf.drawString(left + 0.10 * inch, y, "Description")
+    pdf.drawRightString(right, y, "Total")
+    y -= 0.22 * inch
+
+    pdf.setStrokeColorRGB(*light_gray)
+    pdf.line(left, y, right, y)
+    y -= 0.22 * inch
+
+    pdf.setFillColorRGB(*dark)
+    pdf.setFont("Helvetica", 10)
+
+    rows = [
+        ("Materials & Equipment", summary["material_total"]),
+        ("Labor & Installation", summary["labor_total"]),
+    ]
+
+    if summary["service_total"]:
+        rows.append(("Permits / Fees / Other", summary["service_total"]))
+
+    if estimate.tax:
+        rows.append(("Tax", estimate.tax))
+
+    for label, amount in rows:
+        y = check_page(y)
+        pdf.drawString(left + 0.10 * inch, y, label)
+        pdf.drawRightString(right, y, money(amount))
+        y -= 0.25 * inch
+
+    y -= 0.20 * inch
 
     if estimate.exclusions:
         y = check_page(y, 2 * inch)
@@ -291,21 +384,12 @@ def estimate_pdf(request, estimate_id):
 
         for line in wrapped_lines(estimate.exclusions, 102):
             y = check_page(y)
-
-            pdf.drawString(
-                left + 0.10 * inch,
-                y,
-                line,
-            )
-
+            pdf.drawString(left + 0.10 * inch, y, line)
             y -= 0.18 * inch
 
         y -= 0.18 * inch
 
-    # =====================================================
-    # TOTAL
-    # =====================================================
-
+    # Total box
     y = check_page(y, 2.5 * inch)
 
     total_box_width = 3.05 * inch
@@ -313,16 +397,7 @@ def estimate_pdf(request, estimate_id):
     total_x = right - total_box_width
 
     pdf.setFillColorRGB(*dark)
-
-    pdf.roundRect(
-        total_x,
-        y - total_box_height,
-        total_box_width,
-        total_box_height,
-        10,
-        stroke=0,
-        fill=1,
-    )
+    pdf.roundRect(total_x, y - total_box_height, total_box_width, total_box_height, 10, stroke=0, fill=1)
 
     pdf.setFillColorRGB(*gold)
     pdf.setFont("Helvetica-Bold", 12)
@@ -334,10 +409,7 @@ def estimate_pdf(request, estimate_id):
 
     y -= total_box_height + 0.55 * inch
 
-    # =====================================================
-    # TERMS
-    # =====================================================
-
+    # Terms
     y = check_page(y, 2 * inch)
     y = section_header("Terms & Conditions", y)
 
@@ -351,57 +423,41 @@ def estimate_pdf(request, estimate_id):
 
     for line in wrapped_lines(terms, 104):
         y = check_page(y)
-
-        pdf.drawString(
-            left + 0.10 * inch,
-            y,
-            line,
-        )
-
+        pdf.drawString(left + 0.10 * inch, y, line)
         y -= 0.18 * inch
 
     y -= 0.55 * inch
 
-    # =====================================================
-    # SIGNATURE
-    # =====================================================
-
+    # Approval
     y = check_page(y, 1.8 * inch)
 
     pdf.setFillColorRGB(*dark)
     pdf.setFont("Helvetica-Bold", 11)
-    pdf.drawString(left, y, "Accepted By Signing Below")
+    pdf.drawString(left, y, "Customer Approval")
 
-    y -= 0.50 * inch
+    y -= 0.35 * inch
 
-    pdf.setStrokeColorRGB(*dark)
+    if estimate.accepted_terms and estimate.customer_signature_name:
+        pdf.setFillColorRGB(*dark)
+        pdf.setFont("Helvetica-Bold", 12)
+        pdf.drawString(left, y, f"Electronically Signed By: {estimate.customer_signature_name}")
 
-    pdf.line(
-        left,
-        y,
-        left + 3.10 * inch,
-        y,
-    )
+        y -= 0.24 * inch
 
-    pdf.line(
-        right - 2.40 * inch,
-        y,
-        right,
-        y,
-    )
+        pdf.setFillColorRGB(*gray)
+        pdf.setFont("Helvetica", 9)
+        signed_date = estimate.signed_date.strftime("%m/%d/%Y %I:%M %p") if estimate.signed_date else ""
+        pdf.drawString(left, y, f"Signed Date: {signed_date}")
+        y -= 0.24 * inch
+        pdf.drawString(left, y, "Customer approved this estimate electronically.")
+    else:
+        pdf.setFillColorRGB(*gray)
+        pdf.setFont("Helvetica", 9)
+        pdf.drawString(left, y, "Pending customer approval. Customer may approve using the secure online estimate link.")
 
-    pdf.setFillColorRGB(*gray)
-    pdf.setFont("Helvetica", 9)
-    pdf.drawString(left, y - 0.18 * inch, "Customer Signature")
-    pdf.drawString(right - 2.40 * inch, y - 0.18 * inch, "Date")
-
-    # =====================================================
-    # FOOTER
-    # =====================================================
-
+    # Footer
     pdf.setFillColorRGB(*gray)
     pdf.setFont("Helvetica", 8)
-
     pdf.drawCentredString(
         width / 2,
         0.40 * inch,
@@ -411,12 +467,10 @@ def estimate_pdf(request, estimate_id):
     pdf.save()
     buffer.seek(0)
 
-    filename = f"estimate-{estimate.id}.pdf"
-
     return FileResponse(
         buffer,
         as_attachment=True,
-        filename=filename,
+        filename=f"estimate-{estimate.id}.pdf",
     )
 
 
@@ -442,11 +496,7 @@ def edit_estimate(request, estimate_id):
 
     return render(request, "edit_estimate.html", {
         "estimate": estimate,
-        "line_items": estimate.line_items.all().order_by(
-            "item_type",
-            "-total",
-            "description",
-        ),
+        "line_items": estimate.line_items.all().order_by("item_type", "-total", "description"),
     })
 
 
@@ -457,6 +507,10 @@ def approve_estimate(request, estimate_id):
     estimate.status = "approved"
     estimate.accepted_terms = True
     estimate.signed_date = timezone.now()
+
+    if not estimate.customer_signature_name:
+        estimate.customer_signature_name = "Approved by JCV Admin"
+
     estimate.save()
 
     job = estimate.job
